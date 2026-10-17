@@ -48,25 +48,24 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyDJMd_-Ib_f1OUQmSuGj8wP3bUv4wu3TPc',
-    appId: '1:523638069623:web:9d4e3add7b5ba53a50e972',
+    appId: '1:523638069623:web:b172d0a1c29500a950e972',
     messagingSenderId: '523638069623',
     projectId: 'chatbud-official',
     authDomain: 'chatbud-official.firebaseapp.com',
     storageBucket: 'chatbud-official.firebasestorage.app',
-    measurementId: 'G-29ZTSG6H2L',
+    measurementId: 'G-PRYX8M28LB',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDEdye_zQzo7sOyhFRE1eyMjL_EgQgL_d8',
-    appId: '1:523638069623:android:7c2f46a94d01ce8650e972',
+    appId: '1:523638069623:android:59f2828ba6943d5e50e972',
     messagingSenderId: '523638069623',
     projectId: 'chatbud-official',
     storageBucket: 'chatbud-official.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDtm7G8_2TDyXDmrsr8OAIgaRjvyroBIvU',
-    appId: '1:523638069623:ios:d50dbe76e09c42fb50e972',
+    appId: '1:523638069623:ios:ab4aed49d8c282b250e972',
     messagingSenderId: '523638069623',
     projectId: 'chatbud-official',
     storageBucket: 'chatbud-official.firebasestorage.app',
