@@ -1,4 +1,4 @@
-import 'package:baatcheet/main.dart';
+import 'package:chatbud/main.dart';
 import 'package:flutter/material.dart';
 
 import 'src/screen/conversation_screen.dart';

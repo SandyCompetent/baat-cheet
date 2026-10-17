@@ -1,8 +1,8 @@
-import 'package:baatcheet/src/screen/contactPage.dart';
-import 'package:baatcheet/src/screen/groupPage.dart';
-import 'package:baatcheet/src/screen/listPage.dart';
-import 'package:baatcheet/src/screen/messagePage.dart';
-import 'package:baatcheet/theme_data.dart';
+import 'package:chatbud/src/screen/contact_page.dart';
+import 'package:chatbud/src/screen/group_page.dart';
+import 'package:chatbud/src/screen/list_page.dart';
+import 'package:chatbud/src/screen/message_page.dart';
+import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
 
 import 'route_generator.dart';
@@ -17,7 +17,7 @@ class EntryPoint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'BaatCheet',
+        title: 'ChatBud',
         theme: lightTheme,
         darkTheme: darkTheme,
         initialRoute: splashRoute,
@@ -30,7 +30,7 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {

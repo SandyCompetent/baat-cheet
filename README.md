@@ -1,4 +1,4 @@
-# BaatCheet
+# ChatBud
 
 A Flutter-based chat application for App / Web, designed to provide a seamless and engaging user
 experience.

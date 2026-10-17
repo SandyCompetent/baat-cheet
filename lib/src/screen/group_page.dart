@@ -4,7 +4,7 @@ class GroupPage extends StatefulWidget {
   const GroupPage({super.key});
 
   @override
-  _GroupPageState createState() => _GroupPageState();
+  State<GroupPage> createState() => _GroupPageState();
 }
 
 class _GroupPageState extends State<GroupPage> {

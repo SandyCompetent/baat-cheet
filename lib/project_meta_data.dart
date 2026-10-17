@@ -1,3 +1,3 @@
-const appName = "BaatCheet";
+const appName = "ChatBud";
 const appVersion = "1.0.0";
 const appLogo = "assets/app_logo.png";

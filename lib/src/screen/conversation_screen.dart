@@ -1,11 +1,11 @@
-import 'package:baatcheet/src/widgets/message_item.dart';
+import 'package:chatbud/src/widgets/message_item.dart';
 import 'package:flutter/material.dart';
 
 class ConversationScreen extends StatefulWidget {
   const ConversationScreen({super.key});
 
   @override
-  _ConversationScreenState createState() => _ConversationScreenState();
+  State<ConversationScreen> createState() => _ConversationScreenState();
 }
 
 class _ConversationScreenState extends State<ConversationScreen> {

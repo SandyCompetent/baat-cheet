@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "523638069623",
+    "project_id": "chatbud-official",
+    "storage_bucket": "chatbud-official.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:523638069623:android:7c2f46a94d01ce8650e972",
+        "android_client_info": {
+          "package_name": "com.sandytech.chatbud"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEdye_zQzo7sOyhFRE1eyMjL_EgQgL_d8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

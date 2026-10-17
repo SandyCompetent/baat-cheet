@@ -1,4 +1,4 @@
-import 'package:baatcheet/route_generator.dart';
+import 'package:chatbud/route_generator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -6,7 +6,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -32,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'BaatCheet',
+              'ChatBud',
               style: TextStyle(
                 fontSize: 65.0,
                 fontWeight: FontWeight.bold,
