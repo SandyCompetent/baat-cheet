@@ -1,4 +1,5 @@
 import 'package:chatbud/route_generator.dart';
+import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -12,137 +13,156 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _isHidden = true;
 
-  void _toggleVisibility() {
-    setState(() {
-      _isHidden = !_isHidden;
-    });
-  }
+  void _toggleVisibility() => setState(() => _isHidden = !_isHidden);
 
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
+    final accent = context.accent;
+
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.redAccent,
-      body: Container(
-        padding: const EdgeInsets.only(
-            top: 100.0, right: 20.0, left: 20.0, bottom: 20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'ChatBud',
-              style: TextStyle(
-                fontSize: 65.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+      resizeToAvoidBottomInset: true,
+      backgroundColor: context.bgCanvas,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 28, vertical: 48),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // ── Brand header ──
+              const SizedBox(height: 24),
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: context.accentSubtle,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.chat_bubble_outline_rounded,
+                    color: accent, size: 36),
               ),
-            ),
-            const SizedBox(
-              height: 40.0,
-            ),
-            const Text(
-              "Connecting to close one",
-              style: TextStyle(
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              const SizedBox(height: 20),
+              Text(
+                'ChatBud',
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w700,
+                  color: context.textPrimary,
+                  letterSpacing: -0.5,
+                ),
               ),
-            ),
-            const SizedBox(
-              height: 40.0,
-            ),
-            _buildTextField("Email", false),
-            const SizedBox(
-              height: 20.0,
-            ),
-            _buildTextField("Password", true),
-            const SizedBox(
-              height: 20.0,
-            ),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                Text(
-                  "Forgot Password?",
-                  style: TextStyle(
-                    color: Colors.white,
+              const SizedBox(height: 8),
+              Text(
+                'Connecting to the ones you love',
+                style: TextStyle(
+                  color: context.textSecondary,
+                  fontSize: 15,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 48),
+
+              // ── Email field ──
+              _buildTextField(
+                context,
+                hint: 'Email',
+                icon: Icons.email_outlined,
+                isPassword: false,
+              ),
+              const SizedBox(height: 16),
+
+              // ── Password field ──
+              _buildTextField(
+                context,
+                hint: 'Password',
+                icon: Icons.lock_outline_rounded,
+                isPassword: true,
+              ),
+              const SizedBox(height: 12),
+
+              // Forgot password
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {},
+                  child: Text(
+                    'Forgot Password?',
+                    style: TextStyle(color: accent, fontSize: 13),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 50.0),
-            _buildButtonContainer(),
-            const SizedBox(
-              height: 10.0,
-            ),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text("Already have an account?",
-                    style: TextStyle(
-                      color: Colors.white,
-                    )),
-                SizedBox(
-                  width: 10.0,
+              ),
+              const SizedBox(height: 32),
+
+              // ── Primary CTA ──
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed(homeRoute),
+                  child: const Text(
+                    'Sign In',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
                 ),
-                Text("Sign in",
+              ),
+              const SizedBox(height: 16),
+
+              // ── Register link ──
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Don't have an account? ",
                     style: TextStyle(
-                      color: Colors.white,
-                    ))
-              ],
-            ),
-          ],
+                        color: context.textSecondary, fontSize: 14),
+                  ),
+                  GestureDetector(
+                    onTap: () {},
+                    child: Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        color: accent,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTextField(String hintText, bool isPassword) {
+  Widget _buildTextField(
+    BuildContext context, {
+    required String hint,
+    required IconData icon,
+    required bool isPassword,
+  }) {
     return TextField(
-        obscureText: isPassword ? _isHidden : false,
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: const TextStyle(
-            color: Colors.white,
-            fontSize: 16.0,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-          suffixIcon: isPassword
-              ? IconButton(
-                  onPressed: _toggleVisibility,
-                  icon: _isHidden
-                      ? const Icon(Icons.visibility_off)
-                      : const Icon(Icons.visibility),
-                )
-              : null,
-        ));
-  }
-
-  Widget _buildButtonContainer() {
-    return GestureDetector(
-      onTap: () => Navigator.of(context).pushNamed(homeRoute),
-      child: Container(
-        height: 56.0,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(23.0),
-          gradient: const LinearGradient(
-              colors: [Color(0xFFf2f2f2), Color(0xFFf2f2f2)],
-              begin: Alignment.centerRight,
-              end: Alignment.centerLeft),
-        ),
-        child: const Center(
-          child: Text(
-            "Login / Sign Up",
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: 18.0,
-            ),
-          ),
-        ),
+      obscureText: isPassword ? _isHidden : false,
+      style: TextStyle(color: context.textPrimary, fontSize: 15),
+      decoration: InputDecoration(
+        hintText: hint,
+        prefixIcon: Icon(icon, color: context.textMuted, size: 20),
+        suffixIcon: isPassword
+            ? IconButton(
+                onPressed: _toggleVisibility,
+                icon: Icon(
+                  _isHidden
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  color: context.textMuted,
+                  size: 20,
+                ),
+              )
+            : null,
       ),
     );
   }

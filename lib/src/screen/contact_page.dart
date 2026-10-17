@@ -1,108 +1,555 @@
+import 'package:chatbud/route_generator.dart';
+import 'package:chatbud/src/core/app_state.dart';
+import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-class ContactPage extends StatefulWidget {
+class ContactPage extends StatelessWidget {
   const ContactPage({super.key});
 
-  @override
-  State<ContactPage> createState() => _ContactPageState();
-}
-
-class _ContactPageState extends State<ContactPage> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          color: Colors.redAccent,
-          child: Center(
-            child: Column(
-              children: <Widget>[
-                Container(
-                  width: 100,
-                  height: 100,
-                  margin: const EdgeInsets.only(
-                    top: 30,
-                    bottom: 10,
-                  ),
-                  child: const Material(
-                    borderRadius: BorderRadius.all(Radius.circular(50.0)),
-                    child: Image(
-                      image: AssetImage('assets/app_logo.png'),
-                    ),
-                  ),
-                ),
-                const Text(
-                  'Sandeep Malviya',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(
-                  height: 40.0,
-                ),
-                const Text(
-                  'Founder and CEO of SandyTech "Lets get started"',
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
+  void _showEditNameDialog(BuildContext context) {
+    final ctrl = TextEditingController(text: AppState.instance.displayName);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit Display Name'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Enter your name',
+            prefixIcon: Icon(Icons.person_outline_rounded),
           ),
         ),
-        CustomListTile('Email Address', () => {}),
-        CustomListTile('Telephone', () => {}),
-        CustomListTile('Notification', () => {}),
-        CustomListTile('Settings', () => {}),
-        CustomListTile('Feedback', () => {}),
-        CustomListTile('Get help', () => {}),
-      ],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newName = ctrl.text.trim();
+              if (newName.isNotEmpty) {
+                AppState.instance.updateDisplayName(newName);
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showThemeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Select Theme'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.brightness_auto_rounded),
+              title: const Text('System Default'),
+              trailing: AppState.instance.themeMode == ThemeMode.system
+                  ? Icon(Icons.check_rounded, color: context.accent)
+                  : null,
+              onTap: () {
+                AppState.instance.setThemeMode(ThemeMode.system);
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.light_mode_outlined),
+              title: const Text('Light Slate'),
+              trailing: AppState.instance.themeMode == ThemeMode.light
+                  ? Icon(Icons.check_rounded, color: context.accent)
+                  : null,
+              onTap: () {
+                AppState.instance.setThemeMode(ThemeMode.light);
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.dark_mode_outlined),
+              title: const Text('Dark Slate (OLED)'),
+              trailing: AppState.instance.themeMode == ThemeMode.dark
+                  ? Icon(Icons.check_rounded, color: context.accent)
+                  : null,
+              onTap: () {
+                AppState.instance.setThemeMode(ThemeMode.dark);
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showFeedbackDialog(BuildContext context) {
+    final ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Send Feedback'),
+        content: TextField(
+          controller: ctrl,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            hintText: 'What can we improve in ChatBud?',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Thank you! Your feedback has been received.'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('ChatBud Help & Support'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '• Unified Auth: Sign in with email, verify OTP, or reset password seamlessly.',
+              style: TextStyle(fontSize: 13, height: 1.4),
+            ),
+            SizedBox(height: 8),
+            Text(
+              '• AI Assistant: Chat anytime with intelligent contextual AI assistance.',
+              style: TextStyle(fontSize: 13, height: 1.4),
+            ),
+            SizedBox(height: 8),
+            Text(
+              '• Bookmarks: Long-press any message to copy, bookmark, or delete.',
+              style: TextStyle(fontSize: 13, height: 1.4),
+            ),
+            SizedBox(height: 8),
+            Text(
+              '• Slate Theme: Optimized for eye health on mobile OLED and desktop screens.',
+              style: TextStyle(fontSize: 13, height: 1.4),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmSignOut(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text(
+          'Are you sure you want to sign out? Your chats and preferences are securely saved.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.statusDanger,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await AppState.instance.signOut();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Signed out successfully'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: AppState.instance,
+      builder: (context, _) {
+        final state = AppState.instance;
+
+        return Scaffold(
+          backgroundColor: context.bgCanvas,
+          body: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Container(
+                  width: double.infinity,
+                  color: context.bgSurface,
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top + 24,
+                    bottom: 28,
+                    left: 24,
+                    right: 24,
+                  ),
+                  child: Column(
+                    children: [
+                      Stack(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: context.accent,
+                                width: 2,
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              radius: 44,
+                              backgroundColor: context.accentSubtle,
+                              child: Icon(Icons.person_rounded,
+                                  color: context.accent, size: 44),
+                            ),
+                          ),
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: GestureDetector(
+                              onTap: () => _showEditNameDialog(context),
+                              child: Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: context.accent,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: context.bgSurface,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: const Icon(Icons.edit_rounded,
+                                    size: 14, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        state.displayName,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: context.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        state.email,
+                        style: TextStyle(
+                          color: context.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: state.isLoggedIn
+                              ? context.statusOnline.withValues(alpha: 0.12)
+                              : context.accentSubtle,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: state.isLoggedIn
+                                    ? context.statusOnline
+                                    : context.textMuted,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              state.isLoggedIn
+                                  ? 'Verified Member'
+                                  : 'Guest Mode',
+                              style: TextStyle(
+                                color: state.isLoggedIn
+                                    ? context.statusOnline
+                                    : context.accent,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      if (!state.isLoggedIn) ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: context.accentSubtle,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                                color: context.accent.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.shield_outlined,
+                                  color: context.accent, size: 28),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Unlock All Features',
+                                      style: TextStyle(
+                                        color: context.textPrimary,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Sign in to sync your messages, join private groups, and add contacts.',
+                                      style: TextStyle(
+                                        color: context.textSecondary,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 8),
+                                  minimumSize: const Size(64, 34),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).pushNamed(loginRoute);
+                                },
+                                child: const Text('Sign In',
+                                    style: TextStyle(fontSize: 12)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      _SettingsSection(
+                        items: [
+                          _SettingsItem(
+                            icon: Icons.person_outline_rounded,
+                            label: 'Display Name',
+                            trailingText: state.displayName,
+                            onTap: () => _showEditNameDialog(context),
+                          ),
+                          _SettingsItem(
+                            icon: Icons.palette_outlined,
+                            label: 'Theme Appearance',
+                            trailingText: switch (state.themeMode) {
+                              ThemeMode.light => 'Light',
+                              ThemeMode.dark => 'Dark',
+                              ThemeMode.system => 'System',
+                            },
+                            onTap: () => _showThemeDialog(context),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _SettingsSection(
+                        items: [
+                          _SettingsItem(
+                            icon: Icons.feedback_outlined,
+                            label: 'Send Feedback',
+                            onTap: () => _showFeedbackDialog(context),
+                          ),
+                          _SettingsItem(
+                            icon: Icons.help_outline_rounded,
+                            label: 'Help & Documentation',
+                            onTap: () => _showHelpDialog(context),
+                          ),
+                        ],
+                      ),
+                      if (state.isLoggedIn) ...[
+                        const SizedBox(height: 12),
+                        _SettingsSection(
+                          items: [
+                            _SettingsItem(
+                              icon: Icons.logout_rounded,
+                              label: 'Sign Out',
+                              isDestructive: true,
+                              onTap: () => _confirmSignOut(context),
+                            ),
+                          ],
+                        ),
+                      ],
+                      SizedBox(
+                        height: MediaQuery.of(context).padding.bottom + 48,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
-class CustomListTile extends StatelessWidget {
-  final String text;
-  final Function() onTap;
+class _SettingsSection extends StatelessWidget {
+  final List<_SettingsItem> items;
 
-  const CustomListTile(this.text, this.onTap, {super.key});
+  const _SettingsSection({required this.items});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
-      child: Container(
-        decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: Colors.grey.shade400))),
-        child: InkWell(
-          splashColor: Colors.redAccent,
-          onTap: onTap,
-          child: SizedBox(
-            height: 50,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        text,
-                        style: const TextStyle(
-                          fontSize: 16.0,
-                        ),
-                      ),
-                    ),
-                  ],
+    return Container(
+      decoration: BoxDecoration(
+        color: context.bgSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.borderSubtle),
+      ),
+      child: Column(
+        children: items.asMap().entries.map((e) {
+          final isLast = e.key == items.length - 1;
+          return Column(
+            children: [
+              e.value,
+              if (!isLast)
+                Divider(
+                  height: 1,
+                  indent: 52,
+                  color: context.borderSubtle,
                 ),
-                const Icon(Icons.arrow_right)
-              ],
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _SettingsItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String? trailingText;
+  final bool isDestructive;
+  final VoidCallback onTap;
+
+  const _SettingsItem({
+    required this.icon,
+    required this.label,
+    this.trailingText,
+    this.isDestructive = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final itemColor =
+        isDestructive ? context.statusDanger : context.textPrimary;
+
+    return InkWell(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: isDestructive
+                    ? context.statusDanger.withValues(alpha: 0.12)
+                    : context.accentSubtle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: isDestructive ? context.statusDanger : context.accent,
+                size: 18,
+              ),
             ),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: itemColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            if (trailingText != null) ...[
+              Text(
+                trailingText!,
+                style: TextStyle(
+                  color: context.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(width: 4),
+            ],
+            Icon(
+              Icons.chevron_right_rounded,
+              color: context.textMuted,
+              size: 20,
+            ),
+          ],
         ),
       ),
     );
