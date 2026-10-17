@@ -70,6 +70,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '523638069623',
     projectId: 'chatbud-official',
     storageBucket: 'chatbud-official.firebasestorage.app',
-    iosBundleId: 'com.sandytech.flutterMasterTemplate',
+    iosBundleId: 'com.torvence.chatbud',
   );
 }

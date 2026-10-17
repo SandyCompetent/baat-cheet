@@ -111,8 +111,8 @@ class AuthService {
       final actionCodeSettings = ActionCodeSettings(
         url: 'https://chatbud-official.firebaseapp.com/login',
         handleCodeInApp: true,
-        iOSBundleId: 'com.sandytech.flutterMasterTemplate',
-        androidPackageName: 'com.example.chatbud',
+        iOSBundleId: 'com.torvence.chatbud',
+        androidPackageName: 'com.torvence.chatbud',
         androidInstallApp: true,
         androidMinimumVersion: '12',
       );

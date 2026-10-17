@@ -18,8 +18,8 @@ dependencies:
   firebase_auth: ^7.0.0
   shared_preferences: ^2.5.6
   cloud_firestore: ^7.0.0
-  google_generative_ai: ^0.4.7
   flutter_secure_storage: ^11.2.0
+  firebase_ai: ^5.0.0
 
 dev_dependencies:
   flutter_test:

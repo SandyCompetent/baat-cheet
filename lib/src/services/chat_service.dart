@@ -115,7 +115,12 @@ class ChatService {
               .where((m) => !_blockedUsers.contains(m.senderName))
               .toList();
 
-          notifier.value = messages;
+          // Preserve in-flight local messages (e.g. streaming AI response)
+          final inFlight = notifier.value
+              .where((m) => !messages.any((docMsg) => docMsg.id == m.id))
+              .toList();
+
+          notifier.value = [...messages, ...inFlight];
           _syncSavedMessages();
         },
         onError: (_) {
@@ -220,17 +225,20 @@ class ChatService {
       buffer.write(token);
       final updatedList = List<ChatMessage>.from(notifier.value);
       final idx = updatedList.indexWhere((m) => m.id == aiMsgId);
+      final streamingMsg = ChatMessage(
+        id: aiMsgId,
+        text: buffer.toString(),
+        isUser: false,
+        senderName: 'ChatBud AI',
+        timestamp: aiMessage.timestamp,
+        status: MessageStatus.delivered,
+      );
       if (idx != -1) {
-        updatedList[idx] = ChatMessage(
-          id: aiMsgId,
-          text: buffer.toString(),
-          isUser: false,
-          senderName: 'ChatBud AI',
-          timestamp: aiMessage.timestamp,
-          status: MessageStatus.delivered,
-        );
-        notifier.value = updatedList;
+        updatedList[idx] = streamingMsg;
+      } else {
+        updatedList.add(streamingMsg);
       }
+      notifier.value = updatedList;
     }
 
     final fullReply = buffer.toString();

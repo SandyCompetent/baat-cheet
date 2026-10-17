@@ -1,4 +1,4 @@
-package com.sandytech.chatbud
+package com.torvence.chatbud
 
 import io.flutter.embedding.android.FlutterActivity
 
