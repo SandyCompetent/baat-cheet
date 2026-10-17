@@ -4,26 +4,56 @@ import '../models/chat_message.dart';
 
 /// Production AI Service powered by the Firebase AI Logic SDK (`firebase_ai`).
 /// Connects to the Gemini Developer API with a 100% free serverless tier.
-/// Requires NO API key in client code, avoiding exposure and quota hijacking.
+/// Follows official Google documentation on model retirement:
+/// Uses modern Gemini 3.x models (`gemini-3.1-flash-lite` by default, `gemini-3.8-flash`)
+/// and prevents 404 errors by supporting dynamic model reconfiguration.
 class GeminiService {
   static final GeminiService instance = GeminiService._internal();
   GeminiService._internal();
 
-  GenerativeModel? _model;
+  /// Default fast, lightweight free-tier model recommended by Firebase AI Logic
+  static const String defaultModel = 'gemini-3.1-flash-lite';
+  static const String proModel = 'gemini-3.8-flash';
+  static const String modelFlashLite = defaultModel;
+  static const String modelFlash = proModel;
 
-  GenerativeModel? _getModel() {
-    if (_model != null) return _model;
+  String _currentModel = defaultModel;
+  String get currentModel => _currentModel;
+
+  void setModel(String model) {
+    if (model.trim().isNotEmpty && model != _currentModel) {
+      _currentModel = model.trim();
+      _cachedModel = null;
+    }
+  }
+
+  GenerativeModel? _cachedModel;
+  String? _cachedSystemInstruction;
+  String? _cachedModelName;
+
+  static const String defaultSystemInstruction =
+      'You are ChatBud AI, an intelligent, helpful, and concise assistant built into the ChatBud workspace. '
+      'Provide clear, actionable, friendly, and well-formatted answers.';
+
+  GenerativeModel? _getModel({String? systemInstruction, String? modelOverride}) {
+    final targetModel = modelOverride ?? _currentModel;
+    final targetInstruction = systemInstruction ?? defaultSystemInstruction;
+
+    if (_cachedModel != null &&
+        _cachedModelName == targetModel &&
+        _cachedSystemInstruction == targetInstruction) {
+      return _cachedModel;
+    }
+
     try {
-      // Use Firebase AI Logic with the Gemini Developer API provider (100% Free Tier)
       final googleAI = FirebaseAI.googleAI();
-      _model = googleAI.generativeModel(
-        model: 'gemini-1.5-flash',
-        systemInstruction: Content.system(
-          'You are ChatBud AI, an intelligent, helpful, and concise assistant built into the ChatBud workspace. '
-          'Provide clear, actionable, friendly, and well-formatted answers.',
-        ),
+      _cachedModel = googleAI.generativeModel(
+        model: targetModel,
+        systemInstruction: Content.system(targetInstruction),
       );
-      return _model;
+      _cachedModelName = targetModel;
+      _cachedSystemInstruction = targetInstruction;
+      return _cachedModel;
     } catch (_) {
       return null;
     }
@@ -33,8 +63,13 @@ class GeminiService {
   Stream<String> streamResponse({
     required String prompt,
     List<ChatMessage> history = const [],
+    String? systemInstruction,
+    String? modelOverride,
   }) async* {
-    final model = _getModel();
+    final model = _getModel(
+      systemInstruction: systemInstruction,
+      modelOverride: modelOverride,
+    );
 
     if (model == null) {
       yield* _streamFallbackResponse(prompt);
@@ -87,9 +122,9 @@ class GeminiService {
     } else if (lower.contains('theme') || lower.contains('slate')) {
       reply =
           'The Soft Minimalist Slate theme uses cool slate-tinted neutrals (#F8FAFC canvas, #FFFFFF surface, #111827 dark mode) with high-contrast electric indigo accents.';
-    } else if (lower.contains('firebase') || lower.contains('free') || lower.contains('ai logic')) {
+    } else if (lower.contains('firebase') || lower.contains('free') || lower.contains('ai logic') || lower.contains('model')) {
       reply =
-          'ChatBud uses Firebase AI Logic (firebase_ai) with the Gemini Developer API. It operates on a 100% free serverless tier without requiring an embedded API key!';
+          'ChatBud runs on Firebase AI Logic (firebase_ai) with Gemini 3.1 Flash-Lite ($defaultModel). It operates on a 100% free serverless tier without requiring an embedded API key!';
     } else {
       reply =
           'I am ChatBud AI Assistant. I received your message: "$prompt". What would you like to explore or discuss next?';

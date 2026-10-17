@@ -5,7 +5,10 @@ import 'package:flutter/foundation.dart';
 import '../core/storage_service.dart';
 import '../models/chat_message.dart';
 import '../models/conversation.dart';
+import '../models/persona.dart';
 import 'gemini_service.dart';
+import 'memory_service.dart';
+import 'persona_service.dart';
 
 /// Production-ready ChatService backed by Cloud Firestore.
 /// Features:
@@ -66,6 +69,44 @@ class ChatService {
 
   final Set<String> _blockedUsers = {};
 
+  bool isAiConversation(String conversationId) {
+    if (conversationId == 'ai_assistant' || conversationId.startsWith('ai_persona_')) {
+      return true;
+    }
+    for (final c in conversationsNotifier.value) {
+      if (c.id == conversationId && c.isAi) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<Conversation> startPersonaConversation(Persona persona) async {
+    final convId = 'ai_persona_${persona.id}';
+    final currentList = conversationsNotifier.value;
+    final matchIdx = currentList.indexWhere((c) => c.id == convId);
+
+    if (matchIdx != -1) {
+      await PersonaService.instance.setActivePersona(persona.id);
+      return currentList[matchIdx];
+    }
+
+    final newConv = Conversation(
+      id: convId,
+      title: persona.name,
+      lastMessage: 'Tap to chat with ${persona.name}',
+      lastTime: 'Now',
+      isAi: true,
+      personaId: persona.id,
+    );
+
+    final updated = [newConv, ...currentList];
+    conversationsNotifier.value = updated;
+    await StorageService.saveConversations(updated);
+    await PersonaService.instance.setActivePersona(persona.id);
+    return newConv;
+  }
+
   // ── 1. Listen to Conversations ──────────────────────────────────────────
   Stream<List<Conversation>> streamConversations(String currentUserId) {
     final fs = _firestore;
@@ -118,7 +159,7 @@ class ChatService {
     return _messagesNotifiers.putIfAbsent(conversationId, () {
       final cached = StorageService.getConversationMessages(conversationId);
       final notifier = ValueNotifier<List<ChatMessage>>(cached);
-      if (conversationId != 'ai_assistant' && _canSyncFirestore) {
+      if (!isAiConversation(conversationId) && _canSyncFirestore) {
         _attachFirestoreMessageListener(conversationId, notifier);
       }
       return notifier;
@@ -130,7 +171,7 @@ class ChatService {
     ValueNotifier<List<ChatMessage>> notifier, {
     int limit = 40,
   }) {
-    if (conversationId == 'ai_assistant' || !_canSyncFirestore) return;
+    if (isAiConversation(conversationId) || !_canSyncFirestore) return;
     _conversationSubs[conversationId]?.cancel();
     final fs = _firestore;
     if (fs == null) return;
@@ -193,8 +234,11 @@ class ChatService {
     _updateLocalConversationPreview(conversationId, text, timeStr);
     StorageService.saveConversationMessages(conversationId, notifier.value);
 
-    // Persist to Cloud Firestore only if authenticated and not AI Assistant
-    if (conversationId != 'ai_assistant' && _canSyncFirestore) {
+    // Heuristic fact extraction for two-layer memory engine
+    _extractAndStoreUserMemories(text);
+
+    // Persist to Cloud Firestore only if authenticated and not AI Assistant / Persona conversation
+    if (!isAiConversation(conversationId) && _canSyncFirestore) {
       final fs = _firestore;
       if (fs != null) {
         try {
@@ -226,26 +270,96 @@ class ChatService {
       }
     }
 
-    // AI Assistant streaming logic
-    if (conversationId == 'ai_assistant') {
-      _streamAiAssistantResponse(conversationId, text, notifier.value);
+    // AI Assistant & Persona streaming logic
+    if (isAiConversation(conversationId)) {
+      Persona targetPersona = PersonaService.instance.activePersonaNotifier.value;
+      if (conversationId.startsWith('ai_persona_')) {
+        final pId = conversationId.replaceFirst('ai_persona_', '');
+        targetPersona = PersonaService.instance.getPersonaById(pId);
+      } else {
+        for (final c in conversationsNotifier.value) {
+          if (c.id == conversationId && c.personaId != null) {
+            targetPersona = PersonaService.instance.getPersonaById(c.personaId!);
+            break;
+          }
+        }
+      }
+
+      _streamPersonaResponse(
+        conversationId: conversationId,
+        persona: targetPersona,
+        query: text,
+        history: notifier.value,
+      );
+    } else {
+      // Check for multi-agent @persona mentions in group channels
+      _checkGroupPersonaMentions(conversationId, text, notifier.value);
     }
 
     return message;
   }
 
-  // ── 4. Gemini AI Streaming Engine ────────────────────────────────────────
-  void _streamAiAssistantResponse(
+  // ── 4. Gemini AI & Multi-Agent Persona Streaming Engine ──────────────────
+  void _extractAndStoreUserMemories(String text) {
+    final lower = text.toLowerCase();
+    final triggers = [
+      'i like ',
+      'i prefer ',
+      'i love ',
+      'i am building ',
+      'i am working on ',
+      'my goal is ',
+      'my project is ',
+      'i use ',
+      'i am a ',
+    ];
+    for (final t in triggers) {
+      if (lower.contains(t)) {
+        MemoryService.instance.addMemory(
+          fact: text.trim(),
+          category: t.contains('building') || t.contains('working') || t.contains('project')
+              ? 'project'
+              : 'preference',
+        );
+        break;
+      }
+    }
+  }
+
+  void _checkGroupPersonaMentions(
     String conversationId,
-    String query,
+    String text,
     List<ChatMessage> history,
-  ) async {
-    final aiMsgId = 'msg_ai_${DateTime.now().millisecondsSinceEpoch}';
+  ) {
+    final words = text.split(RegExp(r'\s+'));
+    for (final word in words) {
+      if (word.startsWith('@')) {
+        final persona = PersonaService.instance.findPersonaByName(word);
+        if (persona != null) {
+          _streamPersonaResponse(
+            conversationId: conversationId,
+            persona: persona,
+            query: text,
+            history: history,
+          );
+          break;
+        }
+      }
+    }
+  }
+
+  void _streamPersonaResponse({
+    required String conversationId,
+    required Persona persona,
+    required String query,
+    required List<ChatMessage> history,
+  }) async {
+    final aiMsgId = 'msg_${persona.id}_${DateTime.now().millisecondsSinceEpoch}';
     final aiMessage = ChatMessage(
       id: aiMsgId,
       text: '',
       isUser: false,
-      senderName: 'ChatBud AI',
+      senderName: persona.name,
       timestamp: DateTime.now(),
       status: MessageStatus.sending,
     );
@@ -253,9 +367,18 @@ class ChatService {
     final notifier = getMessagesNotifier(conversationId);
     notifier.value = [...notifier.value, aiMessage];
 
+    // Dynamic prompt injection with long-term memory & relationship state
+    final systemPrompt = MemoryService.instance.buildSystemPrompt(
+      basePrompt: persona.systemPrompt,
+      personaId: persona.id,
+      currentQuery: query,
+    );
+
     final stream = GeminiService.instance.streamResponse(
       prompt: query,
       history: history,
+      systemInstruction: systemPrompt,
+      modelOverride: GeminiService.defaultModel,
     );
 
     final buffer = StringBuffer();
@@ -267,7 +390,7 @@ class ChatService {
         id: aiMsgId,
         text: buffer.toString(),
         isUser: false,
-        senderName: 'ChatBud AI',
+        senderName: persona.name,
         timestamp: aiMessage.timestamp,
         status: MessageStatus.delivered,
       );
@@ -285,6 +408,9 @@ class ChatService {
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
     _updateLocalConversationPreview(conversationId, fullReply, timeStr);
     StorageService.saveConversationMessages(conversationId, notifier.value);
+
+    // Evolve relationship state
+    await MemoryService.instance.recordInteraction(persona.id);
   }
 
   // ── 5. Real-Time Presence & Typing Indicators ────────────────────────────

@@ -1,6 +1,7 @@
 import 'package:chatbud/main.dart';
 import 'package:chatbud/src/auth/unified_auth_screen.dart';
 import 'package:chatbud/src/screen/conversation_screen.dart';
+import 'package:chatbud/src/screen/persona_hub_screen.dart';
 import 'package:chatbud/src/screen/splash_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -8,6 +9,7 @@ const String splashRoute = '/Splash';
 const String loginRoute  = '/Login';
 const String homeRoute   = '/Home';
 const String converRoute = '/Conversation';
+const String personaHubRoute = '/PersonaHub';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -23,6 +25,9 @@ class RouteGenerator {
 
       case converRoute:
         return MaterialPageRoute(builder: (_) => const ConversationScreen());
+
+      case personaHubRoute:
+        return MaterialPageRoute(builder: (_) => const PersonaHubScreen());
 
       default:
         return MaterialPageRoute(

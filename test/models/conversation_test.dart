@@ -49,5 +49,30 @@ void main() {
       expect(updated.isAi, false);
       expect(updated.isGroup, true);
     });
+
+    test('supports personaId and personaIds with serialization', () {
+      const conv = Conversation(
+        id: 'conv_persona_1',
+        title: 'Athena Chat',
+        lastMessage: 'Let us review the architecture.',
+        lastTime: '12:00',
+        isAi: true,
+        personaId: 'athena',
+        personaIds: ['athena', 'cipher'],
+      );
+
+      expect(conv.personaId, 'athena');
+      expect(conv.personaIds, ['athena', 'cipher']);
+
+      final map = conv.toMap();
+      expect(map['personaId'], 'athena');
+      expect(map['personaIds'], ['athena', 'cipher']);
+
+      final restored = Conversation.fromMap(map);
+      expect(restored.personaId, 'athena');
+      expect(restored.personaIds, ['athena', 'cipher']);
+      expect(restored.title, 'Athena Chat');
+      expect(restored.isAi, true);
+    });
   });
 }

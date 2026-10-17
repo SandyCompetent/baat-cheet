@@ -7,6 +7,8 @@ class Conversation {
   final bool isAi;
   final bool isGroup;
   final String? avatarUrl;
+  final String? personaId;
+  final List<String>? personaIds;
 
   const Conversation({
     required this.id,
@@ -17,6 +19,8 @@ class Conversation {
     this.isAi = false,
     this.isGroup = false,
     this.avatarUrl,
+    this.personaId,
+    this.personaIds,
   });
 
   Conversation copyWith({
@@ -28,6 +32,8 @@ class Conversation {
     bool? isAi,
     bool? isGroup,
     String? avatarUrl,
+    String? personaId,
+    List<String>? personaIds,
   }) {
     return Conversation(
       id: id ?? this.id,
@@ -38,6 +44,8 @@ class Conversation {
       isAi: isAi ?? this.isAi,
       isGroup: isGroup ?? this.isGroup,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      personaId: personaId ?? this.personaId,
+      personaIds: personaIds ?? this.personaIds,
     );
   }
 
@@ -51,6 +59,8 @@ class Conversation {
       'isAi': isAi,
       'isGroup': isGroup,
       'avatarUrl': avatarUrl,
+      'personaId': personaId,
+      if (personaIds != null) 'personaIds': personaIds,
     };
   }
 
@@ -64,6 +74,10 @@ class Conversation {
       isAi: map['isAi'] as bool? ?? false,
       isGroup: map['isGroup'] as bool? ?? false,
       avatarUrl: map['avatarUrl'] as String?,
+      personaId: map['personaId'] as String?,
+      personaIds: (map['personaIds'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
     );
   }
 }

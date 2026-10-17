@@ -1,6 +1,7 @@
 import 'package:chatbud/src/core/storage_service.dart';
 import 'package:chatbud/src/models/chat_message.dart';
 import 'package:chatbud/src/services/chat_service.dart';
+import 'package:chatbud/src/services/persona_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -139,6 +140,39 @@ void main() {
         service.setTypingStatus('ai_assistant', 'guest', true),
         completes,
       );
+    });
+
+    test('isAiConversation accurately detects AI channels', () {
+      final service = ChatService.instance;
+      expect(service.isAiConversation('ai_assistant'), true);
+      expect(service.isAiConversation('ai_persona_athena'), true);
+      expect(service.isAiConversation('group_123'), false);
+    });
+
+    test('startPersonaConversation creates conversation and selects persona', () async {
+      final service = ChatService.instance;
+      final cipher = PersonaService.instance.getPersonaById('cipher');
+      final conv = await service.startPersonaConversation(cipher);
+
+      expect(conv.id, 'ai_persona_cipher');
+      expect(conv.isAi, true);
+      expect(conv.personaId, 'cipher');
+      expect(service.isAiConversation(conv.id), true);
+    });
+
+    test('group chat @Persona mention triggers persona response', () async {
+      final service = ChatService.instance;
+      await service.sendMessage(
+        conversationId: 'group_engineering',
+        text: 'Hey @Athena can you inspect our architecture?',
+        senderName: 'Alice',
+      );
+
+      final notifier = service.getMessagesNotifier('group_engineering');
+      // Wait for stream event to add persona message
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(notifier.value.any((m) => m.senderName == 'Athena'), true);
     });
   });
 }

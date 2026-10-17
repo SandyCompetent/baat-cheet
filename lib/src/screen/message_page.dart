@@ -1,6 +1,7 @@
 import 'package:chatbud/project_meta_data.dart';
 import 'package:chatbud/src/models/conversation.dart';
 import 'package:chatbud/src/screen/conversation_screen.dart';
+import 'package:chatbud/src/screen/persona_hub_screen.dart';
 import 'package:chatbud/src/services/chat_service.dart';
 import 'package:chatbud/src/widgets/message_item.dart';
 import 'package:chatbud/theme_data.dart';
@@ -82,6 +83,18 @@ class _MessagePageState extends State<MessagePage> {
                 ),
               ),
         actions: [
+          if (!_isSearching)
+            IconButton(
+              icon: Icon(Icons.hub_outlined, color: context.accent),
+              tooltip: 'Persona Hub',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const PersonaHubScreen(),
+                  ),
+                );
+              },
+            ),
           IconButton(
             icon: Icon(
               _isSearching ? Icons.close_rounded : Icons.search_rounded,

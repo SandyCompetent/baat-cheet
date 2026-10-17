@@ -50,5 +50,32 @@ void main() {
       final combined = tokens.join();
       expect(combined.toLowerCase().contains('slate'), isTrue);
     });
+
+    test('currentModel defaults to gemini-3.1-flash-lite and setModel switches model', () {
+      final service = GeminiService.instance;
+      expect(service.currentModel, GeminiService.modelFlashLite);
+
+      service.setModel(GeminiService.modelFlash);
+      expect(service.currentModel, GeminiService.modelFlash);
+
+      // Reset back to flash-lite
+      service.setModel(GeminiService.modelFlashLite);
+      expect(service.currentModel, GeminiService.modelFlashLite);
+    });
+
+    test('streamResponse accepts systemInstruction and modelOverride', () async {
+      final service = GeminiService.instance;
+      final tokens = <String>[];
+
+      await for (final token in service.streamResponse(
+        prompt: 'Who are you?',
+        systemInstruction: 'You are Athena, system architect.',
+        modelOverride: GeminiService.modelFlashLite,
+      )) {
+        tokens.add(token);
+      }
+
+      expect(tokens.isNotEmpty, isTrue);
+    });
   });
 }

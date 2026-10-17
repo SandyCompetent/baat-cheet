@@ -64,6 +64,30 @@ void main() {
       expect(find.byType(ConversationScreen), findsOneWidget);
     });
 
+    testWidgets('Generates PersonaHubScreen for personaHubRoute', (tester) async {
+      final route = RouteGenerator.generateRoute(
+        const RouteSettings(name: personaHubRoute),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () => Navigator.push(context, route),
+                child: const Text('Go'),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Go'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Persona Hub'), findsOneWidget);
+    });
+
     testWidgets('Generates fallback route for unknown route name', (tester) async {
       final route = RouteGenerator.generateRoute(
         const RouteSettings(name: '/unknown_path'),
