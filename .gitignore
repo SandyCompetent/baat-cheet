@@ -57,9 +57,9 @@ macos/Flutter/GeneratedPluginRegistrant.swift
 
 # IDE and operating-system files
 .history/
-.idea/shelf/
-.idea/workspace.xml
-.vscode/*.code-snippets
+.idea/
+.idx/
+.vscode/
 .DS_Store
 *.iml
 *.log
