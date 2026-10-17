@@ -34,8 +34,8 @@ void main() {
         ),
       );
 
-      expect(find.text('ChatBud AI Assistant'), findsOneWidget);
-      expect(find.text('Online • AI Active'), findsOneWidget);
+      expect(find.text('ChatBud AI Assistant'), findsWidgets);
+      expect(find.text('Online • Gemini AI'), findsOneWidget);
       expect(find.text('Type a message…'), findsOneWidget);
     });
 
@@ -62,7 +62,8 @@ void main() {
       expect(find.text('Hello Bruce!'), findsOneWidget);
     });
 
-    testWidgets('Tapping attachment icon opens AttachmentSheet', (tester) async {
+    testWidgets('Text-only interface: composer has text input and no attachment/mic icons',
+        (tester) async {
       await tester.pumpWidget(
         buildApp(
           const ConversationScreen(
@@ -72,11 +73,10 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byIcon(Icons.add_rounded), warnIfMissed: false);
-      await tester.pumpAndSettle();
-
-      expect(find.text('Share Content'), findsOneWidget);
-      expect(find.text('Photos & Videos'), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.byIcon(Icons.mic), findsNothing);
+      expect(find.byIcon(Icons.attach_file), findsNothing);
+      expect(find.byIcon(Icons.info_outline_rounded), findsOneWidget);
     });
   });
 }

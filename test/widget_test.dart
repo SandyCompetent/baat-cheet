@@ -33,7 +33,7 @@ void main() {
       // Tap 'Groups' tab in bottom bar
       await tester.tap(find.byIcon(Icons.group_outlined).last);
       await tester.pumpAndSettle();
-      expect(find.text('Flutter Global Community'), findsOneWidget);
+      expect(find.text('No Groups Yet'), findsOneWidget);
 
       // Tap 'Saved' tab in bottom bar
       await tester.tap(find.byIcon(Icons.bookmark_border_rounded).last);

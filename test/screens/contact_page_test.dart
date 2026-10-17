@@ -1,6 +1,5 @@
 import 'package:chatbud/route_generator.dart';
 import 'package:chatbud/src/core/app_state.dart';
-import 'package:chatbud/src/core/storage_service.dart';
 import 'package:chatbud/src/screen/contact_page.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +33,8 @@ void main() {
       expect(find.text('Display Name'), findsOneWidget);
       expect(find.text('Theme Appearance'), findsOneWidget);
       expect(find.text('Send Feedback'), findsOneWidget);
-      expect(find.text('Help & Documentation'), findsOneWidget);
+      expect(find.text('Terms of Service & EULA'), findsOneWidget);
+      expect(find.text('Privacy Policy'), findsOneWidget);
     });
 
     testWidgets('Tapping Theme Appearance opens theme selection dialog',
@@ -50,20 +50,19 @@ void main() {
       expect(find.text('Dark Slate (OLED)'), findsOneWidget);
     });
 
-    testWidgets('Tapping Help & Documentation opens help dialog',
+    testWidgets('Tapping Terms of Service & EULA opens legal dialog',
         (tester) async {
       await tester.pumpWidget(buildApp());
 
-      // Scroll down so Help & Documentation is centered on screen
+      // Scroll down so Terms of Service & EULA is visible
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -250));
       await tester.pumpAndSettle();
 
-      final finder = find.text('Help & Documentation');
+      final finder = find.text('Terms of Service & EULA');
       await tester.tap(finder, warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      expect(find.text('ChatBud Help & Support'), findsOneWidget);
-      expect(find.text('Close'), findsOneWidget);
+      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
     });
   });
 }

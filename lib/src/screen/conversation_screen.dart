@@ -6,7 +6,6 @@ import '../../theme_data.dart';
 import '../core/app_state.dart';
 import '../models/chat_message.dart';
 import '../services/chat_service.dart';
-import '../widgets/attachment_sheet.dart';
 
 class ConversationScreen extends StatefulWidget {
   final String conversationId;
@@ -48,6 +47,7 @@ class _ConversationScreenState extends State<ConversationScreen>
 
   @override
   void dispose() {
+    _setTyping(false);
     _textCtrl
       ..removeListener(_onTextChanged)
       ..dispose();
@@ -59,7 +59,15 @@ class _ConversationScreenState extends State<ConversationScreen>
 
   void _onTextChanged() {
     final has = _textCtrl.text.trim().isNotEmpty;
-    if (has != _hasText) setState(() => _hasText = has);
+    if (has != _hasText) {
+      setState(() => _hasText = has);
+      _setTyping(has);
+    }
+  }
+
+  void _setTyping(bool isTyping) {
+    final uid = AppState.instance.firebaseUser?.uid ?? 'guest';
+    ChatService.instance.setTypingStatus(widget.conversationId, uid, isTyping);
   }
 
   void _onScroll() {
@@ -70,21 +78,20 @@ class _ConversationScreenState extends State<ConversationScreen>
     if (show != _showScrollDown) setState(() => _showScrollDown = show);
   }
 
-  void _handleSend({
-    AttachmentType attachmentType = AttachmentType.none,
-    String? attachmentName,
-  }) {
+  void _handleSend() {
     final text = _textCtrl.text.trim();
-    if (text.isEmpty && attachmentType == AttachmentType.none) return;
+    if (text.isEmpty) return;
     _textCtrl.clear();
+    _setTyping(false);
 
     final sender = AppState.instance.displayName;
+    final uid = AppState.instance.firebaseUser?.uid;
+
     ChatService.instance.sendMessage(
       conversationId: widget.conversationId,
-      text: text.isNotEmpty ? text : (attachmentName ?? 'Attachment'),
+      text: text,
       senderName: sender,
-      attachmentType: attachmentType,
-      attachmentName: attachmentName,
+      senderId: uid,
     );
 
     HapticFeedback.lightImpact();
@@ -92,7 +99,7 @@ class _ConversationScreenState extends State<ConversationScreen>
 
     if (widget.isAi) {
       setState(() => _isTyping = true);
-      Future.delayed(const Duration(milliseconds: 950), () {
+      Future.delayed(const Duration(milliseconds: 900), () {
         if (mounted) setState(() => _isTyping = false);
         _scrollToBottom();
       });
@@ -163,6 +170,117 @@ class _ConversationScreenState extends State<ConversationScreen>
             ),
           );
         },
+        onReport: () {
+          _showReportDialog(msg);
+        },
+        onBlock: () {
+          _confirmBlockUser(msg.senderName);
+        },
+      ),
+    );
+  }
+
+  void _showReportDialog(ChatMessage msg) {
+    final reasons = [
+      'Inappropriate or offensive content',
+      'Harassment or hate speech',
+      'Spam or phishing',
+      'Other policy violation',
+    ];
+    String selectedReason = reasons.first;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Report Message'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Our moderation team reviews reported content within 24 hours. Please select a reason:',
+                style: TextStyle(fontSize: 13, height: 1.4),
+              ),
+              const SizedBox(height: 12),
+              RadioGroup<String>(
+                groupValue: selectedReason,
+                onChanged: (val) {
+                  if (val != null) setDialogState(() => selectedReason = val);
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: reasons
+                      .map((r) => RadioListTile<String>(
+                            title: Text(r, style: const TextStyle(fontSize: 13)),
+                            value: r,
+                            contentPadding: EdgeInsets.zero,
+                            dense: true,
+                          ))
+                      .toList(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: context.statusDanger),
+              onPressed: () {
+                ChatService.instance.reportContent(
+                  reportedUserId: msg.senderName,
+                  messageId: msg.id,
+                  reason: selectedReason,
+                  messageText: msg.text,
+                  reporterId: AppState.instance.firebaseUser?.uid,
+                );
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Report submitted. Thank you for keeping ChatBud safe.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              child: const Text('Submit Report', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmBlockUser(String senderName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Block $senderName?'),
+        content: Text(
+          'You will no longer see messages from $senderName. You can unblock users in Settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: context.statusDanger),
+            onPressed: () {
+              ChatService.instance.blockUser(senderName);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('$senderName has been blocked.'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: const Text('Block', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
@@ -207,6 +325,8 @@ class _ConversationScreenState extends State<ConversationScreen>
 
   @override
   Widget build(BuildContext context) {
+    final currentUid = AppState.instance.firebaseUser?.uid ?? 'guest';
+
     return Scaffold(
       backgroundColor: context.bgCanvas,
       extendBodyBehindAppBar: true,
@@ -223,7 +343,17 @@ class _ConversationScreenState extends State<ConversationScreen>
                   },
                 ),
               ),
-              if (_isTyping) _buildTypingIndicator(),
+              StreamBuilder<bool>(
+                stream: ChatService.instance
+                    .listenTypingStatus(widget.conversationId, currentUid),
+                builder: (context, snapshot) {
+                  final typing = _isTyping || (snapshot.data == true);
+                  if (typing) {
+                    return _buildTypingIndicator();
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
               _buildFloatingComposer(),
             ],
           ),
@@ -308,7 +438,7 @@ class _ConversationScreenState extends State<ConversationScreen>
                           Text(
                             _isTyping
                                 ? 'Typing...'
-                                : (widget.isAi ? 'Online • AI Active' : 'Online'),
+                                : (widget.isAi ? 'Online • Gemini AI' : 'Online'),
                             style: TextStyle(
                               color: _isTyping
                                   ? context.accent
@@ -322,15 +452,11 @@ class _ConversationScreenState extends State<ConversationScreen>
                     ),
                     IconButton(
                       icon: Icon(
-                        widget.isAi
-                            ? Icons.info_outline_rounded
-                            : Icons.videocam_outlined,
+                        Icons.info_outline_rounded,
                         color: context.accent,
                         size: 22,
                       ),
-                      onPressed: () {
-                        _showInfoDialog();
-                      },
+                      onPressed: _showInfoDialog,
                     ),
                   ],
                 ),
@@ -349,8 +475,8 @@ class _ConversationScreenState extends State<ConversationScreen>
         title: Text(widget.title),
         content: Text(
           widget.isAi
-              ? 'ChatBud AI Assistant uses intelligent NLP to assist you with chats, message drafting, and queries in real time.'
-              : 'End-to-end encrypted messaging thread with ${widget.title}.',
+              ? 'ChatBud AI Assistant is powered by Google Gemini API with token streaming. Ask any question or draft messages in real time.'
+              : 'End-to-end cloud synchronized conversation with ${widget.title}.',
         ),
         actions: [
           TextButton(
@@ -508,44 +634,6 @@ class _ConversationScreenState extends State<ConversationScreen>
                     : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (msg.attachmentType != AttachmentType.none) ...[
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      margin: const EdgeInsets.only(bottom: 6),
-                      decoration: BoxDecoration(
-                        color: isUser
-                            ? Colors.black.withValues(alpha: 0.15)
-                            : context.bgElevated,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            msg.attachmentType == AttachmentType.image
-                                ? Icons.image_rounded
-                                : msg.attachmentType == AttachmentType.document
-                                    ? Icons.insert_drive_file_rounded
-                                    : Icons.location_on_rounded,
-                            size: 18,
-                            color: isUser ? Colors.white : context.accent,
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              msg.attachmentName ?? 'Attachment',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: isUser ? Colors.white : context.textPrimary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                   Text(
                     msg.text,
                     style: TextStyle(
@@ -630,7 +718,7 @@ class _ConversationScreenState extends State<ConversationScreen>
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
         child: Container(
           constraints: const BoxConstraints(minHeight: 52, maxHeight: 156),
           decoration: BoxDecoration(
@@ -648,21 +736,7 @@ class _ConversationScreenState extends State<ConversationScreen>
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: _ComposerIconButton(
-                  icon: Icons.add_rounded,
-                  color: context.accent,
-                  onTap: () {
-                    AttachmentSheet.show(
-                      context,
-                      onSelect: (type, name) {
-                        _handleSend(attachmentType: type, attachmentName: name);
-                      },
-                    );
-                  },
-                ),
-              ),
+              const SizedBox(width: 16),
               Expanded(
                 child: TextField(
                   controller: _textCtrl,
@@ -691,24 +765,11 @@ class _ConversationScreenState extends State<ConversationScreen>
               ),
               Padding(
                 padding: const EdgeInsets.all(8),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 150),
-                  switchInCurve: Curves.easeOut,
-                  switchOutCurve: Curves.easeIn,
-                  transitionBuilder: (child, anim) => ScaleTransition(
-                    scale: anim,
-                    child: FadeTransition(opacity: anim, child: child),
-                  ),
-                  child: _hasText
-                      ? _SendButton(
-                          key: const ValueKey('send'),
-                          onTap: () => _handleSend(),
-                          color: context.accent,
-                        )
-                      : _MicButton(
-                          key: const ValueKey('mic'),
-                          color: context.textMuted,
-                        ),
+                child: _SendButton(
+                  onTap: _handleSend,
+                  color: _hasText
+                      ? context.accent
+                      : context.accent.withValues(alpha: 0.4),
                 ),
               ),
             ],
@@ -764,12 +825,16 @@ class _MessageActionSheet extends StatelessWidget {
   final VoidCallback onCopy;
   final VoidCallback onBookmark;
   final VoidCallback onDelete;
+  final VoidCallback onReport;
+  final VoidCallback onBlock;
 
   const _MessageActionSheet({
     required this.message,
     required this.onCopy,
     required this.onBookmark,
     required this.onDelete,
+    required this.onReport,
+    required this.onBlock,
   });
 
   @override
@@ -823,6 +888,26 @@ class _MessageActionSheet extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.flag_outlined, color: Colors.orangeAccent),
+            title: const Text('Report Objectionable Content'),
+            onTap: () {
+              Navigator.pop(context);
+              onReport();
+            },
+          ),
+          if (!message.isUser)
+            ListTile(
+              leading: Icon(Icons.block_rounded, color: context.statusDanger),
+              title: Text(
+                'Block ${message.senderName}',
+                style: TextStyle(color: context.statusDanger),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                onBlock();
+              },
+            ),
+          ListTile(
             leading: Icon(Icons.delete_outline_rounded, color: context.statusDanger),
             title: Text(
               'Delete Message',
@@ -839,39 +924,11 @@ class _MessageActionSheet extends StatelessWidget {
   }
 }
 
-class _ComposerIconButton extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _ComposerIconButton({
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: context.accentSubtle,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: color, size: 18),
-      ),
-    );
-  }
-}
-
 class _SendButton extends StatelessWidget {
   final VoidCallback onTap;
   final Color color;
 
-  const _SendButton({super.key, required this.onTap, required this.color});
+  const _SendButton({required this.onTap, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -884,21 +941,6 @@ class _SendButton extends StatelessWidget {
         child: const Icon(Icons.arrow_upward_rounded,
             color: Colors.white, size: 18),
       ),
-    );
-  }
-}
-
-class _MicButton extends StatelessWidget {
-  final Color color;
-
-  const _MicButton({super.key, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 36,
-      height: 36,
-      child: Icon(Icons.mic_outlined, color: color, size: 22),
     );
   }
 }

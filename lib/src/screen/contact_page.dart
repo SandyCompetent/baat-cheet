@@ -1,5 +1,8 @@
 import 'package:chatbud/route_generator.dart';
+import 'package:chatbud/src/auth/auth_service.dart';
 import 'package:chatbud/src/core/app_state.dart';
+import 'package:chatbud/src/core/secure_storage_service.dart';
+import 'package:chatbud/src/widgets/legal_dialog.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -88,6 +91,60 @@ class ContactPage extends StatelessWidget {
     );
   }
 
+  void _showAiKeyDialog(BuildContext context) async {
+    final currentKey = await SecureStorageService.getGeminiApiKey() ?? '';
+    final ctrl = TextEditingController(text: currentKey);
+
+    if (!context.mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Gemini API Configuration'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter your Google Gemini API Key (Free Tier) to power real-time AI Assistant responses.',
+              style: TextStyle(fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: ctrl,
+              obscureText: true,
+              decoration: const InputDecoration(
+                hintText: 'AIzaSy...',
+                prefixIcon: Icon(Icons.key_rounded),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final key = ctrl.text.trim();
+              await SecureStorageService.saveGeminiApiKey(key);
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Gemini API Key securely updated.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: const Text('Save Key'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showFeedbackDialog(BuildContext context) {
     final ctrl = TextEditingController();
     showDialog(
@@ -123,46 +180,6 @@ class ContactPage extends StatelessWidget {
     );
   }
 
-  void _showHelpDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('ChatBud Help & Support'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '• Unified Auth: Sign in with email, verify OTP, or reset password seamlessly.',
-              style: TextStyle(fontSize: 13, height: 1.4),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '• AI Assistant: Chat anytime with intelligent contextual AI assistance.',
-              style: TextStyle(fontSize: 13, height: 1.4),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '• Bookmarks: Long-press any message to copy, bookmark, or delete.',
-              style: TextStyle(fontSize: 13, height: 1.4),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '• Slate Theme: Optimized for eye health on mobile OLED and desktop screens.',
-              style: TextStyle(fontSize: 13, height: 1.4),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _confirmSignOut(BuildContext context) {
     showDialog(
       context: context,
@@ -182,6 +199,7 @@ class ContactPage extends StatelessWidget {
             ),
             onPressed: () async {
               Navigator.pop(ctx);
+              await AuthService.signOut();
               await AppState.instance.signOut();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -193,6 +211,63 @@ class ContactPage extends StatelessWidget {
               }
             },
             child: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Mandatory App Store & Google Play requirement: Account Deletion
+  void _confirmAccountDeletion(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: context.statusDanger),
+            const SizedBox(width: 8),
+            const Text('Delete Account'),
+          ],
+        ),
+        content: const Text(
+          'This action is irreversible. All your messages, profile information, and account data will be permanently purged from ChatBud servers.',
+          style: TextStyle(fontSize: 14, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.statusDanger,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final res = await AuthService.deleteAccount();
+              if (res.success) {
+                await AppState.instance.signOut();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Account permanently deleted.'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              } else {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(res.errorMessage ?? 'Deletion failed.'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Permanently Delete',
+                style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -400,20 +475,30 @@ class ContactPage extends StatelessWidget {
                             },
                             onTap: () => _showThemeDialog(context),
                           ),
+                          _SettingsItem(
+                            icon: Icons.smart_toy_outlined,
+                            label: 'AI Configuration (Gemini)',
+                            onTap: () => _showAiKeyDialog(context),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
                       _SettingsSection(
                         items: [
                           _SettingsItem(
+                            icon: Icons.description_outlined,
+                            label: 'Terms of Service & EULA',
+                            onTap: () => LegalDocs.showTerms(context),
+                          ),
+                          _SettingsItem(
+                            icon: Icons.privacy_tip_outlined,
+                            label: 'Privacy Policy',
+                            onTap: () => LegalDocs.showPrivacy(context),
+                          ),
+                          _SettingsItem(
                             icon: Icons.feedback_outlined,
                             label: 'Send Feedback',
                             onTap: () => _showFeedbackDialog(context),
-                          ),
-                          _SettingsItem(
-                            icon: Icons.help_outline_rounded,
-                            label: 'Help & Documentation',
-                            onTap: () => _showHelpDialog(context),
                           ),
                         ],
                       ),
@@ -424,8 +509,13 @@ class ContactPage extends StatelessWidget {
                             _SettingsItem(
                               icon: Icons.logout_rounded,
                               label: 'Sign Out',
-                              isDestructive: true,
                               onTap: () => _confirmSignOut(context),
+                            ),
+                            _SettingsItem(
+                              icon: Icons.delete_forever_rounded,
+                              label: 'Delete Account',
+                              isDestructive: true,
+                              onTap: () => _confirmAccountDeletion(context),
                             ),
                           ],
                         ),

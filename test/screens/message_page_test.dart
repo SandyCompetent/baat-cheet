@@ -1,6 +1,7 @@
 import 'package:chatbud/route_generator.dart';
 import 'package:chatbud/src/core/storage_service.dart';
 import 'package:chatbud/src/screen/message_page.dart';
+import 'package:chatbud/src/services/chat_service.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,7 +23,7 @@ void main() {
   }
 
   group('MessagePage Widget Tests', () {
-    testWidgets('Renders app title, filter chips, and conversation list',
+    testWidgets('Renders app title, filter chips, and AI assistant onboarding button when empty',
         (tester) async {
       await tester.pumpWidget(buildApp());
 
@@ -30,7 +31,8 @@ void main() {
       expect(find.text('All'), findsOneWidget);
       expect(find.text('Unread'), findsOneWidget);
       expect(find.text('Groups'), findsOneWidget);
-      expect(find.text('ChatBud AI Assistant'), findsOneWidget);
+      expect(find.text('No conversations found'), findsOneWidget);
+      expect(find.text('Chat with AI Assistant'), findsOneWidget);
     });
 
     testWidgets('Tapping search icon toggles search input bar', (tester) async {
@@ -44,15 +46,18 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
     });
 
-    testWidgets('Filtering by Unread chip displays unread conversations',
+    testWidgets('Displays conversation item when active chat exists',
         (tester) async {
-      await tester.pumpWidget(buildApp());
+      await ChatService.instance.sendMessage(
+        conversationId: 'user_clark',
+        text: 'Up and away!',
+        senderName: 'Clark Kent',
+      );
 
-      await tester.tap(find.text('Unread'));
+      await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      expect(find.text('ChatBud AI Assistant'), findsOneWidget);
-      expect(find.text('Bruce Wayne'), findsNothing);
+      expect(find.text('Up and away!'), findsOneWidget);
     });
   });
 }

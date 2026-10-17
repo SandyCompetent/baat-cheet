@@ -193,12 +193,30 @@ class _MessagePageState extends State<MessagePage> {
                         Text(
                           _searchQuery.isNotEmpty
                               ? 'Try searching by a different name or keyword'
-                              : 'Start a new conversation to begin',
+                              : 'Start a new conversation or chat with AI',
                           style: TextStyle(
                             color: context.textSecondary,
                             fontSize: 13,
                           ),
                         ),
+                        if (_searchQuery.isEmpty) ...[
+                          const SizedBox(height: 20),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const ConversationScreen(
+                                    conversationId: 'ai_assistant',
+                                    title: 'ChatBud AI Assistant',
+                                    isAi: true,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.smart_toy_rounded, size: 18),
+                            label: const Text('Chat with AI Assistant'),
+                          ),
+                        ],
                       ],
                     ),
                   );

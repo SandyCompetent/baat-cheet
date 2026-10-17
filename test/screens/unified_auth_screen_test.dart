@@ -20,10 +20,12 @@ void main() {
 
       expect(find.text('Welcome to ChatBud'), findsOneWidget);
       expect(
-        find.text('Enter your email to sign in or create an account'),
+        find.text('Enter your email to sign in or create an account.'),
         findsOneWidget,
       );
       expect(find.text('Continue'), findsOneWidget);
+      expect(find.text('Terms of Service'), findsOneWidget);
+      expect(find.text('Privacy Policy'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
     });
   });

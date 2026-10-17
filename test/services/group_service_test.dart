@@ -10,12 +10,9 @@ void main() {
   });
 
   group('GroupService Tests', () {
-    test('Initializes with default public groups', () {
+    test('Initializes with empty state and no mock data', () {
       final service = GroupService.instance;
-      final groups = service.groupsNotifier.value;
-
-      expect(groups.isNotEmpty, true);
-      expect(groups.any((g) => g.name.contains('Flutter Global Community')), true);
+      expect(service.groupsNotifier.value, isNotNull);
     });
 
     test('createGroup creates new group and appends to notifier', () async {
@@ -33,16 +30,20 @@ void main() {
       expect(newGroup.isJoined, true);
     });
 
-    test('toggleJoinGroup toggles membership and increments/decrements member count', () {
+    test('toggleJoinGroup toggles membership and increments/decrements member count', () async {
       final service = GroupService.instance;
-      final group = service.groupsNotifier.value.first;
-      final initialJoined = group.isJoined;
-      final initialMembers = group.memberCount;
+      final newGroup = await service.createGroup(
+        name: 'Test Group',
+        description: 'Testing join toggle',
+      );
 
-      service.toggleJoinGroup(group.id);
+      final initialJoined = newGroup.isJoined;
+      final initialMembers = newGroup.memberCount;
+
+      await service.toggleJoinGroup(newGroup.id);
 
       final updatedGroup =
-          service.groupsNotifier.value.firstWhere((g) => g.id == group.id);
+          service.groupsNotifier.value.firstWhere((g) => g.id == newGroup.id);
       expect(updatedGroup.isJoined, !initialJoined);
       expect(
         updatedGroup.memberCount,

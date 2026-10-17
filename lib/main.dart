@@ -8,6 +8,7 @@ import 'package:chatbud/src/screen/message_page.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'route_generator.dart';
 
@@ -22,6 +23,13 @@ void main() async {
   }
 
   await AppState.instance.initialize();
+
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+    ),
+  );
 
   runApp(const EntryPoint());
 }

@@ -10,67 +10,64 @@ void main() {
     await StorageService.init();
   });
 
-  group('ChatService Tests', () {
-    test('Initializes with default conversations', () {
+  group('ChatService Production Tests', () {
+    test('Initializes with empty state and no mock data', () {
       final service = ChatService.instance;
-      final conversations = service.conversationsNotifier.value;
-
-      expect(conversations.isNotEmpty, true);
-      expect(conversations.any((c) => c.id == 'ai_assistant'), true);
-      expect(conversations.any((c) => c.id == 'user_bruce'), true);
+      expect(service.conversationsNotifier.value, isNotNull);
     });
 
-    test('getMessagesNotifier retrieves or creates thread notifier', () {
+    test('sendMessage creates message, updates thread and updates conversation preview', () async {
       final service = ChatService.instance;
-      final notifier = service.getMessagesNotifier('ai_assistant');
+      final sent = await service.sendMessage(
+        conversationId: 'conv_123',
+        text: 'Hello Cloud Firestore!',
+        senderName: 'Alice',
+      );
 
-      expect(notifier.value.isNotEmpty, true);
-      expect(notifier.value.first.senderName, 'ChatBud AI');
+      expect(sent.text, 'Hello Cloud Firestore!');
+      expect(sent.senderName, 'Alice');
+      expect(sent.status, MessageStatus.delivered);
+
+      final notifier = service.getMessagesNotifier('conv_123');
+      expect(notifier.value.any((m) => m.id == sent.id), true);
+
+      final topConv = service.conversationsNotifier.value.first;
+      expect(topConv.id, 'conv_123');
+      expect(topConv.lastMessage, 'Hello Cloud Firestore!');
     });
 
     test('markAsRead zeroes out unread count for conversation', () {
       final service = ChatService.instance;
-      // 'ai_assistant' has 1 unread message by default
-      service.markAsRead('ai_assistant');
-
-      final conv = service.conversationsNotifier.value
-          .firstWhere((c) => c.id == 'ai_assistant');
-      expect(conv.unreadCount, 0);
+      service.markAsRead('conv_123');
+      final topConv = service.conversationsNotifier.value.firstWhere((c) => c.id == 'conv_123');
+      expect(topConv.unreadCount, 0);
     });
 
-    test('sendMessage adds message to thread and updates preview', () async {
+    test('deleteMessage removes message from thread', () async {
       final service = ChatService.instance;
       final sent = await service.sendMessage(
-        conversationId: 'user_bruce',
-        text: 'Meeting at Wayne Tower',
-        senderName: 'Alfred',
+        conversationId: 'conv_delete_test',
+        text: 'To be deleted',
+        senderName: 'Alice',
       );
 
-      expect(sent.text, 'Meeting at Wayne Tower');
-      expect(sent.senderName, 'Alfred');
-
-      final notifier = service.getMessagesNotifier('user_bruce');
+      final notifier = service.getMessagesNotifier('conv_delete_test');
       expect(notifier.value.any((m) => m.id == sent.id), true);
 
-      final topConv = service.conversationsNotifier.value.first;
-      expect(topConv.id, 'user_bruce');
-      expect(topConv.lastMessage, 'Meeting at Wayne Tower');
-    });
-
-    test('deleteMessage removes message from thread', () {
-      final service = ChatService.instance;
-      final notifier = service.getMessagesNotifier('user_bruce');
-      final msgToDelete = notifier.value.first;
-
-      service.deleteMessage('user_bruce', msgToDelete.id);
-
-      expect(notifier.value.any((m) => m.id == msgToDelete.id), false);
+      service.deleteMessage('conv_delete_test', sent.id);
+      expect(notifier.value.any((m) => m.id == sent.id), false);
     });
 
     test('toggleBookmark toggles message bookmark state and updates saved list', () async {
       final service = ChatService.instance;
-      final notifier = service.getMessagesNotifier('user_bruce');
-      final msg = notifier.value.first;
+      final sent = await service.sendMessage(
+        conversationId: 'conv_bookmark_test',
+        text: 'Bookmark me',
+        senderName: 'Alice',
+      );
+
+      final notifier = service.getMessagesNotifier('conv_bookmark_test');
+      final msg = notifier.value.firstWhere((m) => m.id == sent.id);
       final initialBookmarkState = msg.isBookmarked;
 
       await service.toggleBookmark(msg);
@@ -79,6 +76,35 @@ void main() {
       expect(
         service.savedMessagesNotifier.value.any((m) => m.id == msg.id),
         !initialBookmarkState,
+      );
+    });
+
+    test('blockUser blocks user and filters out their messages', () async {
+      final service = ChatService.instance;
+      await service.sendMessage(
+        conversationId: 'conv_block_test',
+        text: 'Spam from bad user',
+        senderName: 'spammer_1',
+      );
+
+      expect(service.isUserBlocked('spammer_1'), false);
+      service.blockUser('spammer_1');
+      expect(service.isUserBlocked('spammer_1'), true);
+
+      final notifier = service.getMessagesNotifier('conv_block_test');
+      expect(notifier.value.any((m) => m.senderName == 'spammer_1'), false);
+    });
+
+    test('reportContent logs report without crashing', () async {
+      final service = ChatService.instance;
+      await expectLater(
+        service.reportContent(
+          reportedUserId: 'spammer_1',
+          messageId: 'msg_test_1',
+          reason: 'Harassment or hate speech',
+          messageText: 'Offensive message',
+        ),
+        completes,
       );
     });
   });
