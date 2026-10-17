@@ -69,6 +69,7 @@ class _GroupPageState extends State<GroupPage> {
           ElevatedButton(
             onPressed: () async {
               if (formKey.currentState?.validate() ?? false) {
+                final navigator = Navigator.of(context);
                 final group = await GroupService.instance.createGroup(
                   name: nameCtrl.text,
                   description: descCtrl.text.isNotEmpty
@@ -76,9 +77,9 @@ class _GroupPageState extends State<GroupPage> {
                       : 'Community conversation',
                 );
                 if (!mounted) return;
-                Navigator.pop(ctx);
+                navigator.pop();
                 // Open newly created group
-                Navigator.of(context).push(
+                navigator.push(
                   MaterialPageRoute(
                     builder: (_) => ConversationScreen(
                       conversationId: group.id,
