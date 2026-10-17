@@ -1,7 +1,6 @@
 import 'package:chatbud/route_generator.dart';
 import 'package:chatbud/src/auth/auth_service.dart';
 import 'package:chatbud/src/core/app_state.dart';
-import 'package:chatbud/src/core/secure_storage_service.dart';
 import 'package:chatbud/src/widgets/legal_dialog.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
@@ -91,54 +90,39 @@ class ContactPage extends StatelessWidget {
     );
   }
 
-  void _showAiKeyDialog(BuildContext context) async {
-    final currentKey = await SecureStorageService.getGeminiApiKey() ?? '';
-    final ctrl = TextEditingController(text: currentKey);
-
-    if (!context.mounted) return;
+  void _showAiStatusDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Gemini API Configuration'),
-        content: Column(
+        title: const Row(
+          children: [
+            Icon(Icons.smart_toy_outlined, color: Color(0xFF4F46E5)),
+            SizedBox(width: 8),
+            Text('AI Assistant Status'),
+          ],
+        ),
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Enter your Google Gemini API Key (Free Tier) to power real-time AI Assistant responses.',
-              style: TextStyle(fontSize: 13, height: 1.4),
+            Text(
+              'Powered by Firebase AI Logic (Google Gemini 1.5 Flash).',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: ctrl,
-              obscureText: true,
-              decoration: const InputDecoration(
-                hintText: 'AIzaSy...',
-                prefixIcon: Icon(Icons.key_rounded),
-              ),
+            SizedBox(height: 8),
+            Text(
+              '• Backend: Gemini Developer API\n'
+              '• Free Tier: 15 RPM / 1M TPM / 1,500 RPD\n'
+              '• Client Keys: None required (secure serverless auth)\n'
+              '• Status: Active & Ready',
+              style: TextStyle(fontSize: 13, height: 1.5),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final key = ctrl.text.trim();
-              await SecureStorageService.saveGeminiApiKey(key);
-              if (ctx.mounted) Navigator.pop(ctx);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Gemini API Key securely updated.'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
-            },
-            child: const Text('Save Key'),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -477,8 +461,8 @@ class ContactPage extends StatelessWidget {
                           ),
                           _SettingsItem(
                             icon: Icons.smart_toy_outlined,
-                            label: 'AI Configuration (Gemini)',
-                            onTap: () => _showAiKeyDialog(context),
+                            label: 'AI Assistant (Firebase AI Logic)',
+                            onTap: () => _showAiStatusDialog(context),
                           ),
                         ],
                       ),

@@ -1,0 +1,300 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// This security rules file assumes the following data structures:
+//
+// Collection: users/{userId}
+// Document ID: Firebase Auth UID matching the authenticated user
+// Fields:
+//   - uid: string (required, 1..128 chars, matches auth.uid and document ID, immutable)
+//   - email: string (required, 3..254 chars, valid email format)
+//   - displayName: string (required, 1..100 chars)
+//   - isOnline: bool (required, user online presence flag)
+//   - lastSeen: timestamp (required, last presence timestamp)
+//   - status: string (optional, 0..200 chars, user status message)
+//
+// Collection: conversations/{conversationId}
+// Document ID: Unique conversation identifier (e.g. direct chat ID or group conversation ID)
+// Fields:
+//   - id: string (optional, 1..128 chars, immutable)
+//   - participants: list of string UIDs (required, 1..100 items, participant user IDs)
+//   - lastMessage: string (optional, 0..5000 chars, preview text of last message)
+//   - lastMessageTime: string or timestamp (optional, preview time)
+//   - lastTime: string (optional, 0..50 chars, formatted timestamp string)
+//   - unreadCount: int or map (optional, unread messages counter >= 0)
+//   - typingUsers: list of string UIDs (optional, 0..100 items)
+//   - title: string (optional, 0..100 chars, conversation title)
+//   - isGroup: bool (optional, whether conversation is a group chat)
+//   - isAi: bool (optional, whether conversation is with AI Assistant)
+//   - updatedAt: timestamp (optional, server timestamp of last message/activity)
+//
+// Subcollection: conversations/{conversationId}/messages/{messageId}
+// Document ID: Unique message identifier (e.g. msg_123)
+// Fields:
+//   - id: string (required, 1..128 chars, matches messageId, immutable)
+//   - text: string (required, 1..5000 chars, non-empty message content)
+//   - isUser: bool (required, true for user messages, false for AI/system)
+//   - senderName: string (required, 1..100 chars, sender display name)
+//   - senderId: string (optional, 0..128 chars, UID of sender)
+//   - timestamp: timestamp (required, creation timestamp, immutable)
+//   - status: string (required, enum: 'sending', 'sent', 'delivered', 'read')
+//   - isBookmarked: bool (optional, bookmark state)
+//   - attachmentType: string (optional, enum: 'none', 'image', 'document', 'location')
+//   - attachmentName: string (optional, 0..256 chars, attachment name)
+//
+// Collection: groups/{groupId}
+// Document ID: Unique group identifier (e.g. grp_123)
+// Fields:
+//   - id: string (required, 1..128 chars, matches groupId, immutable)
+//   - name: string (required, 1..100 chars, group name)
+//   - memberIds: list of string UIDs (required or members list, 1..500 items, group members)
+//   - members: list of string UIDs (optional client fallback list, 0..500 items)
+//   - creatorId: string (required, 1..128 chars, creator UID, immutable)
+//   - createdAt: timestamp (required, creation timestamp, immutable)
+//   - description: string (optional, 0..500 chars, group topic/description)
+//   - memberCount: int (optional, member counter >= 0)
+//   - lastActive: string (optional, 0..50 chars, activity status)
+//
+// Collection: reports/{reportId}
+// Document ID: Unique report identifier
+// Fields:
+//   - reportedUserId: string (required, 1..128 chars, user being reported)
+//   - messageId: string (required, 1..128 chars, ID of offending message)
+//   - reason: string (required, 1..500 chars, reason for report)
+//   - messageText: string (required, 0..5000 chars, text of offending message)
+//   - reporterId: string (required, 1..128 chars, matches auth.uid)
+//   - timestamp: timestamp (optional, report timestamp)
+//   - createdAt: timestamp (optional, report timestamp)
+//   - status: string (optional, 0..50 chars, moderation status)
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if user owns the resource by matching user ID
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Validate email format
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // Validate that immutable fields have not been modified on update
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // Check if the authenticated user is a participant of parent conversation
+    function isConversationParticipant(conversationId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/conversations/$(conversationId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    // Validate user profile schema
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'isOnline', 'lastSeen']) &&
+        data.keys().hasOnly(['uid', 'email', 'displayName', 'isOnline', 'lastSeen', 'status']) &&
+        data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 &&
+        data.email is string && data.email.size() <= 254 && isValidEmail(data.email) &&
+        data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100 &&
+        data.isOnline is bool &&
+        data.lastSeen is timestamp &&
+        (!('status' in data) || (data.status is string && data.status.size() <= 200));
+    }
+
+    // Validate conversation schema
+    function isValidConversation(data) {
+      return data.keys().hasAll(['participants']) &&
+        data.keys().hasOnly(['id', 'participants', 'lastMessage', 'lastMessageTime', 'lastTime', 'unreadCount', 'typingUsers', 'title', 'isGroup', 'isAi', 'updatedAt']) &&
+        data.participants is list && data.participants.size() >= 1 && data.participants.size() <= 100 &&
+        (!('id' in data) || (data.id is string && data.id.size() >= 1 && data.id.size() <= 128)) &&
+        (!('lastMessage' in data) || (data.lastMessage is string && data.lastMessage.size() <= 5000)) &&
+        (!('lastMessageTime' in data) || (data.lastMessageTime is string && data.lastMessageTime.size() <= 50) || (data.lastMessageTime is timestamp)) &&
+        (!('lastTime' in data) || (data.lastTime is string && data.lastTime.size() <= 50)) &&
+        (!('unreadCount' in data) || (data.unreadCount is int && data.unreadCount >= 0) || (data.unreadCount is map)) &&
+        (!('typingUsers' in data) || (data.typingUsers is list && data.typingUsers.size() <= 100)) &&
+        (!('title' in data) || (data.title is string && data.title.size() <= 100)) &&
+        (!('isGroup' in data) || (data.isGroup is bool)) &&
+        (!('isAi' in data) || (data.isAi is bool)) &&
+        (!('updatedAt' in data) || (data.updatedAt is timestamp));
+    }
+
+    // Validate message schema
+    function isValidMessage(data, messageId) {
+      return data.keys().hasAll(['id', 'text', 'isUser', 'senderName', 'timestamp', 'status']) &&
+        data.keys().hasOnly(['id', 'text', 'isUser', 'senderName', 'senderId', 'timestamp', 'status', 'isBookmarked', 'attachmentType', 'attachmentName']) &&
+        data.id is string && data.id.size() >= 1 && data.id.size() <= 128 && data.id == messageId &&
+        data.text is string && data.text.size() > 0 && data.text.size() <= 5000 &&
+        data.isUser is bool &&
+        data.senderName is string && data.senderName.size() >= 1 && data.senderName.size() <= 100 &&
+        data.timestamp is timestamp &&
+        data.status is string && data.status in ['sending', 'sent', 'delivered', 'read'] &&
+        (!('senderId' in data) || (data.senderId is string && data.senderId.size() <= 128)) &&
+        (!('isBookmarked' in data) || data.isBookmarked is bool) &&
+        (!('attachmentType' in data) || (data.attachmentType is string && data.attachmentType in ['none', 'image', 'document', 'location'])) &&
+        (!('attachmentName' in data) || data.attachmentName == null || (data.attachmentName is string && data.attachmentName.size() <= 256));
+    }
+
+    // Validate group schema
+    function isValidGroup(data, groupId) {
+      return data.keys().hasAll(['id', 'name', 'creatorId', 'createdAt']) &&
+        ('memberIds' in data || 'members' in data) &&
+        data.keys().hasOnly(['id', 'name', 'memberIds', 'members', 'creatorId', 'createdAt', 'description', 'memberCount', 'lastActive']) &&
+        data.id is string && data.id.size() >= 1 && data.id.size() <= 128 && data.id == groupId &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+        data.creatorId is string && data.creatorId.size() >= 1 && data.creatorId.size() <= 128 &&
+        data.createdAt is timestamp &&
+        (!('memberIds' in data) || (data.memberIds is list && data.memberIds.size() >= 1 && data.memberIds.size() <= 500)) &&
+        (!('members' in data) || (data.members is list && data.members.size() <= 500)) &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+        (!('memberCount' in data) || (data.memberCount is int && data.memberCount >= 0)) &&
+        (!('lastActive' in data) || (data.lastActive is string && data.lastActive.size() <= 50));
+    }
+
+    // Validate report schema
+    function isValidReport(data) {
+      return data.keys().hasAll(['reportedUserId', 'messageId', 'reason', 'messageText', 'reporterId']) &&
+        data.keys().hasOnly(['reportedUserId', 'messageId', 'reason', 'messageText', 'reporterId', 'timestamp', 'createdAt', 'status']) &&
+        data.reportedUserId is string && data.reportedUserId.size() >= 1 && data.reportedUserId.size() <= 128 &&
+        data.messageId is string && data.messageId.size() >= 1 && data.messageId.size() <= 128 &&
+        data.reason is string && data.reason.size() >= 1 && data.reason.size() <= 500 &&
+        data.messageText is string && data.messageText.size() <= 5000 &&
+        data.reporterId is string && data.reporterId.size() >= 1 && data.reporterId.size() <= 128 &&
+        (!('timestamp' in data) || data.timestamp is timestamp) &&
+        (!('createdAt' in data) || data.createdAt is timestamp) &&
+        (!('status' in data) || (data.status is string && data.status.size() <= 50));
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // 1. Users Collection
+    match /users/{userId} {
+      // Authenticated users can read profiles for user discovery and contact listing
+      allow read: if isAuthenticated();
+
+      // Users can only create their own user document matching their Auth UID
+      allow create: if isOwner(userId) &&
+        isValidUser(request.resource.data) &&
+        request.resource.data.uid == userId;
+
+      // Users can only update their own profile; UID is strictly immutable
+      allow update: if isOwner(userId) &&
+        isValidUser(request.resource.data) &&
+        areImmutableFieldsUnchanged(['uid']);
+
+      // Users can only delete their own account (Store policy compliance)
+      allow delete: if isOwner(userId);
+    }
+
+    // 2. Conversations Collection
+    match /conversations/{conversationId} {
+      // Only participants in the conversation can read it
+      allow read: if isAuthenticated() &&
+        request.auth.uid in resource.data.participants;
+
+      // Authenticated user must be included in participants on creation
+      allow create: if isAuthenticated() &&
+        request.auth.uid in request.resource.data.participants &&
+        isValidConversation(request.resource.data);
+
+      // Only conversation participants can update; ID is immutable
+      allow update: if isAuthenticated() &&
+        request.auth.uid in resource.data.participants &&
+        isValidConversation(request.resource.data) &&
+        areImmutableFieldsUnchanged(['id']);
+
+      // Only participants can delete the conversation
+      allow delete: if isAuthenticated() &&
+        request.auth.uid in resource.data.participants;
+
+      // Messages Subcollection
+      match /messages/{messageId} {
+        // Only parent conversation participants can read messages
+        allow read: if isConversationParticipant(conversationId);
+
+        // Only parent conversation participants can send messages
+        allow create: if isConversationParticipant(conversationId) &&
+          isValidMessage(request.resource.data, messageId);
+
+        // Participants can update message state (e.g. read status); ID and timestamp immutable
+        allow update: if isConversationParticipant(conversationId) &&
+          isValidMessage(request.resource.data, messageId) &&
+          areImmutableFieldsUnchanged(['id', 'timestamp']);
+
+        // Participants can delete messages
+        allow delete: if isConversationParticipant(conversationId);
+      }
+    }
+
+    // 3. Groups Collection
+    match /groups/{groupId} {
+      // Only members of the group can read group details
+      allow read: if isAuthenticated() &&
+        (
+          ('memberIds' in resource.data && request.auth.uid in resource.data.memberIds) ||
+          ('members' in resource.data && resource.data.members is list && request.auth.uid in resource.data.members)
+        );
+
+      // Authenticated user must be in memberIds/members and must be creatorId
+      allow create: if isAuthenticated() &&
+        isValidGroup(request.resource.data, groupId) &&
+        request.resource.data.creatorId == request.auth.uid &&
+        (
+          ('memberIds' in request.resource.data && request.auth.uid in request.resource.data.memberIds) ||
+          ('members' in request.resource.data && request.resource.data.members is list && request.auth.uid in request.resource.data.members)
+        );
+
+      // Only members can update group details; id, creatorId, createdAt are immutable
+      allow update: if isAuthenticated() &&
+        (
+          ('memberIds' in resource.data && request.auth.uid in resource.data.memberIds) ||
+          ('members' in resource.data && resource.data.members is list && request.auth.uid in resource.data.members)
+        ) &&
+        isValidGroup(request.resource.data, groupId) &&
+        areImmutableFieldsUnchanged(['id', 'creatorId', 'createdAt']);
+
+      // Only the group creator can delete the group
+      allow delete: if isAuthenticated() &&
+        request.auth.uid == resource.data.creatorId;
+    }
+
+    // 4. Reports Collection (UGC Content Moderation)
+    match /reports/{reportId} {
+      // Regular users must NOT read, update, or delete abuse reports; backend/admin only
+      allow read, update, delete: if false;
+
+      // Authenticated users can create abuse reports where reporterId matches auth uid
+      allow create: if isAuthenticated() &&
+        request.resource.data.reporterId == request.auth.uid &&
+        isValidReport(request.resource.data);
+    }
+
+    // Default deny for all other collections and paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

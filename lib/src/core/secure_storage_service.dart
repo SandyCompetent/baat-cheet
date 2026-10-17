@@ -9,7 +9,6 @@ class SecureStorageService {
   );
 
   static const String _userTokenKey = 'auth_user_token';
-  static const String _geminiApiKey = 'gemini_api_key';
 
   static Future<void> saveUserToken(String token) async {
     await _storage.write(key: _userTokenKey, value: token);
@@ -17,14 +16,6 @@ class SecureStorageService {
 
   static Future<String?> getUserToken() async {
     return await _storage.read(key: _userTokenKey);
-  }
-
-  static Future<void> saveGeminiApiKey(String key) async {
-    await _storage.write(key: _geminiApiKey, value: key);
-  }
-
-  static Future<String?> getGeminiApiKey() async {
-    return await _storage.read(key: _geminiApiKey);
   }
 
   static Future<void> clearAll() async {
