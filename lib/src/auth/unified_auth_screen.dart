@@ -259,11 +259,14 @@ class _UnifiedAuthScreenState extends State<UnifiedAuthScreen> {
         const SizedBox(height: 16),
         Center(
           child: TextButton(
-            onPressed: () {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                homeRoute,
-                (route) => false,
-              );
+            onPressed: () async {
+              await AuthService.signInAnonymously();
+              if (context.mounted) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  homeRoute,
+                  (route) => false,
+                );
+              }
             },
             child: Text(
               'Continue as Guest',

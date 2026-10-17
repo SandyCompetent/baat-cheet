@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import '../core/storage_service.dart';
 import '../models/group_chat.dart';
 
 /// Production GroupService backed by Cloud Firestore.
@@ -7,7 +9,19 @@ import '../models/group_chat.dart';
 class GroupService {
   static final GroupService instance = GroupService._internal();
   GroupService._internal() {
-    _initFirestoreListener();
+    _loadCachedGroups();
+    if (_canSyncFirestore) {
+      _initFirestoreListener();
+    }
+  }
+
+  void _loadCachedGroups() {
+    try {
+      final savedMaps = StorageService.getSavedGroups();
+      if (savedMaps.isNotEmpty) {
+        groupsNotifier.value = savedMaps.map((m) => GroupChat.fromMap(m)).toList();
+      }
+    } catch (_) {}
   }
 
   FirebaseFirestore? _customFirestore;
@@ -20,6 +34,16 @@ class GroupService {
     }
   }
 
+  bool get _canSyncFirestore {
+    final fs = _firestore;
+    if (fs == null) return false;
+    try {
+      return FirebaseAuth.instance.currentUser != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @visibleForTesting
   set firestoreForTesting(FirebaseFirestore? fs) {
     _customFirestore = fs;
@@ -29,6 +53,7 @@ class GroupService {
       ValueNotifier<List<GroupChat>>([]);
 
   void _initFirestoreListener() {
+    if (!_canSyncFirestore) return;
     final fs = _firestore;
     if (fs == null) return;
     try {
@@ -51,6 +76,7 @@ class GroupService {
           }).toList();
 
           groupsNotifier.value = groups;
+          StorageService.saveGroups(groups.map((g) => g.toMap()).toList());
         },
         onError: (_) {
           // Offline fallback
@@ -77,21 +103,24 @@ class GroupService {
 
     // Optimistically add to local state
     groupsNotifier.value = [newGroup, ...groupsNotifier.value];
+    StorageService.saveGroups(groupsNotifier.value.map((g) => g.toMap()).toList());
 
-    // Persist to Cloud Firestore
-    final fs = _firestore;
-    if (fs != null) {
-      try {
-        await fs.collection('groups').doc(newGroup.id).set({
-          'id': newGroup.id,
-          'name': newGroup.name,
-          'description': newGroup.description,
-          'memberCount': 1,
-          'members': creatorId != null ? [creatorId] : [],
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastActive': 'Just now',
-        });
-      } catch (_) {}
+    // Persist to Cloud Firestore only if authenticated
+    if (_canSyncFirestore) {
+      final fs = _firestore;
+      if (fs != null) {
+        try {
+          await fs.collection('groups').doc(newGroup.id).set({
+            'id': newGroup.id,
+            'name': newGroup.name,
+            'description': newGroup.description,
+            'memberCount': 1,
+            'members': creatorId != null ? [creatorId] : [],
+            'createdAt': FieldValue.serverTimestamp(),
+            'lastActive': 'Just now',
+          });
+        } catch (_) {}
+      }
     }
 
     return newGroup;
@@ -108,23 +137,26 @@ class GroupService {
         memberCount: willJoin ? grp.memberCount + 1 : grp.memberCount - 1,
       );
       groupsNotifier.value = current;
+      StorageService.saveGroups(current.map((g) => g.toMap()).toList());
 
-      final fs = _firestore;
-      if (fs != null) {
-        try {
-          final docRef = fs.collection('groups').doc(groupId);
-          if (willJoin) {
-            await docRef.update({
-              'memberCount': FieldValue.increment(1),
-              if (userId != null) 'members': FieldValue.arrayUnion([userId]),
-            });
-          } else {
-            await docRef.update({
-              'memberCount': FieldValue.increment(-1),
-              if (userId != null) 'members': FieldValue.arrayRemove([userId]),
-            });
-          }
-        } catch (_) {}
+      if (_canSyncFirestore) {
+        final fs = _firestore;
+        if (fs != null) {
+          try {
+            final docRef = fs.collection('groups').doc(groupId);
+            if (willJoin) {
+              await docRef.update({
+                'memberCount': FieldValue.increment(1),
+                if (userId != null) 'members': FieldValue.arrayUnion([userId]),
+              });
+            } else {
+              await docRef.update({
+                'memberCount': FieldValue.increment(-1),
+                if (userId != null) 'members': FieldValue.arrayRemove([userId]),
+              });
+            }
+          } catch (_) {}
+        }
       }
     }
   }

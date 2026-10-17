@@ -107,5 +107,38 @@ void main() {
         completes,
       );
     });
+
+    test('Guest / unauthenticated AI chat operates completely offline without permission errors', () async {
+      final service = ChatService.instance;
+      final sent = await service.sendMessage(
+        conversationId: 'ai_assistant',
+        text: 'What can you do?',
+        senderName: 'Guest User',
+      );
+
+      expect(sent.text, 'What can you do?');
+      expect(sent.isUser, true);
+
+      final notifier = service.getMessagesNotifier('ai_assistant');
+      expect(notifier.value.any((m) => m.id == sent.id), true);
+
+      // Verify cached in StorageService
+      final cached = StorageService.getConversationMessages('ai_assistant');
+      expect(cached.any((m) => m.id == sent.id), true);
+    });
+
+    test('listenTypingStatus returns false stream for AI Assistant or guest mode', () async {
+      final service = ChatService.instance;
+      final isTyping = await service.listenTypingStatus('ai_assistant', 'guest').first;
+      expect(isTyping, false);
+    });
+
+    test('setTypingStatus completes safely without error for guest or AI assistant', () async {
+      final service = ChatService.instance;
+      await expectLater(
+        service.setTypingStatus('ai_assistant', 'guest', true),
+        completes,
+      );
+    });
   });
 }

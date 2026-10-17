@@ -51,9 +51,7 @@ class ChatMessage {
       text: map['text'] as String? ?? '',
       isUser: map['isUser'] as bool? ?? false,
       senderName: map['senderName'] as String? ?? '',
-      timestamp: map['timestamp'] != null
-          ? DateTime.tryParse(map['timestamp'] as String) ?? DateTime.now()
-          : DateTime.now(),
+      timestamp: _parseDateTime(map['timestamp']),
       status: MessageStatus.values.firstWhere(
         (e) => e.name == map['status'],
         orElse: () => MessageStatus.delivered,
@@ -65,6 +63,17 @@ class ChatMessage {
       ),
       attachmentName: map['attachmentName'] as String?,
     );
+  }
+
+  static DateTime _parseDateTime(dynamic val) {
+    if (val == null) return DateTime.now();
+    if (val is DateTime) return val;
+    if (val is String) return DateTime.tryParse(val) ?? DateTime.now();
+    try {
+      return (val as dynamic).toDate() as DateTime;
+    } catch (_) {
+      return DateTime.now();
+    }
   }
 }
 

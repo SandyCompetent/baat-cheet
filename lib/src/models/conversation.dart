@@ -40,4 +40,30 @@ class Conversation {
       avatarUrl: avatarUrl ?? this.avatarUrl,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'lastMessage': lastMessage,
+      'lastTime': lastTime,
+      'unreadCount': unreadCount,
+      'isAi': isAi,
+      'isGroup': isGroup,
+      'avatarUrl': avatarUrl,
+    };
+  }
+
+  factory Conversation.fromMap(Map<String, dynamic> map) {
+    return Conversation(
+      id: map['id'] as String? ?? '',
+      title: map['title'] as String? ?? 'Conversation',
+      lastMessage: map['lastMessage'] as String? ?? '',
+      lastTime: map['lastTime'] as String? ?? '',
+      unreadCount: (map['unreadCount'] as num?)?.toInt() ?? 0,
+      isAi: map['isAi'] as bool? ?? false,
+      isGroup: map['isGroup'] as bool? ?? false,
+      avatarUrl: map['avatarUrl'] as String?,
+    );
+  }
 }

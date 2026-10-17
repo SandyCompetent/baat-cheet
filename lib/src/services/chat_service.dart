@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../core/storage_service.dart';
 import '../models/chat_message.dart';
@@ -13,10 +14,21 @@ import 'gemini_service.dart';
 /// - Online presence and real-time typing indicators
 /// - User blocking and message reporting for Store UGC compliance
 /// - Real-time streaming response engine for Gemini AI Assistant
-/// - No mock lists: starts with clean empty state from backend
+/// - Offline caching and guest-mode local chat support without permission errors
 class ChatService {
   static final ChatService instance = ChatService._internal();
-  ChatService._internal();
+  ChatService._internal() {
+    _loadCachedConversations();
+  }
+
+  void _loadCachedConversations() {
+    try {
+      final cached = StorageService.getSavedConversations();
+      if (cached.isNotEmpty) {
+        conversationsNotifier.value = cached;
+      }
+    } catch (_) {}
+  }
 
   FirebaseFirestore? _customFirestore;
   FirebaseFirestore? get _firestore {
@@ -25,6 +37,16 @@ class ChatService {
       return FirebaseFirestore.instance;
     } catch (_) {
       return null;
+    }
+  }
+
+  bool get _canSyncFirestore {
+    final fs = _firestore;
+    if (fs == null) return false;
+    try {
+      return FirebaseAuth.instance.currentUser != null;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -47,12 +69,13 @@ class ChatService {
   // ── 1. Listen to Conversations ──────────────────────────────────────────
   Stream<List<Conversation>> streamConversations(String currentUserId) {
     final fs = _firestore;
-    if (fs == null) {
+    if (fs == null || !_canSyncFirestore) {
       return Stream.value(conversationsNotifier.value);
     }
     try {
       return fs
           .collection('conversations')
+          .where('participants', arrayContains: currentUserId)
           .orderBy('updatedAt', descending: true)
           .snapshots()
           .map((snapshot) {
@@ -74,8 +97,15 @@ class ChatService {
           );
         }).toList();
 
-        conversationsNotifier.value = list;
-        return list;
+        // Merge with existing local conversations (e.g. ai_assistant)
+        final localOnly = conversationsNotifier.value
+            .where((c) => c.isAi || !list.any((remote) => remote.id == c.id))
+            .toList();
+
+        final merged = [...localOnly, ...list];
+        conversationsNotifier.value = merged;
+        StorageService.saveConversations(merged);
+        return merged;
       });
     } catch (_) {
       // Offline fallback
@@ -86,8 +116,11 @@ class ChatService {
   // ── 2. Message Stream with Pagination ────────────────────────────────────
   ValueNotifier<List<ChatMessage>> getMessagesNotifier(String conversationId) {
     return _messagesNotifiers.putIfAbsent(conversationId, () {
-      final notifier = ValueNotifier<List<ChatMessage>>([]);
-      _attachFirestoreMessageListener(conversationId, notifier);
+      final cached = StorageService.getConversationMessages(conversationId);
+      final notifier = ValueNotifier<List<ChatMessage>>(cached);
+      if (conversationId != 'ai_assistant' && _canSyncFirestore) {
+        _attachFirestoreMessageListener(conversationId, notifier);
+      }
       return notifier;
     });
   }
@@ -97,6 +130,7 @@ class ChatService {
     ValueNotifier<List<ChatMessage>> notifier, {
     int limit = 40,
   }) {
+    if (conversationId == 'ai_assistant' || !_canSyncFirestore) return;
     _conversationSubs[conversationId]?.cancel();
     final fs = _firestore;
     if (fs == null) return;
@@ -121,6 +155,7 @@ class ChatService {
               .toList();
 
           notifier.value = [...messages, ...inFlight];
+          StorageService.saveConversationMessages(conversationId, notifier.value);
           _syncSavedMessages();
         },
         onError: (_) {
@@ -156,35 +191,38 @@ class ChatService {
     final notifier = getMessagesNotifier(conversationId);
     notifier.value = [...notifier.value, message];
     _updateLocalConversationPreview(conversationId, text, timeStr);
+    StorageService.saveConversationMessages(conversationId, notifier.value);
 
-    // Persist to Cloud Firestore
-    final fs = _firestore;
-    if (fs != null) {
-      try {
-        final docRef = fs
-            .collection('conversations')
-            .doc(conversationId)
-            .collection('messages')
-            .doc(message.id);
+    // Persist to Cloud Firestore only if authenticated and not AI Assistant
+    if (conversationId != 'ai_assistant' && _canSyncFirestore) {
+      final fs = _firestore;
+      if (fs != null) {
+        try {
+          final docRef = fs
+              .collection('conversations')
+              .doc(conversationId)
+              .collection('messages')
+              .doc(message.id);
 
-        await docRef.set({
-          'id': message.id,
-          'text': message.text,
-          'isUser': true,
-          'senderName': senderName,
-          'senderId': senderId ?? '',
-          'timestamp': FieldValue.serverTimestamp(),
-          'status': MessageStatus.delivered.name,
-          'isBookmarked': false,
-        });
+          await docRef.set({
+            'id': message.id,
+            'text': message.text,
+            'isUser': true,
+            'senderName': senderName,
+            'senderId': senderId ?? '',
+            'timestamp': FieldValue.serverTimestamp(),
+            'status': MessageStatus.delivered.name,
+            'isBookmarked': false,
+          });
 
-        await fs.collection('conversations').doc(conversationId).set({
-          'lastMessage': message.text,
-          'lastTime': timeStr,
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-      } catch (_) {
-        // Offline fallback
+          await fs.collection('conversations').doc(conversationId).set({
+            'lastMessage': message.text,
+            'lastTime': timeStr,
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        } catch (_) {
+          // Offline fallback
+        }
       }
     }
 
@@ -246,26 +284,7 @@ class ChatService {
     final timeStr =
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
     _updateLocalConversationPreview(conversationId, fullReply, timeStr);
-
-    // Save final AI reply to Firestore if connected
-    final fs = _firestore;
-    if (fs != null) {
-      try {
-        await fs
-            .collection('conversations')
-            .doc(conversationId)
-            .collection('messages')
-            .doc(aiMsgId)
-            .set({
-          'id': aiMsgId,
-          'text': fullReply,
-          'isUser': false,
-          'senderName': 'ChatBud AI',
-          'timestamp': FieldValue.serverTimestamp(),
-          'status': MessageStatus.delivered.name,
-        });
-      } catch (_) {}
-    }
+    StorageService.saveConversationMessages(conversationId, notifier.value);
   }
 
   // ── 5. Real-Time Presence & Typing Indicators ────────────────────────────
@@ -274,6 +293,7 @@ class ChatService {
     String userId,
     bool isTyping,
   ) async {
+    if (conversationId == 'ai_assistant' || !_canSyncFirestore) return;
     final fs = _firestore;
     if (fs == null) return;
     try {
@@ -291,6 +311,9 @@ class ChatService {
   }
 
   Stream<bool> listenTypingStatus(String conversationId, String currentUserId) {
+    if (conversationId == 'ai_assistant' || !_canSyncFirestore) {
+      return Stream.value(false);
+    }
     final fs = _firestore;
     if (fs == null) return Stream.value(false);
     try {
@@ -317,6 +340,7 @@ class ChatService {
     required String messageText,
     String? reporterId,
   }) async {
+    if (!_canSyncFirestore) return;
     final fs = _firestore;
     if (fs == null) return;
     try {
@@ -354,17 +378,20 @@ class ChatService {
     final notifier = getMessagesNotifier(conversationId);
     notifier.value = notifier.value.where((m) => m.id != messageId).toList();
     _syncSavedMessages();
+    StorageService.saveConversationMessages(conversationId, notifier.value);
 
-    final fs = _firestore;
-    if (fs != null) {
-      try {
-        fs
-            .collection('conversations')
-            .doc(conversationId)
-            .collection('messages')
-            .doc(messageId)
-            .delete();
-      } catch (_) {}
+    if (conversationId != 'ai_assistant' && _canSyncFirestore) {
+      final fs = _firestore;
+      if (fs != null) {
+        try {
+          fs
+              .collection('conversations')
+              .doc(conversationId)
+              .collection('messages')
+              .doc(messageId)
+              .delete();
+        } catch (_) {}
+      }
     }
   }
 
@@ -374,6 +401,7 @@ class ChatService {
     if (idx != -1 && list[idx].unreadCount > 0) {
       list[idx] = list[idx].copyWith(unreadCount: 0);
       conversationsNotifier.value = list;
+      StorageService.saveConversations(list);
     }
   }
 
@@ -419,5 +447,6 @@ class ChatService {
       );
       conversationsNotifier.value = [newConv, ...list];
     }
+    StorageService.saveConversations(conversationsNotifier.value);
   }
 }

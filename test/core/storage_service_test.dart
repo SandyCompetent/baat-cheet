@@ -1,4 +1,6 @@
 import 'package:chatbud/src/core/storage_service.dart';
+import 'package:chatbud/src/models/chat_message.dart';
+import 'package:chatbud/src/models/conversation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -65,6 +67,46 @@ void main() {
       expect(saved.length, 1);
       expect(saved.first['name'], 'Custom Group 1');
       expect(saved.first['isJoined'], true);
+    });
+
+    test('getConversationMessages and saveConversationMessages persist messages locally', () async {
+      expect(StorageService.getConversationMessages('ai_assistant'), isEmpty);
+
+      final testMsgs = [
+        ChatMessage(
+          id: 'test_msg_1',
+          text: 'Hello AI',
+          isUser: true,
+          senderName: 'Guest',
+          timestamp: DateTime.now(),
+        ),
+      ];
+
+      await StorageService.saveConversationMessages('ai_assistant', testMsgs);
+      final loaded = StorageService.getConversationMessages('ai_assistant');
+      expect(loaded.length, 1);
+      expect(loaded.first.id, 'test_msg_1');
+      expect(loaded.first.text, 'Hello AI');
+    });
+
+    test('getSavedConversations and saveConversations persist conversations locally', () async {
+      expect(StorageService.getSavedConversations(), isEmpty);
+
+      final testConvs = [
+        const Conversation(
+          id: 'ai_assistant',
+          title: 'ChatBud AI Assistant',
+          lastMessage: 'Hello there!',
+          lastTime: '12:00',
+          isAi: true,
+        ),
+      ];
+
+      await StorageService.saveConversations(testConvs);
+      final loaded = StorageService.getSavedConversations();
+      expect(loaded.length, 1);
+      expect(loaded.first.id, 'ai_assistant');
+      expect(loaded.first.title, 'ChatBud AI Assistant');
     });
   });
 }

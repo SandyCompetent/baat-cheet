@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/chat_message.dart';
+import '../models/conversation.dart';
 
 /// Production-level local persistent storage using SharedPreferences.
 /// Handles offline caching for:
@@ -7,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// - Saved/bookmarked message IDs
 /// - Custom display name / guest credentials
 /// - In-flight conversation drafts
+/// - Cached conversation lists and message threads (offline & guest chat)
 class StorageService {
   static SharedPreferences? _prefs;
 
@@ -14,6 +17,8 @@ class StorageService {
   static const String _bookmarksKey = 'saved_bookmarks';
   static const String _guestNameKey = 'guest_display_name';
   static const String _customGroupsKey = 'custom_groups_json';
+  static const String _conversationsKey = 'cached_conversations_list';
+  static const String _messagesPrefix = 'cached_messages_';
 
   static Future<void> init() async {
     _prefs ??= await SharedPreferences.getInstance();
@@ -71,5 +76,46 @@ class StorageService {
 
   static Future<void> saveGroups(List<Map<String, dynamic>> groups) async {
     await _prefs?.setString(_customGroupsKey, jsonEncode(groups));
+  }
+
+  // ── Conversation Messages Persistence ─────────────────────────────────────
+  static List<ChatMessage> getConversationMessages(String conversationId) {
+    final raw = _prefs?.getString('$_messagesPrefix$conversationId');
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded
+          .map((e) => ChatMessage.fromMap(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<void> saveConversationMessages(
+    String conversationId,
+    List<ChatMessage> messages,
+  ) async {
+    final list = messages.map((m) => m.toMap()).toList();
+    await _prefs?.setString('$_messagesPrefix$conversationId', jsonEncode(list));
+  }
+
+  // ── Conversations List Persistence ────────────────────────────────────────
+  static List<Conversation> getSavedConversations() {
+    final raw = _prefs?.getString(_conversationsKey);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded
+          .map((e) => Conversation.fromMap(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<void> saveConversations(List<Conversation> conversations) async {
+    final list = conversations.map((c) => c.toMap()).toList();
+    await _prefs?.setString(_conversationsKey, jsonEncode(list));
   }
 }

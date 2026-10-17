@@ -120,9 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onFabPressed() {
-    _checkLoginAndProceed(() {
-      _showNewChatModal();
-    }, 'New Conversations');
+    _showNewChatModal();
   }
 
   void _showNewChatModal() {
@@ -200,7 +198,9 @@ class _MyHomePageState extends State<MyHomePage> {
               subtitle: const Text('Collaborate with friends or teammates'),
               onTap: () {
                 Navigator.pop(ctx);
-                setState(() => _currentIndex = 1);
+                _checkLoginAndProceed(() {
+                  setState(() => _currentIndex = 1);
+                }, 'Group Channels');
               },
             ),
           ],

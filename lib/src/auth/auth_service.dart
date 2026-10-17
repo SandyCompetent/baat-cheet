@@ -145,7 +145,23 @@ class AuthService {
     }
   }
 
-  // ── 5. User Document in Firestore ─────────────────────────────────────────
+  // ── 5. Anonymous / Guest Sign-In ──────────────────────────────────────────
+  static Future<AuthResult> signInAnonymously() async {
+    final auth = _auth;
+    if (auth == null) {
+      return AuthResult.err('Firebase is not initialized.');
+    }
+    try {
+      final cred = await auth.signInAnonymously();
+      return AuthResult.ok(cred.user);
+    } on FirebaseAuthException catch (e) {
+      return AuthResult.err(_message(e));
+    } catch (e) {
+      return AuthResult.err('Anonymous sign-in failed: ${e.toString()}');
+    }
+  }
+
+  // ── 6. User Document in Firestore ─────────────────────────────────────────
   static Future<void> _updateUserDocument(User user) async {
     final fs = _firestore;
     if (fs == null) return;
