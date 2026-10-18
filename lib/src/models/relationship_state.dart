@@ -51,7 +51,8 @@ class RelationshipState {
       mood: map['mood'] as String? ?? 'Supportive',
       interactionCount: (map['interactionCount'] as num?)?.toInt() ?? 0,
       lastInteraction: map['lastInteraction'] != null
-          ? DateTime.tryParse(map['lastInteraction'].toString()) ?? DateTime.now()
+          ? DateTime.tryParse(map['lastInteraction'].toString()) ??
+              DateTime.now()
           : DateTime.now(),
       notes: map['notes'] as String?,
     );

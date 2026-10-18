@@ -105,7 +105,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           backgroundColor: context.bgSurface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
               Icon(Icons.auto_awesome_rounded, color: context.accent, size: 22),
@@ -174,36 +175,44 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: nameCtrl,
-                      style: TextStyle(color: context.textPrimary, fontSize: 14),
-                      validator: (val) =>
-                          (val == null || val.trim().isEmpty) ? 'Enter a persona name' : null,
+                      style:
+                          TextStyle(color: context.textPrimary, fontSize: 14),
+                      validator: (val) => (val == null || val.trim().isEmpty)
+                          ? 'Enter a persona name'
+                          : null,
                       decoration: InputDecoration(
                         hintText: 'Persona Name (e.g., Jordan, Aria)',
                         hintStyle: TextStyle(color: context.textMuted),
-                        prefixIcon: Icon(Icons.smart_toy_outlined, color: context.accent),
+                        prefixIcon: Icon(Icons.smart_toy_outlined,
+                            color: context.accent),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: taglineCtrl,
-                      style: TextStyle(color: context.textPrimary, fontSize: 14),
-                      validator: (val) =>
-                          (val == null || val.trim().isEmpty) ? 'Enter a short tagline' : null,
+                      style:
+                          TextStyle(color: context.textPrimary, fontSize: 14),
+                      validator: (val) => (val == null || val.trim().isEmpty)
+                          ? 'Enter a short tagline'
+                          : null,
                       decoration: InputDecoration(
                         hintText: 'Tagline (e.g., Senior Talent Acquisition)',
                         hintStyle: TextStyle(color: context.textMuted),
-                        prefixIcon: Icon(Icons.badge_outlined, color: context.accent),
+                        prefixIcon:
+                            Icon(Icons.badge_outlined, color: context.accent),
                       ),
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       initialValue: category,
                       dropdownColor: context.bgSurface,
-                      style: TextStyle(color: context.textPrimary, fontSize: 14),
+                      style:
+                          TextStyle(color: context.textPrimary, fontSize: 14),
                       decoration: InputDecoration(
                         labelText: 'Category',
                         labelStyle: TextStyle(color: context.textMuted),
-                        prefixIcon: Icon(Icons.category_outlined, color: context.accent),
+                        prefixIcon: Icon(Icons.category_outlined,
+                            color: context.accent),
                       ),
                       items: [
                         'HR & Talent',
@@ -215,7 +224,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                         'Philosophy',
                         'Custom',
                       ]
-                          .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                          .map(
+                              (c) => DropdownMenuItem(value: c, child: Text(c)))
                           .toList(),
                       onChanged: (val) {
                         if (val != null) setDialogState(() => category = val);
@@ -225,7 +235,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                     TextFormField(
                       controller: promptCtrl,
                       maxLines: 4,
-                      style: TextStyle(color: context.textPrimary, fontSize: 13),
+                      style:
+                          TextStyle(color: context.textPrimary, fontSize: 13),
                       validator: (val) =>
                           (val == null || val.trim().length < 10)
                               ? 'System prompt must be at least 10 chars'
@@ -239,11 +250,13 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: tagsCtrl,
-                      style: TextStyle(color: context.textPrimary, fontSize: 14),
+                      style:
+                          TextStyle(color: context.textPrimary, fontSize: 14),
                       decoration: InputDecoration(
                         hintText: 'Tags (comma separated, e.g. HR, Interviews)',
                         hintStyle: TextStyle(color: context.textMuted),
-                        prefixIcon: Icon(Icons.tag_outlined, color: context.accent),
+                        prefixIcon:
+                            Icon(Icons.tag_outlined, color: context.accent),
                       ),
                     ),
                   ],
@@ -285,8 +298,6 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -307,14 +318,16 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
           ValueListenableBuilder<Persona>(
             valueListenable: PersonaService.instance.activePersonaNotifier,
             builder: (context, activePersona, _) {
-              final rel = MemoryService.instance.getRelationshipState(activePersona.id);
+              final rel =
+                  MemoryService.instance.getRelationshipState(activePersona.id);
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: context.bgSurface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: context.accent.withAlpha(80), width: 1.5),
+                  border: Border.all(
+                      color: context.accent.withAlpha(80), width: 1.5),
                   boxShadow: [
                     BoxShadow(
                       color: context.accent.withAlpha(20),
@@ -431,10 +444,10 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: context.bgElevated,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                                decoration: BoxDecoration(
+                                  color: context.bgElevated,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                                 child: Text(
                                   'Mood: ${rel.mood}',
                                   style: TextStyle(
@@ -457,7 +470,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                         padding: const EdgeInsets.all(10),
                         minimumSize: const Size(38, 38),
                       ),
-                      icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                      icon: const Icon(Icons.chat_bubble_outline_rounded,
+                          size: 18),
                       onPressed: () async {
                         final conv = await ChatService.instance
                             .startPersonaConversation(activePersona);
@@ -499,9 +513,11 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                     selectedColor: context.accentSubtle,
                     checkmarkColor: context.accent,
                     labelStyle: TextStyle(
-                      color: isSelected ? context.accent : context.textSecondary,
+                      color:
+                          isSelected ? context.accent : context.textSecondary,
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ),
                 );
@@ -517,7 +533,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                 final filtered = allPersonas.where((p) {
                   if (_selectedCategory == 'All') return true;
                   if (_selectedCategory == 'Custom') return !p.isCurated;
-                  return p.category.toLowerCase() == _selectedCategory.toLowerCase();
+                  return p.category.toLowerCase() ==
+                      _selectedCategory.toLowerCase();
                 }).toList();
 
                 if (filtered.isEmpty) {
@@ -530,11 +547,13 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 84),
+                  padding: const EdgeInsets.only(
+                      left: 16, right: 16, top: 8, bottom: 84),
                   itemCount: filtered.length,
                   itemBuilder: (context, idx) {
                     final persona = filtered[idx];
-                    final rel = MemoryService.instance.getRelationshipState(persona.id);
+                    final rel =
+                        MemoryService.instance.getRelationshipState(persona.id);
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 12),
@@ -565,7 +584,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
@@ -585,10 +605,13 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                               color: persona.isCurated
                                                   ? context.accentSubtle
                                                   : context.bgElevated,
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             child: Text(
-                                              persona.isCurated ? 'BUILT-IN' : 'CUSTOM',
+                                              persona.isCurated
+                                                  ? 'BUILT-IN'
+                                                  : 'CUSTOM',
                                               style: TextStyle(
                                                 color: persona.isCurated
                                                     ? context.accent
@@ -613,7 +636,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 ValueListenableBuilder<Persona>(
-                                  valueListenable: PersonaService.instance.activePersonaNotifier,
+                                  valueListenable: PersonaService
+                                      .instance.activePersonaNotifier,
                                   builder: (context, activeP, _) {
                                     final isActive = activeP.id == persona.id;
                                     if (isActive) {
@@ -621,16 +645,20 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
-                                          color: context.statusOnline.withAlpha(25),
-                                          borderRadius: BorderRadius.circular(12),
+                                          color: context.statusOnline
+                                              .withAlpha(25),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                           border: Border.all(
-                                              color: context.statusOnline.withAlpha(80)),
+                                              color: context.statusOnline
+                                                  .withAlpha(80)),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Icon(Icons.check_circle,
-                                                size: 12, color: context.statusOnline),
+                                                size: 12,
+                                                color: context.statusOnline),
                                             const SizedBox(width: 4),
                                             Text(
                                               'ACTIVE',
@@ -649,10 +677,13 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 10, vertical: 4),
                                         minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                        side: BorderSide(color: context.borderSubtle),
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        side: BorderSide(
+                                            color: context.borderSubtle),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
                                       ),
                                       onPressed: () => PersonaService.instance
@@ -729,11 +760,13 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                             color: rel.trustLevel >= 8
                                                 ? Colors.amber.withAlpha(30)
                                                 : context.accentSubtle,
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                             border: Border.all(
                                               color: rel.trustLevel >= 8
                                                   ? Colors.amber.withAlpha(80)
-                                                  : context.accent.withAlpha(50),
+                                                  : context.accent
+                                                      .withAlpha(50),
                                             ),
                                           ),
                                           child: Row(
@@ -765,10 +798,11 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: context.bgElevated,
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
+                                        decoration: BoxDecoration(
+                                          color: context.bgElevated,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
                                         child: Text(
                                           'Mood: ${rel.mood}',
                                           style: TextStyle(
@@ -790,7 +824,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                     padding: const EdgeInsets.all(10),
                                     minimumSize: const Size(38, 38),
                                   ),
-                                  icon: const Icon(Icons.chat_bubble_outline_rounded,
+                                  icon: const Icon(
+                                      Icons.chat_bubble_outline_rounded,
                                       size: 18),
                                   tooltip: 'Chat with ${persona.name}',
                                   onPressed: () async {

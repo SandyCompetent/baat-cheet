@@ -32,7 +32,9 @@ void main() {
       expect(unknown.id, Persona.curatedPersonas.first.id);
     });
 
-    test('findPersonaByName matches by name case-insensitively and handles @ symbol', () {
+    test(
+        'findPersonaByName matches by name case-insensitively and handles @ symbol',
+        () {
       final service = PersonaService.instance;
       final athena = service.findPersonaByName('@athena');
       expect(athena, isNotNull);

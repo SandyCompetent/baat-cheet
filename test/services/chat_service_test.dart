@@ -17,7 +17,9 @@ void main() {
       expect(service.conversationsNotifier.value, isNotNull);
     });
 
-    test('sendMessage creates message, updates thread and updates conversation preview', () async {
+    test(
+        'sendMessage creates message, updates thread and updates conversation preview',
+        () async {
       final service = ChatService.instance;
       final sent = await service.sendMessage(
         conversationId: 'conv_123',
@@ -40,7 +42,8 @@ void main() {
     test('markAsRead zeroes out unread count for conversation', () {
       final service = ChatService.instance;
       service.markAsRead('conv_123');
-      final topConv = service.conversationsNotifier.value.firstWhere((c) => c.id == 'conv_123');
+      final topConv = service.conversationsNotifier.value
+          .firstWhere((c) => c.id == 'conv_123');
       expect(topConv.unreadCount, 0);
     });
 
@@ -59,7 +62,8 @@ void main() {
       expect(notifier.value.any((m) => m.id == sent.id), false);
     });
 
-    test('toggleBookmark toggles message bookmark state and updates saved list', () async {
+    test('toggleBookmark toggles message bookmark state and updates saved list',
+        () async {
       final service = ChatService.instance;
       final sent = await service.sendMessage(
         conversationId: 'conv_bookmark_test',
@@ -109,7 +113,9 @@ void main() {
       );
     });
 
-    test('Guest / unauthenticated AI chat operates completely offline without permission errors', () async {
+    test(
+        'Guest / unauthenticated AI chat operates completely offline without permission errors',
+        () async {
       final service = ChatService.instance;
       final sent = await service.sendMessage(
         conversationId: 'ai_assistant',
@@ -128,13 +134,18 @@ void main() {
       expect(cached.any((m) => m.id == sent.id), true);
     });
 
-    test('listenTypingStatus returns false stream for AI Assistant or guest mode', () async {
+    test(
+        'listenTypingStatus returns false stream for AI Assistant or guest mode',
+        () async {
       final service = ChatService.instance;
-      final isTyping = await service.listenTypingStatus('ai_assistant', 'guest').first;
+      final isTyping =
+          await service.listenTypingStatus('ai_assistant', 'guest').first;
       expect(isTyping, false);
     });
 
-    test('setTypingStatus completes safely without error for guest or AI assistant', () async {
+    test(
+        'setTypingStatus completes safely without error for guest or AI assistant',
+        () async {
       final service = ChatService.instance;
       await expectLater(
         service.setTypingStatus('ai_assistant', 'guest', true),
@@ -149,7 +160,8 @@ void main() {
       expect(service.isAiConversation('group_123'), false);
     });
 
-    test('startPersonaConversation creates conversation and selects persona', () async {
+    test('startPersonaConversation creates conversation and selects persona',
+        () async {
       final service = ChatService.instance;
       final cipher = PersonaService.instance.getPersonaById('cipher');
       final conv = await service.startPersonaConversation(cipher);

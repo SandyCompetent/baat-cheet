@@ -20,7 +20,9 @@ void main() {
   });
 
   group('AuthService Method Tests', () {
-    test('authenticateUnified returns error gracefully when Firebase is uninitialized', () async {
+    test(
+        'authenticateUnified returns error gracefully when Firebase is uninitialized',
+        () async {
       final res = await AuthService.authenticateUnified(
         email: 'user@example.com',
         password: 'password123',
@@ -29,13 +31,17 @@ void main() {
       expect(res.errorMessage, isNotNull);
     });
 
-    test('signInWithGoogle returns error gracefully when Firebase is uninitialized', () async {
+    test(
+        'signInWithGoogle returns error gracefully when Firebase is uninitialized',
+        () async {
       final res = await AuthService.signInWithGoogle();
       expect(res.success, false);
       expect(res.errorMessage, isNotNull);
     });
 
-    test('signInWithApple returns error gracefully when Firebase is uninitialized', () async {
+    test(
+        'signInWithApple returns error gracefully when Firebase is uninitialized',
+        () async {
       final res = await AuthService.signInWithApple();
       expect(res.success, false);
       expect(res.errorMessage, isNotNull);

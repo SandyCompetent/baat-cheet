@@ -372,7 +372,9 @@ class _SocialButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           backgroundColor: bgColor,
           foregroundColor: textColor,
-          side: border != null ? BorderSide(color: context.borderSubtle) : BorderSide.none,
+          side: border != null
+              ? BorderSide(color: context.borderSubtle)
+              : BorderSide.none,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -704,4 +706,3 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
     );
   }
 }
-

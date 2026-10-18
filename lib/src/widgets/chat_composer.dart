@@ -72,7 +72,8 @@ class _ChatComposerState extends State<ChatComposer> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Speech recognition is not available or permission denied.'),
+            content: Text(
+                'Speech recognition is not available or permission denied.'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -145,9 +146,12 @@ class _ChatComposerState extends State<ChatComposer> {
                   decoration: InputDecoration(
                     hintText: _isListening ? 'Listening...' : 'Type a message…',
                     hintStyle: TextStyle(
-                      color: _isListening ? context.statusDanger : context.textMuted,
+                      color: _isListening
+                          ? context.statusDanger
+                          : context.textMuted,
                       fontSize: 15,
-                      fontWeight: _isListening ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight:
+                          _isListening ? FontWeight.w600 : FontWeight.w400,
                     ),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,

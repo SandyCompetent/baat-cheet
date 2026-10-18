@@ -7,10 +7,12 @@ import 'package:flutter/material.dart';
 /// - "sandy.competent@gmail.com" -> "SC"
 String getInitials(String displayName, String email) {
   final name = displayName.trim();
-  final isDefaultGuest = name == 'Guest User' || name == 'Guest' || name == 'User';
+  final isDefaultGuest =
+      name == 'Guest User' || name == 'Guest' || name == 'User';
 
   if (name.isNotEmpty && !isDefaultGuest) {
-    final parts = name.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    final parts =
+        name.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
     if (parts.length >= 2) {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     } else if (parts.isNotEmpty) {
@@ -22,7 +24,10 @@ String getInitials(String displayName, String email) {
   final cleanEmail = email.trim();
   if (cleanEmail.isNotEmpty) {
     final emailPrefix = cleanEmail.split('@').first;
-    final emailParts = emailPrefix.split(RegExp(r'[._\-]')).where((p) => p.isNotEmpty).toList();
+    final emailParts = emailPrefix
+        .split(RegExp(r'[._\-]'))
+        .where((p) => p.isNotEmpty)
+        .toList();
     if (emailParts.length >= 2) {
       return '${emailParts[0][0]}${emailParts[1][0]}'.toUpperCase();
     } else if (emailParts.isNotEmpty) {

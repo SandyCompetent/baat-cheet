@@ -74,7 +74,8 @@ class UserMemory {
           ? DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
       lastRecalledAt: map['lastRecalledAt'] != null
-          ? DateTime.tryParse(map['lastRecalledAt'].toString()) ?? DateTime.now()
+          ? DateTime.tryParse(map['lastRecalledAt'].toString()) ??
+              DateTime.now()
           : DateTime.now(),
     );
   }

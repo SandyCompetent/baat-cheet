@@ -15,13 +15,15 @@ void main() {
     await StorageService.init();
   });
 
-  test('sendMessage to AI assistant stores message, replies, and extracts memory',
+  test(
+      'sendMessage to AI assistant stores message, replies, and extracts memory',
       () async {
     final chat = ChatService.instance;
     final memory = MemoryService.instance;
 
     const conversationId = 'ai_assistant';
-    const text = 'I prefer concise, bullet-point answers when you explain things.';
+    const text =
+        'I prefer concise, bullet-point answers when you explain things.';
 
     final sent = await chat.sendMessage(
       conversationId: conversationId,

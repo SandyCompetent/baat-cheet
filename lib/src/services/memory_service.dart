@@ -55,7 +55,8 @@ class MemoryService {
   final ValueNotifier<List<UserMemory>> memoriesNotifier =
       ValueNotifier<List<UserMemory>>([]);
 
-  final ValueNotifier<Map<String, RelationshipState>> relationshipStatesNotifier =
+  final ValueNotifier<Map<String, RelationshipState>>
+      relationshipStatesNotifier =
       ValueNotifier<Map<String, RelationshipState>>({});
 
   void _loadMemories() {
@@ -188,8 +189,7 @@ class MemoryService {
   }
 
   Future<void> deleteMemory(String id) async {
-    final updated =
-        memoriesNotifier.value.where((m) => m.id != id).toList();
+    final updated = memoriesNotifier.value.where((m) => m.id != id).toList();
     memoriesNotifier.value = updated;
     await StorageService.saveUserMemories(updated);
 
@@ -230,8 +230,7 @@ class MemoryService {
 
     // Embed the query on-device (free, <1ms) when an embedding was not supplied
     // so the vector-similarity path is always active, not just a fallback.
-    final effectiveQueryEmbedding =
-        queryEmbedding ?? TextEmbedder.embed(query);
+    final effectiveQueryEmbedding = queryEmbedding ?? TextEmbedder.embed(query);
 
     final queryTokens = query
         .toLowerCase()

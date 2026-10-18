@@ -162,7 +162,8 @@ class ListPage extends StatelessWidget {
                             );
                           },
                           icon: const Icon(Icons.copy_rounded, size: 16),
-                          label: const Text('Copy', style: TextStyle(fontSize: 12)),
+                          label: const Text('Copy',
+                              style: TextStyle(fontSize: 12)),
                         ),
                         const SizedBox(width: 8),
                         TextButton.icon(

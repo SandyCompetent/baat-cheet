@@ -26,8 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: context.bgCanvas,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 28, vertical: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 48),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -100,8 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () =>
-                      Navigator.of(context).pushNamed(homeRoute),
+                  onPressed: () => Navigator.of(context).pushNamed(homeRoute),
                   child: const Text(
                     'Sign In',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -116,8 +114,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Text(
                     "Don't have an account? ",
-                    style: TextStyle(
-                        color: context.textSecondary, fontSize: 14),
+                    style:
+                        TextStyle(color: context.textSecondary, fontSize: 14),
                   ),
                   GestureDetector(
                     onTap: () {},

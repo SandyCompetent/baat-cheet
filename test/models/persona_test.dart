@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Persona Model Tests', () {
-    test('Curated personas are preloaded with expected IDs and starter prompts', () {
+    test('Curated personas are preloaded with expected IDs and starter prompts',
+        () {
       final curated = Persona.curatedPersonas;
       expect(curated.length, 7);
       final ids = curated.map((p) => p.id).toSet();

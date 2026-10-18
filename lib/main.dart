@@ -154,7 +154,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   color: context.accentSubtle,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.smart_toy_rounded, color: context.accent, size: 22),
+                child: Icon(Icons.smart_toy_rounded,
+                    color: context.accent, size: 22),
               ),
               title: const Text('ChatBud AI Assistant'),
               subtitle: const Text('Instant answers, research & assistance'),
@@ -179,10 +180,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   color: context.accentSubtle,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.hub_outlined, color: context.accent, size: 22),
+                child:
+                    Icon(Icons.hub_outlined, color: context.accent, size: 22),
               ),
               title: const Text('Browse AI Personas'),
-              subtitle: const Text('Explore engineering, security & creative minds'),
+              subtitle:
+                  const Text('Explore engineering, security & creative minds'),
               onTap: () {
                 Navigator.pop(ctx);
                 setState(() => _currentIndex = 1);

@@ -44,7 +44,8 @@ void main() {
       expect(map['id'], 'mem_2');
       expect(map['userId'], 'user_xyz');
       expect(map['personaId'], null);
-      expect(map['fact'], 'Building an open-source Flutter multi-agent chat app.');
+      expect(
+          map['fact'], 'Building an open-source Flutter multi-agent chat app.');
       expect(map['category'], 'project');
       expect(map['confidence'], 1.0);
       expect(map['embedding'], [0.5, -0.5, 0.25]);

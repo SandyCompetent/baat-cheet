@@ -112,8 +112,8 @@ For privacy inquiries or urgent moderation requests, contact: support@chatbud.ap
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.close_rounded,
-                            color: context.textMuted),
+                        icon:
+                            Icon(Icons.close_rounded, color: context.textMuted),
                         onPressed: () => Navigator.pop(ctx),
                       ),
                     ],

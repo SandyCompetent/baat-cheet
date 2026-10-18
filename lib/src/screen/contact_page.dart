@@ -127,11 +127,11 @@ class ContactPage extends StatelessWidget {
             onPressed: () async {
               final text = ctrl.text.trim();
               if (text.isNotEmpty) {
-                final currentUid =
-                    AuthService.currentUser?.uid ?? 'anonymous';
+                final currentUid = AuthService.currentUser?.uid ?? 'anonymous';
                 await ChatService.instance.reportContent(
                   reportedUserId: 'system',
-                  messageId: 'feedback_${DateTime.now().millisecondsSinceEpoch}',
+                  messageId:
+                      'feedback_${DateTime.now().millisecondsSinceEpoch}',
                   reason: 'User Feedback',
                   messageText: text,
                   reporterId: currentUid,
@@ -141,7 +141,8 @@ class ContactPage extends StatelessWidget {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Thank you! Your feedback has been received and saved.'),
+                    content: Text(
+                        'Thank you! Your feedback has been received and saved.'),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -184,7 +185,8 @@ class ContactPage extends StatelessWidget {
                 );
               }
             },
-            child: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+            child:
+                const Text('Sign Out', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -285,7 +287,8 @@ class ContactPage extends StatelessWidget {
                           child: CircleAvatar(
                             radius: 44,
                             backgroundColor: getAvatarColor(
-                              state.displayName.isNotEmpty && state.displayName != 'Guest User'
+                              state.displayName.isNotEmpty &&
+                                      state.displayName != 'Guest User'
                                   ? state.displayName
                                   : state.email,
                             ),

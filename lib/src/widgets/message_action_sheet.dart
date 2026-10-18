@@ -71,7 +71,8 @@ class MessageActionSheet extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.flag_outlined, color: Colors.orangeAccent),
+            leading:
+                const Icon(Icons.flag_outlined, color: Colors.orangeAccent),
             title: const Text('Report Objectionable Content'),
             onTap: () {
               Navigator.pop(context);
@@ -91,7 +92,8 @@ class MessageActionSheet extends StatelessWidget {
               },
             ),
           ListTile(
-            leading: Icon(Icons.delete_outline_rounded, color: context.statusDanger),
+            leading:
+                Icon(Icons.delete_outline_rounded, color: context.statusDanger),
             title: Text(
               'Delete Message',
               style: TextStyle(color: context.statusDanger),

@@ -6,8 +6,8 @@ import 'package:chatbud/src/screen/splash_screen.dart';
 import 'package:flutter/material.dart';
 
 const String splashRoute = '/Splash';
-const String loginRoute  = '/Login';
-const String homeRoute   = '/Home';
+const String loginRoute = '/Login';
+const String homeRoute = '/Home';
 const String converRoute = '/Conversation';
 const String personaHubRoute = '/PersonaHub';
 

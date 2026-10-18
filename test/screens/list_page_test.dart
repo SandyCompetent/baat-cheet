@@ -34,7 +34,8 @@ void main() {
 
       expect(find.text('Nothing Saved Yet'), findsOneWidget);
       expect(
-        find.text('Long-press any message in a chat and select "Save to Bookmarks" to reference it here.'),
+        find.text(
+            'Long-press any message in a chat and select "Save to Bookmarks" to reference it here.'),
         findsOneWidget,
       );
     });

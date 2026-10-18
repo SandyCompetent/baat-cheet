@@ -76,7 +76,8 @@ class _ConversationScreenState extends State<ConversationScreen>
 
   void _setTyping(bool isTyping) {
     final uid = AppState.instance.firebaseUser?.uid ?? 'guest';
-    service<ChatService>().setTypingStatus(widget.conversationId, uid, isTyping);
+    service<ChatService>()
+        .setTypingStatus(widget.conversationId, uid, isTyping);
   }
 
   void _onScroll() {
@@ -221,7 +222,8 @@ class _ConversationScreenState extends State<ConversationScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: reasons
                       .map((r) => RadioListTile<String>(
-                            title: Text(r, style: const TextStyle(fontSize: 13)),
+                            title:
+                                Text(r, style: const TextStyle(fontSize: 13)),
                             value: r,
                             contentPadding: EdgeInsets.zero,
                             dense: true,
@@ -237,7 +239,8 @@ class _ConversationScreenState extends State<ConversationScreen>
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: context.statusDanger),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: context.statusDanger),
               onPressed: () {
                 service<ChatService>().reportContent(
                   reportedUserId: msg.senderName,
@@ -249,12 +252,14 @@ class _ConversationScreenState extends State<ConversationScreen>
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Report submitted. Thank you for keeping ChatBud safe.'),
+                    content: Text(
+                        'Report submitted. Thank you for keeping ChatBud safe.'),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
               },
-              child: const Text('Submit Report', style: TextStyle(color: Colors.white)),
+              child: const Text('Submit Report',
+                  style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -276,7 +281,8 @@ class _ConversationScreenState extends State<ConversationScreen>
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: context.statusDanger),
+            style:
+                ElevatedButton.styleFrom(backgroundColor: context.statusDanger),
             onPressed: () {
               service<ChatService>().blockUser(senderName);
               Navigator.pop(ctx);
@@ -362,7 +368,8 @@ class _ConversationScreenState extends State<ConversationScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 child: Row(
                   children: [
                     Icon(Icons.share_outlined, color: context.accent, size: 22),
@@ -382,7 +389,8 @@ class _ConversationScreenState extends State<ConversationScreen>
               ListTile(
                 leading: const Icon(Icons.text_snippet_outlined),
                 title: const Text('Copy as Clean Plain Text'),
-                subtitle: const Text('Great for pasting into Slack, Email, or Docs'),
+                subtitle:
+                    const Text('Great for pasting into Slack, Email, or Docs'),
                 onTap: () {
                   Navigator.pop(ctx);
                   _copyTranscript(asMarkdown: false);
@@ -391,7 +399,8 @@ class _ConversationScreenState extends State<ConversationScreen>
               ListTile(
                 leading: const Icon(Icons.code_rounded),
                 title: const Text('Copy as Formatted Markdown'),
-                subtitle: const Text('Great for Notion, GitHub, or documentation'),
+                subtitle:
+                    const Text('Great for Notion, GitHub, or documentation'),
                 onTap: () {
                   Navigator.pop(ctx);
                   _copyTranscript(asMarkdown: true);
@@ -457,7 +466,8 @@ class _ConversationScreenState extends State<ConversationScreen>
           return ActionChip(
             backgroundColor: context.bgElevated,
             side: BorderSide(color: context.borderSubtle),
-            avatar: Icon(Icons.auto_awesome_rounded, size: 14, color: context.accent),
+            avatar: Icon(Icons.auto_awesome_rounded,
+                size: 14, color: context.accent),
             label: Text(
               prompt,
               style: TextStyle(
@@ -592,9 +602,8 @@ class _ConversationScreenState extends State<ConversationScreen>
       itemBuilder: (ctx, i) {
         final msg = messages[i];
         final pos = _bubblePosition(messages, i);
-        final topGap = (i > 0 && messages[i - 1].isUser != msg.isUser)
-            ? 16.0
-            : 4.0;
+        final topGap =
+            (i > 0 && messages[i - 1].isUser != msg.isUser) ? 16.0 : 4.0;
         return Padding(
           padding: EdgeInsets.only(top: topGap),
           child: _buildBubbleRow(msg, pos),
@@ -695,8 +704,7 @@ class _ConversationScreenState extends State<ConversationScreen>
               maxWidth: MediaQuery.of(context).size.width * 0.78,
             ),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: isUser ? context.accent : context.bgSurface,
                 borderRadius: radius,
@@ -712,9 +720,8 @@ class _ConversationScreenState extends State<ConversationScreen>
                 ],
               ),
               child: Column(
-                crossAxisAlignment: isUser
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   MarkdownBody(
@@ -761,9 +768,7 @@ class _ConversationScreenState extends State<ConversationScreen>
                         fontSize: 13.5,
                       ),
                       codeblockDecoration: BoxDecoration(
-                        color: isUser
-                            ? Colors.black26
-                            : context.bgElevated,
+                        color: isUser ? Colors.black26 : context.bgElevated,
                         borderRadius: BorderRadius.circular(8),
                         border: isUser
                             ? null

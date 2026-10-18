@@ -24,7 +24,8 @@ void main() {
   }
 
   group('MemoryPage Widget Tests', () {
-    testWidgets('Renders Memory Vault header, architecture banner, and search field',
+    testWidgets(
+        'Renders Memory Vault header, architecture banner, and search field',
         (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();

@@ -92,7 +92,8 @@ class _MemoryPageState extends State<MemoryPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.psychology_outlined, color: context.accent, size: 22),
+                Icon(Icons.psychology_outlined,
+                    color: context.accent, size: 22),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -133,8 +134,10 @@ class _MemoryPageState extends State<MemoryPage> {
                     style: TextStyle(color: context.textPrimary, fontSize: 14),
                     onSubmitted: (_) => _handleAddFact(),
                     decoration: InputDecoration(
-                      hintText: 'Add a fact (e.g. "I work at Google", "Likes Dart")',
-                      hintStyle: TextStyle(color: context.textMuted, fontSize: 13),
+                      hintText:
+                          'Add a fact (e.g. "I work at Google", "Likes Dart")',
+                      hintStyle:
+                          TextStyle(color: context.textMuted, fontSize: 13),
                       prefixIcon: Icon(
                         Icons.lightbulb_outline_rounded,
                         color: context.accent,
@@ -156,7 +159,8 @@ class _MemoryPageState extends State<MemoryPage> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: context.accent, width: 1.5),
+                        borderSide:
+                            BorderSide(color: context.accent, width: 1.5),
                       ),
                     ),
                   ),
@@ -190,7 +194,8 @@ class _MemoryPageState extends State<MemoryPage> {
               decoration: InputDecoration(
                 hintText: 'Search stored memories…',
                 hintStyle: TextStyle(color: context.textMuted, fontSize: 12),
-                prefixIcon: Icon(Icons.search_rounded, color: context.textMuted, size: 18),
+                prefixIcon: Icon(Icons.search_rounded,
+                    color: context.textMuted, size: 18),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear_rounded, size: 16),
@@ -199,7 +204,8 @@ class _MemoryPageState extends State<MemoryPage> {
                     : null,
                 filled: true,
                 fillColor: context.bgElevated,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
@@ -271,7 +277,8 @@ class _MemoryPageState extends State<MemoryPage> {
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 84),
+                  padding: const EdgeInsets.only(
+                      left: 16, right: 16, top: 8, bottom: 84),
                   itemCount: filtered.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, idx) {
@@ -279,7 +286,8 @@ class _MemoryPageState extends State<MemoryPage> {
                     final isManual = mem.category == 'manual';
 
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
                         color: context.bgSurface,
                         borderRadius: BorderRadius.circular(12),
@@ -292,13 +300,19 @@ class _MemoryPageState extends State<MemoryPage> {
                             margin: const EdgeInsets.only(top: 2),
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: isManual ? context.accentSubtle : context.bgElevated,
+                              color: isManual
+                                  ? context.accentSubtle
+                                  : context.bgElevated,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              isManual ? Icons.edit_note_rounded : Icons.auto_awesome_rounded,
+                              isManual
+                                  ? Icons.edit_note_rounded
+                                  : Icons.auto_awesome_rounded,
                               size: 16,
-                              color: isManual ? context.accent : Colors.amber.shade700,
+                              color: isManual
+                                  ? context.accent
+                                  : Colors.amber.shade700,
                             ),
                           ),
                           const SizedBox(width: 12),

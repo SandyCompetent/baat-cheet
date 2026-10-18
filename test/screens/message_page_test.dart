@@ -24,7 +24,8 @@ void main() {
   }
 
   group('MessagePage Widget Tests', () {
-    testWidgets('Renders app title and clean empty state without filter tabs when no chats exist',
+    testWidgets(
+        'Renders app title and clean empty state without filter tabs when no chats exist',
         (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
@@ -49,7 +50,8 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
     });
 
-    testWidgets('Displays conversation item and persona filter tabs when active chat exists',
+    testWidgets(
+        'Displays conversation item and persona filter tabs when active chat exists',
         (tester) async {
       await ChatService.instance.sendMessage(
         conversationId: 'user_clark',

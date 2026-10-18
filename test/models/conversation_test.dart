@@ -25,7 +25,8 @@ void main() {
       expect(conv.avatarUrl, 'https://example.com/avatar.png');
     });
 
-    test('copyWith updates target attributes while retaining existing ones', () {
+    test('copyWith updates target attributes while retaining existing ones',
+        () {
       const original = Conversation(
         id: 'conv_102',
         title: 'Project Chat',

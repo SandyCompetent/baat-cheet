@@ -37,7 +37,8 @@ void main() {
       expect(find.text('Privacy Policy'), findsOneWidget);
     });
 
-    testWidgets('Editing display name updates temporarily in guest mode with feedback snackbar',
+    testWidgets(
+        'Editing display name updates temporarily in guest mode with feedback snackbar',
         (tester) async {
       await tester.pumpWidget(buildApp());
       expect(find.text('Guest User'), findsWidgets);
@@ -52,8 +53,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Alex'), findsWidgets);
-      expect(
-          find.text('Display name temporarily set to "Alex" (Guest mode).'),
+      expect(find.text('Display name temporarily set to "Alex" (Guest mode).'),
           findsOneWidget);
     });
 

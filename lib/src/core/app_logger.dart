@@ -51,7 +51,8 @@ class AppLogger {
     Object? error,
     StackTrace? stackTrace,
   }) =>
-      _log(LogLevel.warning, message, tag: tag, error: error, stackTrace: stackTrace);
+      _log(LogLevel.warning, message,
+          tag: tag, error: error, stackTrace: stackTrace);
 
   static void e(
     String message, {

@@ -88,7 +88,9 @@ class Persona {
       systemPrompt: map['systemPrompt'] as String? ?? '',
       avatarUrl: map['avatarUrl'] as String?,
       category: map['category'] as String? ?? 'General',
-      tags: (map['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
+      tags:
+          (map['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+              const [],
       starterPrompts: (map['starterPrompts'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
@@ -113,7 +115,12 @@ class Persona {
       systemPrompt:
           'You are Harper, an experienced Senior Talent Acquisition Partner and Executive Interview Coach. You conduct realistic, encouraging behavioral mock interviews using the STAR method (Situation, Task, Action, Result), help draft competitive job descriptions, generate objective candidate evaluation rubrics, and provide actionable feedback on interview answers.',
       category: 'HR & Talent',
-      tags: ['Mock Interview', 'STAR Method', 'Job Descriptions', 'Talent Screening'],
+      tags: [
+        'Mock Interview',
+        'STAR Method',
+        'Job Descriptions',
+        'Talent Screening'
+      ],
       starterPrompts: [
         '🎯 Conduct a behavioral mock interview for a Product Manager',
         '📝 Draft a Job Description for a Senior UX Designer',
@@ -151,7 +158,12 @@ class Persona {
       systemPrompt:
           'You are Leo, a seasoned Career Strategist and Resume Coach. You help professionals highlight quantifiable business impact on their resumes, craft persuasive LinkedIn profile headlines, navigate complex salary and promotion negotiations diplomatically, and strategize successful career transitions.',
       category: 'Career',
-      tags: ['Resume Polish', 'Career Strategy', 'Salary Negotiation', 'LinkedIn'],
+      tags: [
+        'Resume Polish',
+        'Career Strategy',
+        'Salary Negotiation',
+        'LinkedIn'
+      ],
       starterPrompts: [
         '📄 Rewrite this resume bullet point to highlight measurable impact',
         '💼 How do I negotiate a salary offer professionally?',
@@ -227,7 +239,12 @@ class Persona {
       systemPrompt:
           'You are Nova, an inspiring brand strategist and creative writer. You help craft magnetic product hooks, refine value propositions, and turn complex ideas into compelling stories that resonate deeply with audiences.',
       category: 'Creative',
-      tags: ['Storytelling', 'Copywriting', 'Product Marketing', 'Brand Strategy'],
+      tags: [
+        'Storytelling',
+        'Copywriting',
+        'Product Marketing',
+        'Brand Strategy'
+      ],
       starterPrompts: [
         '✨ Brainstorm 5 punchy product names and taglines',
         '📣 Write a high-converting announcement post for LinkedIn',

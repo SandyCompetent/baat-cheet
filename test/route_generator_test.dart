@@ -64,7 +64,8 @@ void main() {
       expect(find.byType(ConversationScreen), findsOneWidget);
     });
 
-    testWidgets('Generates PersonaHubScreen for personaHubRoute', (tester) async {
+    testWidgets('Generates PersonaHubScreen for personaHubRoute',
+        (tester) async {
       final route = RouteGenerator.generateRoute(
         const RouteSettings(name: personaHubRoute),
       );
@@ -88,7 +89,8 @@ void main() {
       expect(find.text('Persona Hub'), findsOneWidget);
     });
 
-    testWidgets('Generates fallback route for unknown route name', (tester) async {
+    testWidgets('Generates fallback route for unknown route name',
+        (tester) async {
       final route = RouteGenerator.generateRoute(
         const RouteSettings(name: '/unknown_path'),
       );

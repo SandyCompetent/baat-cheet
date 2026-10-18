@@ -19,7 +19,8 @@ class GroupService {
     try {
       final savedMaps = StorageService.getSavedGroups();
       if (savedMaps.isNotEmpty) {
-        groupsNotifier.value = savedMaps.map((m) => GroupChat.fromMap(m)).toList();
+        groupsNotifier.value =
+            savedMaps.map((m) => GroupChat.fromMap(m)).toList();
       }
     } catch (_) {}
   }
@@ -103,7 +104,8 @@ class GroupService {
 
     // Optimistically add to local state
     groupsNotifier.value = [newGroup, ...groupsNotifier.value];
-    StorageService.saveGroups(groupsNotifier.value.map((g) => g.toMap()).toList());
+    StorageService.saveGroups(
+        groupsNotifier.value.map((g) => g.toMap()).toList());
 
     // Persist to Cloud Firestore only if authenticated
     if (_canSyncFirestore) {

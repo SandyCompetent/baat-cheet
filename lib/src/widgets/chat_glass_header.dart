@@ -47,9 +47,8 @@ class ChatGlassHeader extends StatelessWidget implements PreferredSizeWidget {
                     children: [
                       CircleAvatar(
                         radius: 18,
-                        backgroundColor: isAi
-                            ? context.accentSubtle
-                            : getAvatarColor(title),
+                        backgroundColor:
+                            isAi ? context.accentSubtle : getAvatarColor(title),
                         child: isAi
                             ? Icon(Icons.smart_toy_rounded,
                                 color: context.accent, size: 20)

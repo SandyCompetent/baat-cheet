@@ -103,7 +103,8 @@ class _SplashScreenState extends State<SplashScreen>
                       colors: [Color(0xFF00C6FF), Color(0xFFFF7170)],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
-                    ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                    ).createShader(
+                        Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
                     child: const Text(
                       "Bud",
                       style: TextStyle(
@@ -152,7 +153,11 @@ class _SplashScreenState extends State<SplashScreen>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(2),
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF00C6FF), Color(0xFF9D50BB), Color(0xFFFF7170)],
+                              colors: [
+                                Color(0xFF00C6FF),
+                                Color(0xFF9D50BB),
+                                Color(0xFFFF7170)
+                              ],
                             ),
                           ),
                         ),

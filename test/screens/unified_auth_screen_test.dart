@@ -15,7 +15,8 @@ void main() {
   }
 
   group('UnifiedAuthScreen Widget Tests', () {
-    testWidgets('Renders single unified form with email, password, and social buttons',
+    testWidgets(
+        'Renders single unified form with email, password, and social buttons',
         (tester) async {
       await tester.pumpWidget(buildApp());
 
@@ -61,14 +62,13 @@ void main() {
         (tester) async {
       await tester.pumpWidget(buildApp());
 
-      await tester.enterText(
-          find.byType(TextField).first, 'user@example.com');
+      await tester.enterText(find.byType(TextField).first, 'user@example.com');
       await tester.enterText(find.byType(TextField).last, '123');
       await tester.tap(find.text('Continue'));
       await tester.pump();
 
-      expect(find.text('Password must be at least 6 characters.'),
-          findsOneWidget);
+      expect(
+          find.text('Password must be at least 6 characters.'), findsOneWidget);
     });
 
     testWidgets('Tapping Forgot password opens reset dialog', (tester) async {

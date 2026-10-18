@@ -80,5 +80,6 @@ class ChatMessage {
 class MessageIdGenerator {
   static int _counter = 0;
   @override
-  String toString() => 'msg_${DateTime.now().millisecondsSinceEpoch}_${_counter++}';
+  String toString() =>
+      'msg_${DateTime.now().millisecondsSinceEpoch}_${_counter++}';
 }

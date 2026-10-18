@@ -49,7 +49,8 @@ class _MessagePageState extends State<MessagePage> {
       // 2. Search query
       if (_searchQuery.isNotEmpty) {
         final matchesTitle = conv.title.toLowerCase().contains(_searchQuery);
-        final matchesMsg = conv.lastMessage.toLowerCase().contains(_searchQuery);
+        final matchesMsg =
+            conv.lastMessage.toLowerCase().contains(_searchQuery);
         return matchesTitle || matchesMsg;
       }
       return true;
@@ -251,7 +252,8 @@ class _MessagePageState extends State<MessagePage> {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (_) => const ConversationScreen(
-                                        conversationId: AppConstants.aiAssistantId,
+                                        conversationId:
+                                            AppConstants.aiAssistantId,
                                         title: 'ChatBud AI Assistant',
                                         isAi: true,
                                       ),
@@ -270,9 +272,7 @@ class _MessagePageState extends State<MessagePage> {
                         padding: const EdgeInsets.only(bottom: 84),
                         itemCount: visible.length,
                         separatorBuilder: (_, __) => Divider(
-                            height: 1,
-                            indent: 74,
-                            color: context.borderSubtle),
+                            height: 1, indent: 74, color: context.borderSubtle),
                         itemBuilder: (context, index) {
                           final item = visible[index];
                           return MessageItem(

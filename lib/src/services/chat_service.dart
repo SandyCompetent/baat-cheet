@@ -77,7 +77,8 @@ class ChatService {
   final Set<String> _blockedUsers = {};
 
   bool isAiConversation(String conversationId) {
-    if (conversationId == AppConstants.aiAssistantId || conversationId.startsWith(AppConstants.aiPersonaPrefix)) {
+    if (conversationId == AppConstants.aiAssistantId ||
+        conversationId.startsWith(AppConstants.aiPersonaPrefix)) {
       return true;
     }
     for (final c in conversationsNotifier.value) {
@@ -168,7 +169,8 @@ class ChatService {
       final notifier = ValueNotifier<List<ChatMessage>>(cached);
       if (!isAiConversation(conversationId) && _canSyncFirestore) {
         final currentLimit = _messageLimits[conversationId] ?? 40;
-        _attachFirestoreMessageListener(conversationId, notifier, limit: currentLimit);
+        _attachFirestoreMessageListener(conversationId, notifier,
+            limit: currentLimit);
       }
       return notifier;
     });
@@ -220,7 +222,8 @@ class ChatService {
               .toList();
 
           notifier.value = [...messages, ...inFlight];
-          StorageService.saveConversationMessages(conversationId, notifier.value);
+          StorageService.saveConversationMessages(
+              conversationId, notifier.value);
           _syncSavedMessages();
         },
         onError: (Object e, StackTrace st) {
@@ -261,7 +264,8 @@ class ChatService {
     // Optimistically update local notifier
     final notifier = getMessagesNotifier(conversationId);
     notifier.value = [...notifier.value, message];
-    _updateLocalConversationPreview(conversationId, text, timeStr, senderName: senderName);
+    _updateLocalConversationPreview(conversationId, text, timeStr,
+        senderName: senderName);
     StorageService.saveConversationMessages(conversationId, notifier.value);
 
     // Heuristic fact extraction for two-layer memory engine
@@ -302,14 +306,17 @@ class ChatService {
 
     // AI Assistant & Persona streaming logic
     if (isAiConversation(conversationId)) {
-      Persona targetPersona = PersonaService.instance.activePersonaNotifier.value;
+      Persona targetPersona =
+          PersonaService.instance.activePersonaNotifier.value;
       if (conversationId.startsWith(AppConstants.aiPersonaPrefix)) {
-        final pId = conversationId.replaceFirst(AppConstants.aiPersonaPrefix, '');
+        final pId =
+            conversationId.replaceFirst(AppConstants.aiPersonaPrefix, '');
         targetPersona = PersonaService.instance.getPersonaById(pId);
       } else {
         for (final c in conversationsNotifier.value) {
           if (c.id == conversationId && c.personaId != null) {
-            targetPersona = PersonaService.instance.getPersonaById(c.personaId!);
+            targetPersona =
+                PersonaService.instance.getPersonaById(c.personaId!);
             break;
           }
         }
@@ -347,7 +354,9 @@ class ChatService {
       if (lower.contains(t)) {
         MemoryService.instance.addMemory(
           fact: text.trim(),
-          category: t.contains('building') || t.contains('working') || t.contains('project')
+          category: t.contains('building') ||
+                  t.contains('working') ||
+                  t.contains('project')
               ? 'project'
               : 'preference',
         );
@@ -384,7 +393,8 @@ class ChatService {
     required String query,
     required List<ChatMessage> history,
   }) async {
-    final aiMsgId = 'msg_${persona.id}_${DateTime.now().millisecondsSinceEpoch}';
+    final aiMsgId =
+        'msg_${persona.id}_${DateTime.now().millisecondsSinceEpoch}';
     final aiMessage = ChatMessage(
       id: aiMsgId,
       text: '',
@@ -438,7 +448,8 @@ class ChatService {
     final now = DateTime.now();
     final timeStr =
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    _updateLocalConversationPreview(conversationId, fullReply, timeStr, senderName: persona.name);
+    _updateLocalConversationPreview(conversationId, fullReply, timeStr,
+        senderName: persona.name);
     StorageService.saveConversationMessages(conversationId, notifier.value);
 
     // Evolve relationship state
@@ -451,7 +462,8 @@ class ChatService {
     String userId,
     bool isTyping,
   ) async {
-    if (conversationId == AppConstants.aiAssistantId || !_canSyncFirestore) return;
+    if (conversationId == AppConstants.aiAssistantId || !_canSyncFirestore)
+      return;
     final fs = _firestore;
     if (fs == null) return;
     try {
@@ -499,9 +511,8 @@ class ChatService {
     String? reporterId,
   }) async {
     final user = _currentUser;
-    final effectiveReporterId = (user != null && user.uid.isNotEmpty)
-        ? user.uid
-        : 'anonymous';
+    final effectiveReporterId =
+        (user != null && user.uid.isNotEmpty) ? user.uid : 'anonymous';
 
     final truncatedText = messageText.length > 5000
         ? messageText.substring(0, 5000)
@@ -627,7 +638,8 @@ class ChatService {
           conversationId.startsWith(AppConstants.aiPersonaPrefix);
       String title = isAi ? 'ChatBud AI Assistant' : 'Chat';
       if (conversationId.startsWith(AppConstants.aiPersonaPrefix)) {
-        final pId = conversationId.replaceFirst(AppConstants.aiPersonaPrefix, '');
+        final pId =
+            conversationId.replaceFirst(AppConstants.aiPersonaPrefix, '');
         title = PersonaService.instance.getPersonaById(pId).name;
       } else if (senderName != null &&
           senderName.isNotEmpty &&

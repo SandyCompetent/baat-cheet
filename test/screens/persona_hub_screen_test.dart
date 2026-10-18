@@ -12,7 +12,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     await StorageService.init();
-    PersonaService.instance.personasNotifier.value = [...Persona.curatedPersonas];
+    PersonaService.instance.personasNotifier.value = [
+      ...Persona.curatedPersonas
+    ];
   });
 
   Widget buildApp() {
@@ -25,7 +27,8 @@ void main() {
   }
 
   group('PersonaHubScreen Widget Tests', () {
-    testWidgets('Renders Persona Hub title, action buttons, search, and category chips',
+    testWidgets(
+        'Renders Persona Hub title, action buttons, search, and category chips',
         (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
@@ -38,7 +41,9 @@ void main() {
       expect(find.text('Harper'), findsWidgets);
     });
 
-    testWidgets('Tapping Create Persona button opens create dialog with 1-tap presets', (tester) async {
+    testWidgets(
+        'Tapping Create Persona button opens create dialog with 1-tap presets',
+        (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
@@ -46,7 +51,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Create New Persona'), findsOneWidget);
-      expect(find.text('1-Tap Templates (No prompt writing needed):'), findsOneWidget);
+      expect(find.text('1-Tap Templates (No prompt writing needed):'),
+          findsOneWidget);
       expect(find.text('🎯 HR Recruiter'), findsOneWidget);
       expect(find.text('Create Persona'), findsOneWidget);
 
@@ -55,7 +61,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.widgetWithText(TextFormField, 'Jordan'), findsOneWidget);
-      expect(find.widgetWithText(TextFormField, 'Talent Screener & Interview Prep'), findsOneWidget);
+      expect(
+          find.widgetWithText(
+              TextFormField, 'Talent Screener & Interview Prep'),
+          findsOneWidget);
     });
 
     testWidgets('Displays active status and allows switching active persona',

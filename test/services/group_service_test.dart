@@ -30,7 +30,9 @@ void main() {
       expect(newGroup.isJoined, true);
     });
 
-    test('toggleJoinGroup toggles membership and increments/decrements member count', () async {
+    test(
+        'toggleJoinGroup toggles membership and increments/decrements member count',
+        () async {
       final service = GroupService.instance;
       final newGroup = await service.createGroup(
         name: 'Test Group',

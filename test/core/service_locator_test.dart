@@ -13,13 +13,17 @@ void main() {
       expect(service<ChatService>(), isNotNull);
     });
 
-    test('resolves the same singleton instances as the legacy .instance getters',
+    test(
+        'resolves the same singleton instances as the legacy .instance getters',
         () {
       setupLocator();
       expect(identical(service<ChatService>(), ChatService.instance), isTrue);
-      expect(identical(service<MemoryService>(), MemoryService.instance), isTrue);
-      expect(identical(service<PersonaService>(), PersonaService.instance), isTrue);
-      expect(identical(service<GeminiService>(), GeminiService.instance), isTrue);
+      expect(
+          identical(service<MemoryService>(), MemoryService.instance), isTrue);
+      expect(identical(service<PersonaService>(), PersonaService.instance),
+          isTrue);
+      expect(
+          identical(service<GeminiService>(), GeminiService.instance), isTrue);
       expect(identical(service<AppState>(), AppState.instance), isTrue);
     });
 

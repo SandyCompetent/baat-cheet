@@ -113,7 +113,8 @@ class AuthService {
           }
           return AuthResult.err(_message(regError));
         } catch (_) {
-          return AuthResult.err('Incorrect email or password. Please try again.');
+          return AuthResult.err(
+              'Incorrect email or password. Please try again.');
         }
       }
 
@@ -271,9 +272,10 @@ class AuthService {
     final userDoc = fs.collection('users').doc(user.uid);
     try {
       // Ensure displayName is never empty and does not exceed 100 characters to satisfy Firestore rules.
-      String effectiveName = (user.displayName != null && user.displayName!.trim().isNotEmpty)
-          ? user.displayName!.trim()
-          : (user.email?.split('@').first ?? 'User');
+      String effectiveName =
+          (user.displayName != null && user.displayName!.trim().isNotEmpty)
+              ? user.displayName!.trim()
+              : (user.email?.split('@').first ?? 'User');
       if (effectiveName.length > 100) {
         effectiveName = effectiveName.substring(0, 100);
       }
@@ -318,7 +320,12 @@ class AuthService {
         try {
           // Remove the private subdoc first (Firestore does not cascade
           // subcollection deletes), then the public profile document.
-          await fs.collection('users').doc(uid).collection('private').doc('me').delete();
+          await fs
+              .collection('users')
+              .doc(uid)
+              .collection('private')
+              .doc('me')
+              .delete();
           await fs.collection('users').doc(uid).delete();
         } catch (e, st) {
           AppLogger.w('Failed to delete user documents during account deletion',
@@ -384,7 +391,8 @@ class AuthService {
             return AuthResult.ok(user);
           }
         } catch (_) {}
-        return AuthResult.err('Google sign-in is not supported on this platform: ${e.toString()}');
+        return AuthResult.err(
+            'Google sign-in is not supported on this platform: ${e.toString()}');
       }
 
       if (googleUser == null) {
@@ -485,16 +493,20 @@ class AuthService {
 
     return switch (e.code) {
       'invalid-email' => 'That does not look like a valid email address.',
-      'user-disabled' => 'This account has been disabled. Please contact support.',
+      'user-disabled' =>
+        'This account has been disabled. Please contact support.',
       'user-not-found' => 'No account found for this email.',
       'wrong-password' => 'Incorrect password. Please try again.',
       'invalid-credential' => 'Incorrect email or password. Please try again.',
       'email-already-in-use' => 'An account with this email already exists.',
       'weak-password' => 'Password must be at least 6 characters.',
-      'too-many-requests' => 'Too many attempts. Please wait a moment and try again.',
-      'network-request-failed' => 'No internet connection. Please check your network.',
+      'too-many-requests' =>
+        'Too many attempts. Please wait a moment and try again.',
+      'network-request-failed' =>
+        'No internet connection. Please check your network.',
       'invalid-action-code' => 'The action code is invalid or has expired.',
-      'expired-action-code' => 'This link or code has expired. Please request a new one.',
+      'expired-action-code' =>
+        'This link or code has expired. Please request a new one.',
       _ => e.message ?? 'Authentication error. Please try again.',
     };
   }

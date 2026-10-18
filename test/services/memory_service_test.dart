@@ -34,7 +34,8 @@ void main() {
       expect(MemoryService.cosineSimilarity([1.0], [1.0, 2.0]), 0.0);
     });
 
-    test('addMemory, retrieveRelevantMemories, and deleteMemory flow', () async {
+    test('addMemory, retrieveRelevantMemories, and deleteMemory flow',
+        () async {
       final service = MemoryService.instance;
 
       final memory = await service.addMemory(
@@ -56,10 +57,12 @@ void main() {
 
       // Clean up
       await service.deleteMemory(memory.id);
-      expect(service.memoriesNotifier.value.any((m) => m.id == memory.id), false);
+      expect(
+          service.memoriesNotifier.value.any((m) => m.id == memory.id), false);
     });
 
-    test('recordInteraction updates trustLevel and interaction count', () async {
+    test('recordInteraction updates trustLevel and interaction count',
+        () async {
       final service = MemoryService.instance;
 
       final initial = service.getRelationshipState('cipher');
@@ -73,11 +76,13 @@ void main() {
       expect(updated.mood, 'Analytical');
     });
 
-    test('buildSystemPrompt injects memory context and relationship state', () async {
+    test('buildSystemPrompt injects memory context and relationship state',
+        () async {
       final service = MemoryService.instance;
 
       final memory = await service.addMemory(
-        fact: 'User is preparing to deploy an open-source Flutter app on GitHub.',
+        fact:
+            'User is preparing to deploy an open-source Flutter app on GitHub.',
         category: 'project',
         personaId: 'nova',
       );

@@ -15,7 +15,8 @@ void main() {
   }
 
   group('LoginScreen Widget Tests', () {
-    testWidgets('Renders ChatBud header, email/password fields, and Sign In button',
+    testWidgets(
+        'Renders ChatBud header, email/password fields, and Sign In button',
         (tester) async {
       await tester.pumpWidget(buildApp());
 
@@ -38,7 +39,8 @@ void main() {
       expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
     });
 
-    testWidgets('Tapping Sign In button navigates to Home screen', (tester) async {
+    testWidgets('Tapping Sign In button navigates to Home screen',
+        (tester) async {
       await tester.pumpWidget(buildApp());
 
       await tester.tap(find.text('Sign In'));

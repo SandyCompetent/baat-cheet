@@ -8,18 +8,24 @@ void main() {
       expect(getInitials('Sandeep', 'sandy.competent@gmail.com'), 'S');
     });
 
-    test('Full name returns first letters of first and last name (e.g. Sandeep Malviya -> SM)', () {
+    test(
+        'Full name returns first letters of first and last name (e.g. Sandeep Malviya -> SM)',
+        () {
       expect(getInitials('Sandeep Malviya', ''), 'SM');
       expect(getInitials('Sandeep Malviya', 'sandy.competent@gmail.com'), 'SM');
     });
 
-    test('Dotted email without display name returns SC (e.g. sandy.competent@gmail.com -> SC)', () {
+    test(
+        'Dotted email without display name returns SC (e.g. sandy.competent@gmail.com -> SC)',
+        () {
       expect(getInitials('', 'sandy.competent@gmail.com'), 'SC');
       expect(getInitials('Guest User', 'sandy.competent@gmail.com'), 'SC');
       expect(getInitials('Guest', 'sandy.competent@gmail.com'), 'SC');
     });
 
-    test('Simple email without dot returns first letter (e.g. sandeep@gmail.com -> S)', () {
+    test(
+        'Simple email without dot returns first letter (e.g. sandeep@gmail.com -> S)',
+        () {
       expect(getInitials('', 'sandeep@gmail.com'), 'S');
       expect(getInitials('Guest User', 'sandeep@gmail.com'), 'S');
     });

@@ -14,7 +14,8 @@ void main() {
   }
 
   group('MessageItem Widget Tests', () {
-    testWidgets('Renders standard message item with person name and message preview',
+    testWidgets(
+        'Renders standard message item with person name and message preview',
         (tester) async {
       await tester.pumpWidget(
         buildTestableWidget(

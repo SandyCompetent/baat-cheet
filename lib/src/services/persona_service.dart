@@ -143,7 +143,8 @@ class PersonaService {
 
   Future<void> deleteCustomPersona(String id) async {
     final current = personasNotifier.value;
-    final target = current.firstWhere((p) => p.id == id, orElse: () => current.first);
+    final target =
+        current.firstWhere((p) => p.id == id, orElse: () => current.first);
     if (target.isCurated) return; // Prevent deleting curated system personas
 
     final updated = current.where((p) => p.id != id).toList();

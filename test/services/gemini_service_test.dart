@@ -9,7 +9,9 @@ void main() {
       expect(service, isNotNull);
     });
 
-    test('streamResponse emits fallback tokens when Firebase backend is uninitialized in test environment', () async {
+    test(
+        'streamResponse emits fallback tokens when Firebase backend is uninitialized in test environment',
+        () async {
       final service = GeminiService.instance;
       final tokens = <String>[];
 
@@ -42,7 +44,8 @@ void main() {
       ];
 
       final tokens = <String>[];
-      await for (final token in service.streamResponse(prompt: 'Tell me about the slate theme', history: history)) {
+      await for (final token in service.streamResponse(
+          prompt: 'Tell me about the slate theme', history: history)) {
         tokens.add(token);
       }
 
@@ -51,7 +54,9 @@ void main() {
       expect(combined.toLowerCase().contains('slate'), isTrue);
     });
 
-    test('currentModel defaults to gemini-3.1-flash-lite and setModel switches model', () {
+    test(
+        'currentModel defaults to gemini-3.1-flash-lite and setModel switches model',
+        () {
       final service = GeminiService.instance;
       expect(service.currentModel, GeminiService.modelFlashLite);
 
@@ -63,7 +68,8 @@ void main() {
       expect(service.currentModel, GeminiService.modelFlashLite);
     });
 
-    test('streamResponse accepts systemInstruction and modelOverride', () async {
+    test('streamResponse accepts systemInstruction and modelOverride',
+        () async {
       final service = GeminiService.instance;
       final tokens = <String>[];
 

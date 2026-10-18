@@ -125,7 +125,8 @@ class StorageService {
     List<ChatMessage> messages,
   ) async {
     final list = messages.map((m) => m.toMap()).toList();
-    await _prefs?.setString('$_messagesPrefix$conversationId', jsonEncode(list));
+    await _prefs?.setString(
+        '$_messagesPrefix$conversationId', jsonEncode(list));
   }
 
   // ── Conversations List Persistence ────────────────────────────────────────
@@ -142,7 +143,8 @@ class StorageService {
     }
   }
 
-  static Future<void> saveConversations(List<Conversation> conversations) async {
+  static Future<void> saveConversations(
+      List<Conversation> conversations) async {
     final list = conversations.map((c) => c.toMap()).toList();
     await _prefs?.setString(_conversationsKey, jsonEncode(list));
   }

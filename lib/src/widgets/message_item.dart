@@ -68,9 +68,7 @@ class MessageItem extends StatelessWidget {
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: isAi
-                          ? context.statusOnline
-                          : context.bgElevated,
+                      color: isAi ? context.statusOnline : context.bgElevated,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: context.bgCanvas,
@@ -166,8 +164,7 @@ class MessageItem extends StatelessWidget {
                         Container(
                           constraints: const BoxConstraints(minWidth: 20),
                           height: 20,
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
                           decoration: BoxDecoration(
                             color: context.accent,
                             borderRadius: BorderRadius.circular(10),

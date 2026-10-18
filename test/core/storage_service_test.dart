@@ -41,7 +41,8 @@ void main() {
       expect(StorageService.isBookmarked('msg_3'), false);
     });
 
-    test('getGuestName and setGuestName manage guest user display name', () async {
+    test('getGuestName and setGuestName manage guest user display name',
+        () async {
       expect(StorageService.getGuestName(), 'Batman');
 
       await StorageService.setGuestName('Bruce Wayne');
@@ -69,7 +70,9 @@ void main() {
       expect(saved.first['isJoined'], true);
     });
 
-    test('getConversationMessages and saveConversationMessages persist messages locally', () async {
+    test(
+        'getConversationMessages and saveConversationMessages persist messages locally',
+        () async {
       expect(StorageService.getConversationMessages('ai_assistant'), isEmpty);
 
       final testMsgs = [
@@ -89,7 +92,9 @@ void main() {
       expect(loaded.first.text, 'Hello AI');
     });
 
-    test('getSavedConversations and saveConversations persist conversations locally', () async {
+    test(
+        'getSavedConversations and saveConversations persist conversations locally',
+        () async {
       expect(StorageService.getSavedConversations(), isEmpty);
 
       final testConvs = [
@@ -109,7 +114,8 @@ void main() {
       expect(loaded.first.title, 'ChatBud AI Assistant');
     });
 
-    test('saveLocalFeedback and getStoredFeedback persist feedback offline', () async {
+    test('saveLocalFeedback and getStoredFeedback persist feedback offline',
+        () async {
       expect(StorageService.getStoredFeedback(), isEmpty);
 
       final feedback = {

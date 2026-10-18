@@ -36,7 +36,8 @@ class GeminiService {
       'You are ChatBud AI, an intelligent, helpful, and concise assistant built into the ChatBud workspace. '
       'Provide clear, actionable, friendly, and well-formatted answers.';
 
-  GenerativeModel? _getModel({String? systemInstruction, String? modelOverride}) {
+  GenerativeModel? _getModel(
+      {String? systemInstruction, String? modelOverride}) {
     final targetModel = modelOverride ?? _currentModel;
     final targetInstruction = systemInstruction ?? defaultSystemInstruction;
 
@@ -93,9 +94,8 @@ class GeminiService {
       final contents = <Content>[];
 
       // Convert recent history (up to last 6 messages) into Content
-      final recent = history.length > 6
-          ? history.sublist(history.length - 6)
-          : history;
+      final recent =
+          history.length > 6 ? history.sublist(history.length - 6) : history;
       for (final m in recent) {
         if (m.isUser) {
           contents.add(Content.text(m.text));
@@ -139,15 +139,18 @@ class GeminiService {
     final lower = prompt.toLowerCase();
     String reply;
 
-    if (lower.contains('hello') || lower.contains('hi') || lower.contains('hey')) {
-      reply =
-          'Hello! I am ChatBud AI Assistant. How can I help you today?';
+    if (lower.contains('hello') ||
+        lower.contains('hi') ||
+        lower.contains('hey')) {
+      reply = 'Hello! I am ChatBud AI Assistant. How can I help you today?';
     } else if (lower.contains('theme') || lower.contains('slate')) {
       reply =
           'The Soft Minimalist Slate theme uses cool slate-tinted neutrals (#F8FAFC canvas, #FFFFFF surface, #111827 dark mode) with high-contrast electric indigo accents.';
-    } else if (lower.contains('firebase') || lower.contains('free') || lower.contains('ai') || lower.contains('model')) {
-      reply =
-          'ChatBud runs on AI Assistant ($defaultModel).';
+    } else if (lower.contains('firebase') ||
+        lower.contains('free') ||
+        lower.contains('ai') ||
+        lower.contains('model')) {
+      reply = 'ChatBud runs on AI Assistant ($defaultModel).';
     } else {
       reply =
           'I am ChatBud AI Assistant. I received your message: "$prompt". What would you like to explore or discuss next?';
