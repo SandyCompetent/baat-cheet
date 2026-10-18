@@ -47,11 +47,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: dart-lang/setup-dart@v1
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
 
-      # Run the native analyzer and pipe output to a file
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Run flutter analyze and pipe output to a file
       - name: Dart Analyze
-        run: dart analyze > dart_analyze.txt || true
+        run: flutter analyze > dart_analyze.txt || true
 
       # Convert the text file to a GitHub-compatible SARIF file
       - name: Convert Dart Analyze to SARIF
