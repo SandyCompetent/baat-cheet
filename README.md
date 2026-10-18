@@ -157,8 +157,8 @@ flutter analyze
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/SandyCompetent/baat-cheet.git
-   cd baat-cheet
+   git clone https://github.com/SandyCompetent/chatbud.git
+   cd chatbud
    ```
 
 2. **Install dependencies**:
