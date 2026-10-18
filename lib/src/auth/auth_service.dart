@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import '../core/app_state.dart';
 import '../core/secure_storage_service.dart';
 
 /// Result wrapper for every AuthService call.
@@ -304,6 +305,7 @@ class AuthService {
       // Delete Firebase Auth account
       await user.delete();
       await SecureStorageService.clearAll();
+      await AppState.instance.signOut();
       return AuthResult.ok();
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
