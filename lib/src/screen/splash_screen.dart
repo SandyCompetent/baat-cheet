@@ -30,13 +30,14 @@ class _SplashScreenState extends State<SplashScreen>
 
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: widget.redirectDelay,
     );
-    _fadeIn = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _fadeIn = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
     _ctrl.forward();
 
     _timer = Timer(widget.redirectDelay, () {
       if (!mounted) return;
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       Navigator.of(context)
           .pushNamedAndRemoveUntil(homeRoute, (Route<dynamic> route) => false);
     });
@@ -53,61 +54,125 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     return Scaffold(
-      backgroundColor: context.bgCanvas,
-      body: FadeTransition(
-        opacity: _fadeIn,
-        child: Center(
+      backgroundColor: const Color(0xFF0B101A),
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 0.8,
+            colors: [
+              Color(0xFF1A2235),
+              Color(0xFF0B101A),
+            ],
+          ),
+        ),
+        child: FadeTransition(
+          opacity: _fadeIn,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: context.accentSubtle,
-                  shape: BoxShape.circle,
+              const Spacer(flex: 5),
+              Image.asset(
+                appLogo,
+                width: 150,
+                height: 150,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.chat_bubble_rounded,
+                  color: Colors.blueAccent,
+                  size: 80,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Image.asset(
-                    appLogo,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => Icon(
-                      Icons.chat_bubble_rounded,
-                      color: context.accent,
-                      size: 48,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Chat",
+                    style: TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: -1.0,
                     ),
                   ),
+                  ShaderMask(
+                    blendMode: BlendMode.srcIn,
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF00C6FF), Color(0xFFFF7170)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                    child: const Text(
+                      "Bud",
+                      style: TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: -1.0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "THE MULTI-AGENT AI WORKSPACE",
+                style: TextStyle(
+                  color: Color(0xFF8A92A6),
+                  fontSize: 12,
+                  letterSpacing: 2.0,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 24),
-              Text(
-                appName,
+              const Spacer(flex: 4),
+              const Text(
+                "Initializing workspace...",
                 style: TextStyle(
-                  color: context.textPrimary,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                appVersion,
-                style: TextStyle(
-                  color: context.textMuted,
+                  color: Color(0xFF8A92A6),
                   fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 16),
+              AnimatedBuilder(
+                animation: _ctrl,
+                builder: (context, child) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: Container(
+                      width: 200,
+                      height: 4,
+                      alignment: Alignment.centerLeft,
+                      color: const Color(0xFF1E2841),
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: _ctrl.value,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(2),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF00C6FF), Color(0xFF9D50BB), Color(0xFFFF7170)],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 48),
+              const Text(
+                "POWERED BY FIREBASE AI LOGIC",
+                style: TextStyle(
+                  color: Color(0xFF5A6276),
+                  fontSize: 10,
+                  letterSpacing: 1.5,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 48),
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: context.accent,
-                ),
-              ),
             ],
           ),
         ),

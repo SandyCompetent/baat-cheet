@@ -16,13 +16,13 @@ void main() {
   }
 
   group('SplashScreen Widget Tests', () {
-    testWidgets('Renders ChatBud branding text and version', (tester) async {
+    testWidgets('Renders branding text', (tester) async {
       await tester.pumpWidget(
         buildApp(const SplashScreen(redirectDelay: Duration(seconds: 10))),
       );
 
-      expect(find.text(appName), findsOneWidget);
-      expect(find.text(appVersion), findsOneWidget);
+      expect(find.text('Chat', findRichText: true), findsWidgets);
+      expect(find.text('Bud', findRichText: true), findsWidgets);
 
       await tester.pumpWidget(Container());
       await tester.pumpAndSettle();
