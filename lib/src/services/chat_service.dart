@@ -43,14 +43,18 @@ class ChatService {
     }
   }
 
+  User? get _currentUser {
+    try {
+      return FirebaseAuth.instance.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
+
   bool get _canSyncFirestore {
     final fs = _firestore;
     if (fs == null) return false;
-    try {
-      return FirebaseAuth.instance.currentUser != null;
-    } catch (_) {
-      return false;
-    }
+    return _currentUser != null;
   }
 
   @visibleForTesting
@@ -467,7 +471,7 @@ class ChatService {
     String? reporterId,
   }) async {
     final effectiveReporterId = reporterId ??
-        FirebaseAuth.instance.currentUser?.uid ??
+        _currentUser?.uid ??
         'anonymous';
 
     // 1. Always store locally in StorageService as fallback & offline persistence

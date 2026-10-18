@@ -61,6 +61,8 @@ void main() {
         (tester) async {
       await tester.pumpWidget(buildApp());
 
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -150));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Send Feedback'));
       await tester.pumpAndSettle();
 
