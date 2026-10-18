@@ -625,19 +625,24 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.handshake_outlined,
-                                        size: 14, color: context.accent),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Trust: ${rel.trustLevel}/10 • Mood: ${rel.mood}',
-                                      style: TextStyle(
-                                        color: context.textMuted,
-                                        fontSize: 11,
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.handshake_outlined,
+                                          size: 14, color: context.accent),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          'Trust: ${rel.trustLevel}/10 • Mood: ${rel.mood}',
+                                          style: TextStyle(
+                                            color: context.textMuted,
+                                            fontSize: 11,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                                 Row(
                                   children: [
