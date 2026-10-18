@@ -462,8 +462,9 @@ class ChatService {
     String userId,
     bool isTyping,
   ) async {
-    if (conversationId == AppConstants.aiAssistantId || !_canSyncFirestore)
+    if (conversationId == AppConstants.aiAssistantId || !_canSyncFirestore) {
       return;
+    }
     final fs = _firestore;
     if (fs == null) return;
     try {
