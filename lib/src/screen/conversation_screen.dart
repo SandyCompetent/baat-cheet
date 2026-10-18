@@ -5,6 +5,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import '../../theme_data.dart';
 import '../core/app_state.dart';
 import '../core/constants.dart';
+import '../core/service_locator.dart';
 import '../models/chat_message.dart';
 import '../models/persona.dart';
 import '../services/chat_service.dart';
@@ -12,6 +13,8 @@ import '../services/persona_service.dart';
 import '../widgets/chat_composer.dart';
 import '../widgets/chat_glass_header.dart';
 import '../widgets/message_action_sheet.dart';
+import 'conversation/conversation_suggestions.dart';
+import 'conversation/transcript_exporter.dart';
 
 class ConversationScreen extends StatefulWidget {
   final String conversationId;
@@ -44,8 +47,8 @@ class _ConversationScreenState extends State<ConversationScreen>
   void initState() {
     super.initState();
     _messagesNotifier =
-        ChatService.instance.getMessagesNotifier(widget.conversationId);
-    ChatService.instance.markAsRead(widget.conversationId);
+        service<ChatService>().getMessagesNotifier(widget.conversationId);
+    service<ChatService>().markAsRead(widget.conversationId);
 
     _textCtrl.addListener(_onTextChanged);
     _scrollCtrl.addListener(_onScroll);
@@ -73,7 +76,7 @@ class _ConversationScreenState extends State<ConversationScreen>
 
   void _setTyping(bool isTyping) {
     final uid = AppState.instance.firebaseUser?.uid ?? 'guest';
-    ChatService.instance.setTypingStatus(widget.conversationId, uid, isTyping);
+    service<ChatService>().setTypingStatus(widget.conversationId, uid, isTyping);
   }
 
   void _onScroll() {
@@ -93,7 +96,7 @@ class _ConversationScreenState extends State<ConversationScreen>
     final sender = AppState.instance.displayName;
     final uid = AppState.instance.firebaseUser?.uid;
 
-    ChatService.instance.sendMessage(
+    service<ChatService>().sendMessage(
       conversationId: widget.conversationId,
       text: text,
       senderName: sender,
@@ -151,7 +154,7 @@ class _ConversationScreenState extends State<ConversationScreen>
           );
         },
         onBookmark: () {
-          ChatService.instance.toggleBookmark(msg);
+          service<ChatService>().toggleBookmark(msg);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -166,7 +169,7 @@ class _ConversationScreenState extends State<ConversationScreen>
           );
         },
         onDelete: () {
-          ChatService.instance.deleteMessage(widget.conversationId, msg.id);
+          service<ChatService>().deleteMessage(widget.conversationId, msg.id);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Message deleted'),
@@ -236,7 +239,7 @@ class _ConversationScreenState extends State<ConversationScreen>
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: context.statusDanger),
               onPressed: () {
-                ChatService.instance.reportContent(
+                service<ChatService>().reportContent(
                   reportedUserId: msg.senderName,
                   messageId: msg.id,
                   reason: selectedReason,
@@ -275,7 +278,7 @@ class _ConversationScreenState extends State<ConversationScreen>
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: context.statusDanger),
             onPressed: () {
-              ChatService.instance.blockUser(senderName);
+              service<ChatService>().blockUser(senderName);
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -314,9 +317,9 @@ class _ConversationScreenState extends State<ConversationScreen>
   Persona? _resolveActivePersona() {
     if (widget.conversationId.startsWith('ai_persona_')) {
       final personaId = widget.conversationId.replaceFirst('ai_persona_', '');
-      return PersonaService.instance.getPersonaById(personaId);
+      return service<PersonaService>().getPersonaById(personaId);
     }
-    return PersonaService.instance.activePersonaNotifier.value;
+    return service<PersonaService>().activePersonaNotifier.value;
   }
 
   List<String> get _starterPrompts {
@@ -403,27 +406,12 @@ class _ConversationScreenState extends State<ConversationScreen>
 
   void _copyTranscript({required bool asMarkdown}) {
     final messages = _messagesNotifier.value;
-    final buffer = StringBuffer();
-    final date = DateTime.now().toLocal().toString().split(' ').first;
-
-    if (asMarkdown) {
-      buffer.writeln('# ChatBud Transcript — ${widget.title}');
-      buffer.writeln('*Date: $date*\n');
-      for (final m in messages) {
-        final sender = m.isUser ? 'You' : widget.title;
-        buffer.writeln('### $sender');
-        buffer.writeln('${m.text}\n');
-      }
-    } else {
-      buffer.writeln('ChatBud Transcript with ${widget.title} ($date)');
-      buffer.writeln('=' * 40);
-      for (final m in messages) {
-        final sender = m.isUser ? 'You' : widget.title;
-        buffer.writeln('[$sender]: ${m.text}\n');
-      }
-    }
-
-    Clipboard.setData(ClipboardData(text: buffer.toString().trim()));
+    final transcript = TranscriptExporter.build(
+      messages: messages,
+      title: widget.title,
+      asMarkdown: asMarkdown,
+    );
+    Clipboard.setData(ClipboardData(text: transcript));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -445,48 +433,10 @@ class _ConversationScreenState extends State<ConversationScreen>
     );
   }
 
-  List<String> get _suggestedReplies {
-    final messages = _messagesNotifier.value;
-    if (messages.isNotEmpty) {
-      final lastMsg = messages.last;
-      if (!lastMsg.isUser && lastMsg.text.isNotEmpty) {
-        final textLower = lastMsg.text.toLowerCase();
-        if (textLower.contains('code') ||
-            textLower.contains('function') ||
-            textLower.contains('class') ||
-            textLower.contains('flutter') ||
-            textLower.contains('dart')) {
-          return const [
-            'Can you add comments to this code?',
-            'How do I test this function?',
-            'Explain this step-by-step',
-          ];
-        } else if (textLower.contains('step') ||
-            textLower.contains('how to') ||
-            textLower.contains('guide')) {
-          return const [
-            'Give me a concrete example',
-            'What are the common pitfalls?',
-            'Summarize key takeaways',
-          ];
-        } else if (textLower.contains('?') ||
-            textLower.contains('would you like')) {
-          return const [
-            'Yes, please tell me more!',
-            'Let\'s try another approach',
-            'Can you clarify that last part?',
-          ];
-        } else {
-          return const [
-            'Can you elaborate on that?',
-            'Give me a practical example',
-            'Summarize in 3 bullet points',
-          ];
-        }
-      }
-    }
-    return _starterPrompts;
-  }
+  List<String> get _suggestedReplies => ConversationSuggestions.forHistory(
+        messages: _messagesNotifier.value,
+        starterPrompts: _starterPrompts,
+      );
 
   Widget _buildSuggestionsBar(List<ChatMessage> messages) {
     if (messages.isEmpty) return const SizedBox.shrink();
@@ -594,7 +544,7 @@ class _ConversationScreenState extends State<ConversationScreen>
                 ),
               ),
               StreamBuilder<bool>(
-                stream: ChatService.instance
+                stream: service<ChatService>()
                     .listenTypingStatus(widget.conversationId, currentUid),
                 builder: (context, snapshot) {
                   final typing = _isTyping || (snapshot.data == true);

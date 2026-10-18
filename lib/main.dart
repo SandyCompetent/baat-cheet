@@ -1,5 +1,7 @@
 import 'package:chatbud/firebase_options.dart';
 import 'package:chatbud/src/core/app_state.dart';
+import 'package:chatbud/src/core/app_logger.dart';
+import 'package:chatbud/src/core/service_locator.dart';
 import 'package:chatbud/src/screen/contact_page.dart';
 import 'package:chatbud/src/screen/conversation_screen.dart';
 import 'package:chatbud/src/screen/memory_page.dart';
@@ -8,7 +10,9 @@ import 'package:chatbud/src/screen/persona_hub_screen.dart';
 import 'package:chatbud/src/core/constants.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'route_generator.dart';
@@ -19,9 +23,30 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-  } catch (_) {
+    // Route AppLogger warnings/errors to Crashlytics once Firebase is up.
+    // Guarded: Crashlytics is unsupported on web and absent in test/offline
+    // environments, so failures here must never block app startup.
+    if (!kIsWeb) {
+      final crashlytics = FirebaseCrashlytics.instance;
+      await crashlytics.setCrashlyticsCollectionEnabled(!kDebugMode);
+      AppLogger.errorReporter =
+          (message, error, stackTrace, {bool fatal = false}) {
+        crashlytics.recordError(
+          error ?? message,
+          stackTrace,
+          reason: message,
+          fatal: fatal,
+        );
+      };
+      FlutterError.onError = crashlytics.recordFlutterFatalError;
+    }
+  } catch (e) {
     // Graceful fallback for environments where Firebase options are mocked or offline
+    AppLogger.w('Firebase/Crashlytics initialization skipped', error: e);
   }
+
+  // Register the service composition root before building the app.
+  setupLocator();
 
   await AppState.instance.initialize();
 

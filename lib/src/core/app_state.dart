@@ -147,10 +147,13 @@ class AppState extends ChangeNotifier {
       final fs = _firestore;
       if (fs != null) {
         try {
+          String validName = trimmed;
+          if (validName.length > 100) {
+            validName = validName.substring(0, 100);
+          }
           await fs.collection('users').doc(user.uid).set({
             'uid': user.uid,
-            'email': user.email ?? '',
-            'displayName': trimmed,
+            'displayName': validName,
             'isOnline': true,
             'lastSeen': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));

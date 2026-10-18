@@ -10,11 +10,17 @@ rules_version = '2';
 // Document ID: Firebase Auth UID matching the authenticated user
 // Fields:
 //   - uid: string (required, 1..128 chars, matches auth.uid and document ID, immutable)
-//   - email: string (required, 3..254 chars, valid email format)
 //   - displayName: string (required, 1..100 chars)
 //   - isOnline: bool (required, user online presence flag)
 //   - lastSeen: timestamp (required, last presence timestamp)
 //   - status: string (optional, 0..200 chars, user status message)
+//
+// Subcollection: users/{userId}/private/{docId}  (owner-only)
+// Document ID: 'me' for the owner's private contact record
+// Fields:
+//   - email: string (owner's email; kept OUT of the public profile doc so it
+//     is never exposed to other authenticated users via discovery reads)
+//   - updatedAt: timestamp (optional)
 //
 // Collection: conversations/{conversationId}
 // Document ID: Unique conversation identifier (e.g. direct chat ID or group conversation ID)
@@ -113,14 +119,15 @@ service cloud.firestore {
 
     // Validate user profile schema
     function isValidUser(data) {
-      return data.keys().hasAll(['uid', 'email', 'displayName', 'isOnline', 'lastSeen']) &&
-        data.keys().hasOnly(['uid', 'email', 'displayName', 'isOnline', 'lastSeen', 'status']) &&
+      return data.keys().hasAll(['uid', 'displayName', 'isOnline', 'lastSeen']) &&
+        data.keys().hasOnly(['uid', 'displayName', 'isOnline', 'lastSeen', 'status', 'email', 'createdAt']) &&
         data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 &&
-        data.email is string && data.email.size() <= 254 && isValidEmail(data.email) &&
         data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100 &&
         data.isOnline is bool &&
         data.lastSeen is timestamp &&
-        (!('status' in data) || (data.status is string && data.status.size() <= 200));
+        (!('status' in data) || (data.status is string && data.status.size() <= 200)) &&
+        (!('email' in data) || data.email is string) &&
+        (!('createdAt' in data) || data.createdAt is timestamp);
     }
 
     // Validate conversation schema
@@ -192,7 +199,11 @@ service cloud.firestore {
 
     // 1. Users Collection
     match /users/{userId} {
-      // Authenticated users can read profiles for user discovery and contact listing
+      // Authenticated users can read PUBLIC profiles for user discovery and
+      // contact listing. Firestore rules cannot restrict reads to a subset of
+      // fields, so private contact info (email) is NOT stored on this document;
+      // it lives in the owner-only `private/me` subdocument below. This read is
+      // therefore safe to expose for discovery.
       allow read: if isAuthenticated();
 
       // Users can only create their own user document matching their Auth UID
@@ -207,6 +218,12 @@ service cloud.firestore {
 
       // Users can only delete their own account (Store policy compliance)
       allow delete: if isOwner(userId);
+
+      // Private per-user subcollection (e.g. email). Readable and writable
+      // ONLY by the owner — never exposed to discovery reads above.
+      match /private/{docId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // 2. Conversations Collection

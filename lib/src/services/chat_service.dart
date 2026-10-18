@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../core/constants.dart';
+import '../core/app_logger.dart';
 import '../core/storage_service.dart';
 import '../models/chat_message.dart';
 import '../models/conversation.dart';
@@ -198,14 +199,19 @@ class ChatService {
           .collection('conversations')
           .doc(conversationId)
           .collection('messages')
-          .orderBy('timestamp', descending: false)
+          .orderBy('timestamp', descending: true)
           .limit(limit)
           .snapshots()
           .listen(
         (snapshot) {
+          // Query newest-first so the most recent `limit` messages are always
+          // fetched (a growing thread must never drop new messages), then
+          // reverse to chronological order (oldest-first) for display.
           final messages = snapshot.docs
               .map((doc) => ChatMessage.fromMap(doc.data()..['id'] = doc.id))
               .where((m) => !_blockedUsers.contains(m.senderName))
+              .toList()
+              .reversed
               .toList();
 
           // Preserve in-flight local messages (e.g. streaming AI response)
@@ -217,8 +223,14 @@ class ChatService {
           StorageService.saveConversationMessages(conversationId, notifier.value);
           _syncSavedMessages();
         },
-        onError: (_) {
-          // Graceful handling when offline or rules pending
+        onError: (Object e, StackTrace st) {
+          // Graceful handling when offline or rules pending, but observable.
+          AppLogger.w(
+            'Message stream error for conversation "$conversationId"',
+            tag: 'ChatService',
+            error: e,
+            stackTrace: st,
+          );
         },
       );
     } catch (_) {
@@ -396,7 +408,9 @@ class ChatService {
       prompt: query,
       history: history,
       systemInstruction: systemPrompt,
-      modelOverride: GeminiService.defaultModel,
+      // Honor the user's currently selected model instead of hard-pinning the
+      // default, so GeminiService.setModel() actually drives conversations.
+      modelOverride: GeminiService.instance.currentModel,
     );
 
     final buffer = StringBuffer();

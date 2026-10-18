@@ -24,6 +24,8 @@ dependencies:
   google_sign_in: ^6.2.2
   sign_in_with_apple: ^8.2.0
   speech_to_text: ^7.2.0
+  get_it: ^9.3.0
+  firebase_crashlytics: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -40,6 +42,8 @@ flutter_launcher_icons:
     background_color: "#0B101A"
     theme_color: "#0B101A"
   image_path: "assets/logo.png"
+  adaptive_icon_background: "#0B101A"
+  adaptive_icon_foreground: "assets/logo.png"
   min_sdk_android: 21
 
 flutter:

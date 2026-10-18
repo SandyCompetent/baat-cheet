@@ -74,8 +74,8 @@ You do **not** need to install Flutter, Android Studio, or any developer tools t
 ### 2. Two-Layer Memory Engine (100% Free Tier)
 - **Layer 1 (Working Context)**: Sliding multi-turn conversation history cached in memory and `StorageService` (`SharedPreferences`).
 - **Layer 2 (Episodic Long-Term Memory)**:
-  - **Client-Side Vector Search**: High-speed cosine distance calculated directly in pure Dart (<1ms latency, \$0.00 cloud cost).
-  - **Semantic Overlap & Fact Extraction**: Captures user preferences, projects, and goals automatically from conversation flows.
+  - **Client-Side Vector Search**: Every memory and query is embedded on-device with a deterministic, pure-Dart **feature-hashing term embedder** (unigrams + bigrams, L2-normalized), then ranked by cosine similarity — <1ms latency, \$0.00 cloud cost, no API keys, fully offline. This is a *lexical* embedding (robust term/phrase overlap), not a neural semantic embedding; retrieval also blends a keyword-overlap signal and a confidence/recency boost.
+  - **Fact Extraction & Hygiene**: Preferences, projects, and goals are captured automatically from conversation flows, de-duplicated on ingest, and capped (least-confident / least-recently-recalled evicted first) so the vault stays bounded and fast.
   - **Memory Vault UI**: Full user control to view, add, or delete recalled memories transparently.
 
 ### 3. Dynamic Mood & Relationship State

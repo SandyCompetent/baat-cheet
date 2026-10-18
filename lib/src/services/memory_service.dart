@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import '../core/app_logger.dart';
 import '../core/storage_service.dart';
+import '../core/text_embedder.dart';
 import '../models/relationship_state.dart';
 import '../models/user_memory.dart';
 
@@ -18,6 +21,11 @@ class MemoryService {
     _loadMemories();
     _loadRelationshipStates();
   }
+
+  /// Upper bound on stored episodic memories. Beyond this, the least valuable
+  /// (lowest confidence, least recently recalled) memories are evicted so the
+  /// on-device vault stays bounded and fast.
+  static const int maxMemories = 200;
 
   FirebaseFirestore? _customFirestore;
   FirebaseFirestore? get _firestore {
@@ -89,21 +97,53 @@ class MemoryService {
   }) async {
     final user = _currentUser;
     final now = DateTime.now();
+    final cleanFact = fact.trim();
+
+    // ── De-duplication ────────────────────────────────────────────────────
+    // Heuristic fact extraction can emit the same (or near-identical) fact
+    // repeatedly. Collapse exact normalized matches and very-high cosine
+    // duplicates into the existing memory (refreshing its recency) instead of
+    // growing the vault with noise.
+    final newEmbedding = embedding ?? TextEmbedder.embed(cleanFact);
+    final normalized = _normalizeFact(cleanFact);
+    final existingIdx = memoriesNotifier.value.indexWhere((m) {
+      if ((m.personaId ?? '') != (personaId ?? '')) return false;
+      if (_normalizeFact(m.fact) == normalized) return true;
+      final emb = m.embedding;
+      return emb != null &&
+          emb.length == newEmbedding.length &&
+          cosineSimilarity(emb, newEmbedding) > 0.97;
+    });
+    if (existingIdx != -1) {
+      final existing = memoriesNotifier.value[existingIdx];
+      final refreshed = existing.copyWith(
+        lastRecalledAt: now,
+        confidence: max(existing.confidence, confidence),
+        embedding: existing.embedding ?? newEmbedding,
+      );
+      final list = List<UserMemory>.from(memoriesNotifier.value);
+      list[existingIdx] = refreshed;
+      memoriesNotifier.value = list;
+      await StorageService.saveUserMemories(list);
+      return refreshed;
+    }
+
     final id = 'mem_${now.millisecondsSinceEpoch}_${Random().nextInt(9999)}';
 
     final memory = UserMemory(
       id: id,
       userId: user?.uid ?? 'guest',
       personaId: personaId,
-      fact: fact.trim(),
+      fact: cleanFact,
       category: category,
       confidence: confidence,
-      embedding: embedding,
+      embedding: newEmbedding,
       createdAt: now,
       lastRecalledAt: now,
     );
 
-    final updated = List<UserMemory>.from(memoriesNotifier.value)..add(memory);
+    var updated = List<UserMemory>.from(memoriesNotifier.value)..add(memory);
+    updated = _enforceCapacity(updated);
     memoriesNotifier.value = updated;
     await StorageService.saveUserMemories(updated);
 
@@ -115,10 +155,36 @@ class MemoryService {
             .collection('memories')
             .doc(id)
             .set(memory.toMap());
-      } catch (_) {}
+      } catch (e, st) {
+        AppLogger.w('Failed to sync memory to Firestore',
+            tag: 'MemoryService', error: e, stackTrace: st);
+      }
     }
 
     return memory;
+  }
+
+  /// Normalize a fact for duplicate detection: lowercase, collapse whitespace,
+  /// strip punctuation.
+  static String _normalizeFact(String fact) {
+    return fact
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^\w\s]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  /// Keep only the [maxMemories] most valuable memories, evicting the lowest
+  /// confidence / least recently recalled first.
+  static List<UserMemory> _enforceCapacity(List<UserMemory> memories) {
+    if (memories.length <= maxMemories) return memories;
+    final sorted = List<UserMemory>.from(memories)
+      ..sort((a, b) {
+        final byConfidence = b.confidence.compareTo(a.confidence);
+        if (byConfidence != 0) return byConfidence;
+        return b.lastRecalledAt.compareTo(a.lastRecalledAt);
+      });
+    return sorted.take(maxMemories).toList();
   }
 
   Future<void> deleteMemory(String id) async {
@@ -136,7 +202,10 @@ class MemoryService {
             .collection('memories')
             .doc(id)
             .delete();
-      } catch (_) {}
+      } catch (e, st) {
+        AppLogger.w('Failed to delete memory from Firestore',
+            tag: 'MemoryService', error: e, stackTrace: st);
+      }
     }
   }
 
@@ -159,6 +228,11 @@ class MemoryService {
 
     final scored = <MapEntry<UserMemory, double>>[];
 
+    // Embed the query on-device (free, <1ms) when an embedding was not supplied
+    // so the vector-similarity path is always active, not just a fallback.
+    final effectiveQueryEmbedding =
+        queryEmbedding ?? TextEmbedder.embed(query);
+
     final queryTokens = query
         .toLowerCase()
         .replaceAll(RegExp(r'[^\w\s]'), ' ')
@@ -170,10 +244,10 @@ class MemoryService {
       double score = 0.0;
 
       // 1. Vector similarity if embeddings are present
-      if (queryEmbedding != null &&
-          memory.embedding != null &&
-          queryEmbedding.length == memory.embedding!.length) {
-        score += cosineSimilarity(queryEmbedding, memory.embedding!) * 2.0;
+      final memEmbedding = memory.embedding;
+      if (memEmbedding != null &&
+          effectiveQueryEmbedding.length == memEmbedding.length) {
+        score += cosineSimilarity(effectiveQueryEmbedding, memEmbedding) * 3.0;
       }
 
       // 2. Token overlap score
@@ -260,6 +334,11 @@ class MemoryService {
       personaId: personaId,
       queryEmbedding: queryEmbedding,
     );
+    // Mark the injected memories as freshly recalled (recency signal feeds
+    // capacity eviction). Fire-and-forget so prompt building stays synchronous.
+    if (memories.isNotEmpty) {
+      unawaited(_touchRecalled(memories));
+    }
     final relationship = getRelationshipState(personaId);
 
     final buffer = StringBuffer(basePrompt);
@@ -280,5 +359,17 @@ class MemoryService {
     buffer.writeln('===================================');
 
     return buffer.toString();
+  }
+
+  /// Refresh `lastRecalledAt` for the given memories and persist locally.
+  Future<void> _touchRecalled(List<UserMemory> recalled) async {
+    final ids = recalled.map((m) => m.id).toSet();
+    if (ids.isEmpty) return;
+    final now = DateTime.now();
+    final list = memoriesNotifier.value
+        .map((m) => ids.contains(m.id) ? m.copyWith(lastRecalledAt: now) : m)
+        .toList();
+    memoriesNotifier.value = list;
+    await StorageService.saveUserMemories(list);
   }
 }

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../core/app_state.dart';
+import '../core/app_logger.dart';
 import '../core/secure_storage_service.dart';
 
 /// Result wrapper for every AuthService call.
@@ -267,16 +268,33 @@ class AuthService {
   static Future<void> _updateUserDocument(User user) async {
     final fs = _firestore;
     if (fs == null) return;
+    final userDoc = fs.collection('users').doc(user.uid);
     try {
-      await fs.collection('users').doc(user.uid).set({
+      // Ensure displayName is never empty and does not exceed 100 characters to satisfy Firestore rules.
+      String effectiveName = (user.displayName != null && user.displayName!.trim().isNotEmpty)
+          ? user.displayName!.trim()
+          : (user.email?.split('@').first ?? 'User');
+      if (effectiveName.length > 100) {
+        effectiveName = effectiveName.substring(0, 100);
+      }
+
+      // Public profile — readable by any authenticated user for discovery.
+      // NOTE: email is deliberately NOT stored here; see the private subdoc
+      // below and the field-privacy rationale in firestore.rules.
+      await userDoc.set({
         'uid': user.uid,
-        'email': user.email ?? '',
-        'displayName': user.displayName ?? '',
+        'displayName': effectiveName,
         'isOnline': true,
         'lastSeen': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-    } catch (_) {
-      // Offline fallback
+      // Private contact info — readable/writable only by the owner.
+      await userDoc.collection('private').doc('me').set({
+        'email': user.email ?? '',
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e, st) {
+      AppLogger.w('Failed to update user document',
+          tag: 'AuthService', error: e, stackTrace: st);
     }
   }
 
@@ -298,8 +316,14 @@ class AuthService {
       final fs = _firestore;
       if (fs != null) {
         try {
+          // Remove the private subdoc first (Firestore does not cascade
+          // subcollection deletes), then the public profile document.
+          await fs.collection('users').doc(uid).collection('private').doc('me').delete();
           await fs.collection('users').doc(uid).delete();
-        } catch (_) {}
+        } catch (e, st) {
+          AppLogger.w('Failed to delete user documents during account deletion',
+              tag: 'AuthService', error: e, stackTrace: st);
+        }
       }
 
       // Delete Firebase Auth account

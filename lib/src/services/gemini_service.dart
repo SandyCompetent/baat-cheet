@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_ai/firebase_ai.dart';
 import '../models/chat_message.dart';
+import '../core/app_logger.dart';
 
 /// Production AI Service powered by the Firebase AI SDK (`firebase_ai`).
 /// Connects to the Gemini Developer API with a 100% free serverless tier.
@@ -54,7 +55,13 @@ class GeminiService {
       _cachedModelName = targetModel;
       _cachedSystemInstruction = targetInstruction;
       return _cachedModel;
-    } catch (_) {
+    } catch (e, st) {
+      AppLogger.e(
+        'Failed to initialize Firebase AI model "$targetModel"',
+        tag: 'GeminiService',
+        error: e,
+        stackTrace: st,
+      );
       return null;
     }
   }
@@ -72,6 +79,11 @@ class GeminiService {
     );
 
     if (model == null) {
+      AppLogger.w(
+        'Firebase AI model unavailable — serving canned fallback response. '
+        'The LLM is NOT being called. Check Firebase AI provisioning / model id.',
+        tag: 'GeminiService',
+      );
       yield* _streamFallbackResponse(prompt);
       return;
     }
@@ -104,9 +116,20 @@ class GeminiService {
       }
     } catch (e) {
       if (!hasEmitted) {
+        AppLogger.e(
+          'Firebase AI stream failed before emitting any tokens — '
+          'falling back to canned response.',
+          tag: 'GeminiService',
+          error: e,
+        );
         // Graceful fallback if Firebase AI is not yet provisioned in Firebase console or offline
         yield* _streamFallbackResponse(prompt);
       } else {
+        AppLogger.w(
+          'Firebase AI stream interrupted after partial output.',
+          tag: 'GeminiService',
+          error: e,
+        );
         yield '\n\n[Response paused. Please check your connection.]';
       }
     }
