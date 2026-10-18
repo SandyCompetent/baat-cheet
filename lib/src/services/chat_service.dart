@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import '../core/constants.dart';
 import '../core/storage_service.dart';
 import '../models/chat_message.dart';
 import '../models/conversation.dart';
@@ -68,13 +69,14 @@ class ChatService {
 
   final Map<String, ValueNotifier<List<ChatMessage>>> _messagesNotifiers = {};
   final Map<String, StreamSubscription?> _conversationSubs = {};
+  final Map<String, int> _messageLimits = {};
   final ValueNotifier<List<ChatMessage>> savedMessagesNotifier =
       ValueNotifier<List<ChatMessage>>([]);
 
   final Set<String> _blockedUsers = {};
 
   bool isAiConversation(String conversationId) {
-    if (conversationId == 'ai_assistant' || conversationId.startsWith('ai_persona_')) {
+    if (conversationId == AppConstants.aiAssistantId || conversationId.startsWith(AppConstants.aiPersonaPrefix)) {
       return true;
     }
     for (final c in conversationsNotifier.value) {
@@ -86,7 +88,7 @@ class ChatService {
   }
 
   Future<Conversation> startPersonaConversation(Persona persona) async {
-    final convId = 'ai_persona_${persona.id}';
+    final convId = '${AppConstants.aiPersonaPrefix}${persona.id}';
     final currentList = conversationsNotifier.value;
     final matchIdx = currentList.indexWhere((c) => c.id == convId);
 
@@ -164,10 +166,22 @@ class ChatService {
       final cached = StorageService.getConversationMessages(conversationId);
       final notifier = ValueNotifier<List<ChatMessage>>(cached);
       if (!isAiConversation(conversationId) && _canSyncFirestore) {
-        _attachFirestoreMessageListener(conversationId, notifier);
+        final currentLimit = _messageLimits[conversationId] ?? 40;
+        _attachFirestoreMessageListener(conversationId, notifier, limit: currentLimit);
       }
       return notifier;
     });
+  }
+
+  /// Increments the pagination limit for a conversation and re-attaches the stream.
+  void loadMoreMessages(String conversationId, {int batchSize = 20}) {
+    if (isAiConversation(conversationId) || !_canSyncFirestore) return;
+    final currentLimit = _messageLimits[conversationId] ?? 40;
+    final newLimit = currentLimit + batchSize;
+    _messageLimits[conversationId] = newLimit;
+
+    final notifier = getMessagesNotifier(conversationId);
+    _attachFirestoreMessageListener(conversationId, notifier, limit: newLimit);
   }
 
   void _attachFirestoreMessageListener(
@@ -277,8 +291,8 @@ class ChatService {
     // AI Assistant & Persona streaming logic
     if (isAiConversation(conversationId)) {
       Persona targetPersona = PersonaService.instance.activePersonaNotifier.value;
-      if (conversationId.startsWith('ai_persona_')) {
-        final pId = conversationId.replaceFirst('ai_persona_', '');
+      if (conversationId.startsWith(AppConstants.aiPersonaPrefix)) {
+        final pId = conversationId.replaceFirst(AppConstants.aiPersonaPrefix, '');
         targetPersona = PersonaService.instance.getPersonaById(pId);
       } else {
         for (final c in conversationsNotifier.value) {
@@ -423,7 +437,7 @@ class ChatService {
     String userId,
     bool isTyping,
   ) async {
-    if (conversationId == 'ai_assistant' || !_canSyncFirestore) return;
+    if (conversationId == AppConstants.aiAssistantId || !_canSyncFirestore) return;
     final fs = _firestore;
     if (fs == null) return;
     try {
@@ -441,7 +455,7 @@ class ChatService {
   }
 
   Stream<bool> listenTypingStatus(String conversationId, String currentUserId) {
-    if (conversationId == 'ai_assistant' || !_canSyncFirestore) {
+    if (conversationId == AppConstants.aiAssistantId || !_canSyncFirestore) {
       return Stream.value(false);
     }
     final fs = _firestore;
@@ -532,7 +546,7 @@ class ChatService {
     _syncSavedMessages();
     StorageService.saveConversationMessages(conversationId, notifier.value);
 
-    if (conversationId != 'ai_assistant' && _canSyncFirestore) {
+    if (conversationId != AppConstants.aiAssistantId && _canSyncFirestore) {
       final fs = _firestore;
       if (fs != null) {
         try {
@@ -590,11 +604,11 @@ class ChatService {
       conversationsNotifier.value = list;
     } else {
       // Add conversation if not present
-      final isAi = conversationId == 'ai_assistant' ||
-          conversationId.startsWith('ai_persona_');
+      final isAi = conversationId == AppConstants.aiAssistantId ||
+          conversationId.startsWith(AppConstants.aiPersonaPrefix);
       String title = isAi ? 'ChatBud AI Assistant' : 'Chat';
-      if (conversationId.startsWith('ai_persona_')) {
-        final pId = conversationId.replaceFirst('ai_persona_', '');
+      if (conversationId.startsWith(AppConstants.aiPersonaPrefix)) {
+        final pId = conversationId.replaceFirst(AppConstants.aiPersonaPrefix, '');
         title = PersonaService.instance.getPersonaById(pId).name;
       } else if (senderName != null &&
           senderName.isNotEmpty &&

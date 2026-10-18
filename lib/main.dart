@@ -5,6 +5,7 @@ import 'package:chatbud/src/screen/conversation_screen.dart';
 import 'package:chatbud/src/screen/memory_page.dart';
 import 'package:chatbud/src/screen/message_page.dart';
 import 'package:chatbud/src/screen/persona_hub_screen.dart';
+import 'package:chatbud/src/core/constants.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -137,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => const ConversationScreen(
-                      conversationId: 'ai_assistant',
+                      conversationId: AppConstants.aiAssistantId,
                       title: 'ChatBud AI Assistant',
                       isAi: true,
                     ),
@@ -173,7 +174,10 @@ class _MyHomePageState extends State<MyHomePage> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      body: _children[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _children,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _onFabPressed,
         backgroundColor: cs.primary,

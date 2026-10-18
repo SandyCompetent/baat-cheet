@@ -1,4 +1,5 @@
 import 'package:chatbud/project_meta_data.dart';
+import 'package:chatbud/src/core/constants.dart';
 import 'package:chatbud/src/models/conversation.dart';
 import 'package:chatbud/src/screen/conversation_screen.dart';
 import 'package:chatbud/src/screen/list_page.dart';
@@ -250,7 +251,7 @@ class _MessagePageState extends State<MessagePage> {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (_) => const ConversationScreen(
-                                        conversationId: 'ai_assistant',
+                                        conversationId: AppConstants.aiAssistantId,
                                         title: 'ChatBud AI Assistant',
                                         isAi: true,
                                       ),

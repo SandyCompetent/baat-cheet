@@ -47,7 +47,7 @@ class ChatMessage {
 
   factory ChatMessage.fromMap(Map<String, dynamic> map) {
     return ChatMessage(
-      id: map['id'] as String? ?? UniqueKey().toString(),
+      id: map['id'] as String? ?? MessageIdGenerator().toString(),
       text: map['text'] as String? ?? '',
       isUser: map['isUser'] as bool? ?? false,
       senderName: map['senderName'] as String? ?? '',
@@ -77,7 +77,7 @@ class ChatMessage {
   }
 }
 
-class UniqueKey {
+class MessageIdGenerator {
   static int _counter = 0;
   @override
   String toString() => 'msg_${DateTime.now().millisecondsSinceEpoch}_${_counter++}';

@@ -19,10 +19,13 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
 
   final List<String> _categories = [
     'All',
+    'HR & Talent',
+    'Productivity',
+    'Career',
+    'Creative',
     'Engineering',
     'Security',
     'Philosophy',
-    'Creative',
     'Custom',
   ];
 
@@ -37,8 +40,65 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
     final taglineCtrl = TextEditingController();
     final promptCtrl = TextEditingController();
     final tagsCtrl = TextEditingController();
-    String category = 'Custom';
+    String category = 'HR & Talent';
     final formKey = GlobalKey<FormState>();
+
+    final presets = [
+      {
+        'label': '🎯 HR Recruiter',
+        'name': 'Jordan',
+        'tagline': 'Talent Screener & Interview Prep',
+        'category': 'HR & Talent',
+        'tags': 'Recruitment, Interviews, STAR, Job Specs',
+        'prompt':
+            'You are Jordan, a friendly and insightful HR recruiter. You help screen resumes, formulate behavioral STAR questions, draft competitive job specs, and advise candidates on workplace best practices.',
+      },
+      {
+        'label': '⚡ Executive Assistant',
+        'name': 'Taylor',
+        'tagline': 'Executive Assistant & Organizer',
+        'category': 'Productivity',
+        'tags': 'Email, Agendas, Action Items, Organization',
+        'prompt':
+            'You are Taylor, an executive assistant. You specialize in drafting concise emails, creating time-boxed meeting agendas, organizing action items, and preparing executive briefings.',
+      },
+      {
+        'label': '📄 Resume Coach',
+        'name': 'Casey',
+        'tagline': 'Career Strategist & Resume Optimizer',
+        'category': 'Career',
+        'tags': 'Resume, LinkedIn, Career, Promotion',
+        'prompt':
+            'You are Casey, a career coach. You transform vague job bullets into high-impact accomplishments, optimize LinkedIn headlines, and provide tactical advice for promotions and negotiations.',
+      },
+      {
+        'label': '✍️ Copywriter',
+        'name': 'Morgan',
+        'tagline': 'Engaging Copy & Social Media Specialist',
+        'category': 'Creative',
+        'tags': 'Copywriting, Social Media, Branding, Content',
+        'prompt':
+            'You are Morgan, a lively copywriter. You write irresistible headlines, catchy social media posts, clear product descriptions, and compelling email newsletters.',
+      },
+      {
+        'label': '🤝 Customer Support',
+        'name': 'Alex',
+        'tagline': 'Empathic Customer Success Specialist',
+        'category': 'Custom',
+        'tags': 'Customer Success, FAQ, Support, Helpdesk',
+        'prompt':
+            'You are Alex, an empathic customer success specialist. You handle tricky customer inquiries with patience, clarity, and genuine warmth, de-escalating frustration effortlessly.',
+      },
+      {
+        'label': '🌍 Language Tutor',
+        'name': 'Sofia',
+        'tagline': 'Conversational Language & Speech Coach',
+        'category': 'Custom',
+        'tags': 'Language, Conversation, Grammar, Vocabulary',
+        'prompt':
+            'You are Sofia, an encouraging conversational language tutor. You help practice everyday dialog, gently correct grammar, suggest natural vocabulary, and build speaking confidence.',
+      },
+    ];
 
     showDialog(
       context: context,
@@ -46,87 +106,148 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
         builder: (ctx, setDialogState) => AlertDialog(
           backgroundColor: context.bgSurface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text(
-            'Create New Persona',
-            style: TextStyle(
-              color: context.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
+          title: Row(
+            children: [
+              Icon(Icons.auto_awesome_rounded, color: context.accent, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                'Create New Persona',
+                style: TextStyle(
+                  color: context.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: nameCtrl,
-                    style: TextStyle(color: context.textPrimary, fontSize: 14),
-                    validator: (val) =>
-                        (val == null || val.trim().isEmpty) ? 'Enter a persona name' : null,
-                    decoration: InputDecoration(
-                      hintText: 'Persona Name (e.g., Nova, Cipher)',
-                      hintStyle: TextStyle(color: context.textMuted),
-                      prefixIcon: Icon(Icons.smart_toy_outlined, color: context.accent),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '1-Tap Templates (No prompt writing needed):',
+                      style: TextStyle(
+                        color: context.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: taglineCtrl,
-                    style: TextStyle(color: context.textPrimary, fontSize: 14),
-                    validator: (val) =>
-                        (val == null || val.trim().isEmpty) ? 'Enter a short tagline' : null,
-                    decoration: InputDecoration(
-                      hintText: 'Tagline (e.g., Senior Security Specialist)',
-                      hintStyle: TextStyle(color: context.textMuted),
-                      prefixIcon: Icon(Icons.badge_outlined, color: context.accent),
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: presets.map((p) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: ActionChip(
+                              backgroundColor: context.bgElevated,
+                              side: BorderSide(color: context.borderSubtle),
+                              label: Text(
+                                p['label']!,
+                                style: TextStyle(
+                                  color: context.accent,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              onPressed: () {
+                                setDialogState(() {
+                                  nameCtrl.text = p['name']!;
+                                  taglineCtrl.text = p['tagline']!;
+                                  category = p['category']!;
+                                  tagsCtrl.text = p['tags']!;
+                                  promptCtrl.text = p['prompt']!;
+                                });
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: category,
-                    dropdownColor: context.bgSurface,
-                    style: TextStyle(color: context.textPrimary, fontSize: 14),
-                    decoration: InputDecoration(
-                      labelText: 'Category',
-                      labelStyle: TextStyle(color: context.textMuted),
-                      prefixIcon: Icon(Icons.category_outlined, color: context.accent),
+                    const SizedBox(height: 16),
+                    Divider(color: context.borderSubtle, height: 1),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: nameCtrl,
+                      style: TextStyle(color: context.textPrimary, fontSize: 14),
+                      validator: (val) =>
+                          (val == null || val.trim().isEmpty) ? 'Enter a persona name' : null,
+                      decoration: InputDecoration(
+                        hintText: 'Persona Name (e.g., Jordan, Aria)',
+                        hintStyle: TextStyle(color: context.textMuted),
+                        prefixIcon: Icon(Icons.smart_toy_outlined, color: context.accent),
+                      ),
                     ),
-                    items: ['Custom', 'Engineering', 'Security', 'Philosophy', 'Creative']
-                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                        .toList(),
-                    onChanged: (val) {
-                      if (val != null) setDialogState(() => category = val);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: promptCtrl,
-                    maxLines: 4,
-                    style: TextStyle(color: context.textPrimary, fontSize: 13),
-                    validator: (val) =>
-                        (val == null || val.trim().length < 10)
-                            ? 'System prompt must be at least 10 chars'
-                            : null,
-                    decoration: InputDecoration(
-                      hintText:
-                          'System Prompt / Instructions\n(e.g., You are an adversarial code reviewer...)',
-                      hintStyle: TextStyle(color: context.textMuted),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: taglineCtrl,
+                      style: TextStyle(color: context.textPrimary, fontSize: 14),
+                      validator: (val) =>
+                          (val == null || val.trim().isEmpty) ? 'Enter a short tagline' : null,
+                      decoration: InputDecoration(
+                        hintText: 'Tagline (e.g., Senior Talent Acquisition)',
+                        hintStyle: TextStyle(color: context.textMuted),
+                        prefixIcon: Icon(Icons.badge_outlined, color: context.accent),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: tagsCtrl,
-                    style: TextStyle(color: context.textPrimary, fontSize: 14),
-                    decoration: InputDecoration(
-                      hintText: 'Tags (comma separated, e.g. Dart, Clean Code)',
-                      hintStyle: TextStyle(color: context.textMuted),
-                      prefixIcon: Icon(Icons.tag_outlined, color: context.accent),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: category,
+                      dropdownColor: context.bgSurface,
+                      style: TextStyle(color: context.textPrimary, fontSize: 14),
+                      decoration: InputDecoration(
+                        labelText: 'Category',
+                        labelStyle: TextStyle(color: context.textMuted),
+                        prefixIcon: Icon(Icons.category_outlined, color: context.accent),
+                      ),
+                      items: [
+                        'HR & Talent',
+                        'Productivity',
+                        'Career',
+                        'Creative',
+                        'Engineering',
+                        'Security',
+                        'Philosophy',
+                        'Custom',
+                      ]
+                          .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                          .toList(),
+                      onChanged: (val) {
+                        if (val != null) setDialogState(() => category = val);
+                      },
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: promptCtrl,
+                      maxLines: 4,
+                      style: TextStyle(color: context.textPrimary, fontSize: 13),
+                      validator: (val) =>
+                          (val == null || val.trim().length < 10)
+                              ? 'System prompt must be at least 10 chars'
+                              : null,
+                      decoration: InputDecoration(
+                        hintText:
+                            'System Prompt / Instructions\n(Tap a template above or write custom instructions)',
+                        hintStyle: TextStyle(color: context.textMuted),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: tagsCtrl,
+                      style: TextStyle(color: context.textPrimary, fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: 'Tags (comma separated, e.g. HR, Interviews)',
+                        hintStyle: TextStyle(color: context.textMuted),
+                        prefixIcon: Icon(Icons.tag_outlined, color: context.accent),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

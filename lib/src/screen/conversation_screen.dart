@@ -1,12 +1,17 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 import '../../theme_data.dart';
 import '../core/app_state.dart';
+import '../core/constants.dart';
 import '../models/chat_message.dart';
+import '../models/persona.dart';
 import '../services/chat_service.dart';
+import '../services/persona_service.dart';
+import '../widgets/chat_composer.dart';
+import '../widgets/chat_glass_header.dart';
+import '../widgets/message_action_sheet.dart';
 
 class ConversationScreen extends StatefulWidget {
   final String conversationId;
@@ -15,7 +20,7 @@ class ConversationScreen extends StatefulWidget {
 
   const ConversationScreen({
     super.key,
-    this.conversationId = 'ai_assistant',
+    this.conversationId = AppConstants.aiAssistantId,
     this.title = 'ChatBud AI Assistant',
     this.isAi = true,
   });
@@ -132,7 +137,7 @@ class _ConversationScreenState extends State<ConversationScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _MessageActionSheet(
+      builder: (ctx) => MessageActionSheet(
         message: msg,
         onCopy: () {
           Clipboard.setData(ClipboardData(text: msg.text));
@@ -286,6 +291,185 @@ class _ConversationScreenState extends State<ConversationScreen>
     );
   }
 
+  void _showInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(widget.title),
+        content: Text(
+          widget.isAi
+              ? 'ChatBud AI Assistant answers any question or drafts messages in real time.'
+              : 'End-to-end cloud synchronized conversation with ${widget.title}.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Persona? _resolveActivePersona() {
+    if (widget.conversationId.startsWith('ai_persona_')) {
+      final personaId = widget.conversationId.replaceFirst('ai_persona_', '');
+      return PersonaService.instance.getPersonaById(personaId);
+    }
+    return PersonaService.instance.activePersonaNotifier.value;
+  }
+
+  List<String> get _starterPrompts {
+    if (!widget.isAi) {
+      return const ['Say hello 👋', 'How are you doing?', 'Let\'s catch up!'];
+    }
+    final persona = _resolveActivePersona();
+    if (persona != null && persona.starterPrompts.isNotEmpty) {
+      return persona.starterPrompts;
+    }
+    return const [
+      'Say hello 👋',
+      'Help me draft a message',
+      'What can you help me with?',
+    ];
+  }
+
+  void _showExportDialog() {
+    final messages = _messagesNotifier.value;
+    if (messages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No messages to export yet.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.bgSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.share_outlined, color: context.accent, size: 22),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Export Conversation Transcript',
+                      style: TextStyle(
+                        color: context.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.text_snippet_outlined),
+                title: const Text('Copy as Clean Plain Text'),
+                subtitle: const Text('Great for pasting into Slack, Email, or Docs'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _copyTranscript(asMarkdown: false);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.code_rounded),
+                title: const Text('Copy as Formatted Markdown'),
+                subtitle: const Text('Great for Notion, GitHub, or documentation'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _copyTranscript(asMarkdown: true);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _copyTranscript({required bool asMarkdown}) {
+    final messages = _messagesNotifier.value;
+    final buffer = StringBuffer();
+    final date = DateTime.now().toLocal().toString().split(' ').first;
+
+    if (asMarkdown) {
+      buffer.writeln('# ChatBud Transcript — ${widget.title}');
+      buffer.writeln('*Date: $date*\n');
+      for (final m in messages) {
+        final sender = m.isUser ? 'You' : widget.title;
+        buffer.writeln('### $sender');
+        buffer.writeln('${m.text}\n');
+      }
+    } else {
+      buffer.writeln('ChatBud Transcript with ${widget.title} ($date)');
+      buffer.writeln('=' * 40);
+      for (final m in messages) {
+        final sender = m.isUser ? 'You' : widget.title;
+        buffer.writeln('[$sender]: ${m.text}\n');
+      }
+    }
+
+    Clipboard.setData(ClipboardData(text: buffer.toString().trim()));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            asMarkdown
+                ? 'Markdown transcript copied to clipboard!'
+                : 'Plain text transcript copied to clipboard!',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Widget _buildSuggestionsBar() {
+    final starters = _starterPrompts;
+    if (starters.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      height: 38,
+      margin: const EdgeInsets.only(bottom: 6),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: starters.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (ctx, i) {
+          final prompt = starters[i];
+          return ActionChip(
+            backgroundColor: context.bgElevated,
+            side: BorderSide(color: context.borderSubtle),
+            label: Text(
+              prompt,
+              style: TextStyle(
+                color: context.accent,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            onPressed: () => _sendStarter(prompt),
+          );
+        },
+      ),
+    );
+  }
+
   _BubblePosition _bubblePosition(List<ChatMessage> messages, int index) {
     final msg = messages[index];
     final prev = index > 0 ? messages[index - 1] : null;
@@ -331,7 +515,13 @@ class _ConversationScreenState extends State<ConversationScreen>
     return Scaffold(
       backgroundColor: context.bgCanvas,
       extendBodyBehindAppBar: true,
-      appBar: _buildGlassHeader(),
+      appBar: ChatGlassHeader(
+        title: widget.title,
+        isAi: widget.isAi,
+        isTyping: _isTyping,
+        onInfoPressed: _showInfoDialog,
+        onExportPressed: _showExportDialog,
+      ),
       body: Stack(
         children: [
           Column(
@@ -355,7 +545,12 @@ class _ConversationScreenState extends State<ConversationScreen>
                   return const SizedBox.shrink();
                 },
               ),
-              _buildFloatingComposer(),
+              if (widget.isAi) _buildSuggestionsBar(),
+              ChatComposer(
+                textCtrl: _textCtrl,
+                hasText: _hasText,
+                onSend: _handleSend,
+              ),
             ],
           ),
           if (_showScrollDown)
@@ -365,125 +560,6 @@ class _ConversationScreenState extends State<ConversationScreen>
               right: 0,
               child: Center(child: _buildScrollDownPill()),
             ),
-        ],
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildGlassHeader() {
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(56),
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: Container(
-            color: context.bgGlass,
-            child: SafeArea(
-              bottom: false,
-              child: SizedBox(
-                height: 56,
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 18,
-                        color: context.accent,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: context.accentSubtle,
-                          child: widget.isAi
-                              ? Icon(Icons.smart_toy_rounded,
-                                  color: context.accent, size: 20)
-                              : Icon(Icons.person_rounded,
-                                  color: context.accent, size: 20),
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: context.statusOnline,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: context.bgSurface,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.title,
-                            style: TextStyle(
-                              color: context.textPrimary,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            _isTyping
-                                ? 'Typing...'
-                                : (widget.isAi ? 'Online • Gemini AI' : 'Online'),
-                            style: TextStyle(
-                              color: _isTyping
-                                  ? context.accent
-                                  : context.statusOnline,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.info_outline_rounded,
-                        color: context.accent,
-                        size: 22,
-                      ),
-                      onPressed: _showInfoDialog,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showInfoDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(widget.title),
-        content: Text(
-          widget.isAi
-              ? 'ChatBud AI Assistant answers any question or drafts messages in real time.'
-              : 'End-to-end cloud synchronized conversation with ${widget.title}.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
         ],
       ),
     );
@@ -520,9 +596,7 @@ class _ConversationScreenState extends State<ConversationScreen>
   }
 
   Widget _buildEmptyState() {
-    final starters = widget.isAi
-        ? ['Say hello 👋', 'Help me draft a message', 'Tell me about Slate Theme']
-        : ['Say hello 👋', 'How are you doing?', 'Let\'s catch up!'];
+    final starters = _starterPrompts;
 
     return ListView(
       padding: EdgeInsets.only(
@@ -776,71 +850,6 @@ class _ConversationScreenState extends State<ConversationScreen>
     );
   }
 
-  Widget _buildFloatingComposer() {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 52, maxHeight: 156),
-          decoration: BoxDecoration(
-            color: context.bgElevated,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: context.borderSubtle),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextField(
-                  controller: _textCtrl,
-                  maxLines: null,
-                  minLines: 1,
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                  style: TextStyle(
-                    color: context.textPrimary,
-                    fontSize: 15,
-                    height: 1.4,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Type a message…',
-                    hintStyle: TextStyle(
-                      color: context.textMuted,
-                      fontSize: 15,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                    isDense: true,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: _SendButton(
-                  onTap: _handleSend,
-                  color: _hasText
-                      ? context.accent
-                      : context.accent.withValues(alpha: 0.4),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildScrollDownPill() {
     return GestureDetector(
       onTap: () => _scrollToBottom(force: true),
@@ -881,131 +890,6 @@ class _ConversationScreenState extends State<ConversationScreen>
 }
 
 enum _BubblePosition { solo, first, middle, last }
-
-class _MessageActionSheet extends StatelessWidget {
-  final ChatMessage message;
-  final VoidCallback onCopy;
-  final VoidCallback onBookmark;
-  final VoidCallback onDelete;
-  final VoidCallback onReport;
-  final VoidCallback onBlock;
-
-  const _MessageActionSheet({
-    required this.message,
-    required this.onCopy,
-    required this.onBookmark,
-    required this.onDelete,
-    required this.onReport,
-    required this.onBlock,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        16,
-        20,
-        MediaQuery.of(context).padding.bottom + 16,
-      ),
-      decoration: BoxDecoration(
-        color: context.bgSurface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: context.borderSubtle,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-          ListTile(
-            leading: Icon(Icons.copy_rounded, color: context.accent),
-            title: const Text('Copy Text'),
-            onTap: () {
-              Navigator.pop(context);
-              onCopy();
-            },
-          ),
-          ListTile(
-            leading: Icon(
-              message.isBookmarked
-                  ? Icons.bookmark_remove_rounded
-                  : Icons.bookmark_add_rounded,
-              color: context.accent,
-            ),
-            title: Text(
-              message.isBookmarked
-                  ? 'Remove from Bookmarks'
-                  : 'Save to Bookmarks',
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              onBookmark();
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.flag_outlined, color: Colors.orangeAccent),
-            title: const Text('Report Objectionable Content'),
-            onTap: () {
-              Navigator.pop(context);
-              onReport();
-            },
-          ),
-          if (!message.isUser)
-            ListTile(
-              leading: Icon(Icons.block_rounded, color: context.statusDanger),
-              title: Text(
-                'Block ${message.senderName}',
-                style: TextStyle(color: context.statusDanger),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                onBlock();
-              },
-            ),
-          ListTile(
-            leading: Icon(Icons.delete_outline_rounded, color: context.statusDanger),
-            title: Text(
-              'Delete Message',
-              style: TextStyle(color: context.statusDanger),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              onDelete();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SendButton extends StatelessWidget {
-  final VoidCallback onTap;
-  final Color color;
-
-  const _SendButton({required this.onTap, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        child: const Icon(Icons.arrow_upward_rounded,
-            color: Colors.white, size: 18),
-      ),
-    );
-  }
-}
 
 class _StarterChip extends StatelessWidget {
   final String label;

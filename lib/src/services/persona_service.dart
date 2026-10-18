@@ -103,6 +103,7 @@ class PersonaService {
     required String systemPrompt,
     String category = 'Custom',
     List<String> tags = const [],
+    List<String> starterPrompts = const [],
     double temperature = 0.7,
   }) async {
     final user = _currentUser;
@@ -116,6 +117,7 @@ class PersonaService {
       systemPrompt: systemPrompt.trim(),
       category: category,
       tags: tags,
+      starterPrompts: starterPrompts,
       isCurated: false,
       creatorId: user?.uid ?? 'guest',
       createdAt: DateTime.now(),

@@ -101,5 +101,53 @@ void main() {
       expect(find.text('You work at Google.', findRichText: true),
           findsOneWidget);
     });
+
+    testWidgets('Tapping export icon opens export sheet with plain text and markdown options',
+        (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          const ConversationScreen(
+            conversationId: 'ai_assistant',
+            title: 'ChatBud AI Assistant',
+            isAi: true,
+          ),
+        ),
+      );
+
+      // Send a message first so export has content
+      await tester.enterText(find.byType(TextField), 'Hello assistant');
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.arrow_upward_rounded), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.share_outlined), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.share_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Export Conversation Transcript'), findsOneWidget);
+      expect(find.text('Copy as Clean Plain Text'), findsOneWidget);
+      expect(find.text('Copy as Formatted Markdown'), findsOneWidget);
+    });
+
+    testWidgets('Tapping a starter prompt sends prompt directly to the conversation',
+        (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          const ConversationScreen(
+            conversationId: 'ai_persona_harper',
+            title: 'Harper',
+            isAi: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('🎯 Conduct a behavioral mock interview for a Product Manager'), findsWidgets);
+
+      await tester.tap(find.text('🎯 Conduct a behavioral mock interview for a Product Manager').first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('🎯 Conduct a behavioral mock interview for a Product Manager'), findsWidgets);
+    });
   });
 }

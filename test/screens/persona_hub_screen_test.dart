@@ -33,12 +33,12 @@ void main() {
       expect(find.text('Persona Hub'), findsOneWidget);
       expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
       expect(find.text('All'), findsOneWidget);
-      expect(find.text('Engineering'), findsOneWidget);
-      expect(find.text('Security'), findsOneWidget);
-      expect(find.text('Athena'), findsWidgets);
+      expect(find.text('HR & Talent'), findsOneWidget);
+      expect(find.text('Productivity'), findsOneWidget);
+      expect(find.text('Harper'), findsWidgets);
     });
 
-    testWidgets('Tapping Create Persona button opens create dialog', (tester) async {
+    testWidgets('Tapping Create Persona button opens create dialog with 1-tap presets', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
@@ -46,7 +46,16 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Create New Persona'), findsOneWidget);
+      expect(find.text('1-Tap Templates (No prompt writing needed):'), findsOneWidget);
+      expect(find.text('🎯 HR Recruiter'), findsOneWidget);
       expect(find.text('Create Persona'), findsOneWidget);
+
+      // Tap preset to auto-fill
+      await tester.tap(find.text('🎯 HR Recruiter'));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(TextFormField, 'Jordan'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'Talent Screener & Interview Prep'), findsOneWidget);
     });
 
     testWidgets('Displays active status and allows switching active persona',

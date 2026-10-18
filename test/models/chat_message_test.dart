@@ -93,9 +93,9 @@ void main() {
       expect(restored.attachmentType, AttachmentType.none);
     });
 
-    test('UniqueKey generates unique string identifiers', () {
-      final key1 = UniqueKey().toString();
-      final key2 = UniqueKey().toString();
+    test('MessageIdGenerator generates unique string identifiers', () {
+      final key1 = MessageIdGenerator().toString();
+      final key2 = MessageIdGenerator().toString();
 
       expect(key1.startsWith('msg_'), true);
       expect(key2.startsWith('msg_'), true);

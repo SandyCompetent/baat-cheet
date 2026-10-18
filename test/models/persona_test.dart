@@ -3,10 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Persona Model Tests', () {
-    test('Curated personas are preloaded with expected IDs', () {
+    test('Curated personas are preloaded with expected IDs and starter prompts', () {
       final curated = Persona.curatedPersonas;
-      expect(curated.length, 4);
+      expect(curated.length, 7);
       final ids = curated.map((p) => p.id).toSet();
+      expect(ids.contains('harper'), true);
+      expect(ids.contains('aria'), true);
+      expect(ids.contains('leo'), true);
       expect(ids.contains('athena'), true);
       expect(ids.contains('cipher'), true);
       expect(ids.contains('marcus'), true);
@@ -18,6 +21,7 @@ void main() {
         expect(p.tagline.isNotEmpty, true);
         expect(p.systemPrompt.isNotEmpty, true);
         expect(p.tags.isNotEmpty, true);
+        expect(p.starterPrompts.isNotEmpty, true);
       }
     });
 
@@ -32,6 +36,7 @@ void main() {
         avatarUrl: 'https://example.com/avatar.png',
         category: 'Engineering',
         tags: ['Flutter', 'Mentorship'],
+        starterPrompts: ['How do I architect a Flutter app?'],
         isCurated: false,
         creatorId: 'user_123',
         createdAt: now,
@@ -46,6 +51,7 @@ void main() {
       expect(map['avatarUrl'], 'https://example.com/avatar.png');
       expect(map['category'], 'Engineering');
       expect(map['tags'], ['Flutter', 'Mentorship']);
+      expect(map['starterPrompts'], ['How do I architect a Flutter app?']);
       expect(map['isCurated'], false);
       expect(map['creatorId'], 'user_123');
       expect(map['temperature'], 0.8);
@@ -58,6 +64,7 @@ void main() {
       expect(restored.avatarUrl, persona.avatarUrl);
       expect(restored.category, persona.category);
       expect(restored.tags, persona.tags);
+      expect(restored.starterPrompts, persona.starterPrompts);
       expect(restored.isCurated, persona.isCurated);
       expect(restored.creatorId, persona.creatorId);
       expect(restored.temperature, persona.temperature);

@@ -11,6 +11,22 @@ Going beyond standard single-turn LLM wrappers, ChatBud features an **Open-Sourc
 
 ---
 
+## 👥 Quick-Start for Non-Technical Users (HR, Recruiters, Managers)
+
+You do **not** need to install Flutter, Android Studio, or any developer tools to experience ChatBud:
+
+1. **🌐 Instant Live Web Demo**: Open **[https://chatbud-official.web.app](https://chatbud-official.web.app)** in your browser (Safari, Chrome, Edge).
+2. **🚀 Instant Guest Mode**: Start chatting immediately with zero registration or login required.
+3. **🎯 Real-World Scenarios to Try Right Now**:
+   - **Mock Interview Practice**: Select **Harper**, tap *"Conduct a behavioral mock interview for a Product Manager"*, and practice answering with the STAR method.
+   - **Drafting Job Descriptions**: Ask Harper to *"Draft an inclusive job description for a Senior Talent Partner"*.
+   - **Executive Communication**: Select **Aria**, tap *"Polish this draft email to leadership requesting budget"*.
+   - **Resume Enhancement**: Select **Leo**, tap *"Rewrite this resume bullet point to highlight measurable impact"*.
+   - **1-Tap Templates**: Open the **Persona Hub**, tap **+**, and tap any 1-tap preset (`[🎯 HR Recruiter]`, `[⚡ Executive Assistant]`, `[📄 Resume Coach]`, `[✍️ Copywriter]`) to instantly create a tailored AI agent without prompt engineering.
+   - **Export Deliverables**: Tap the **Export icon** (`Share`) in the top right of any chat to copy your conversation transcript as clean plain text or Markdown directly into Slack, Google Docs, or Notion.
+
+---
+
 ## Architecture Overview
 
 ```
@@ -24,7 +40,7 @@ Going beyond standard single-turn LLM wrappers, ChatBud features an **Open-Sourc
   ┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
   │   PersonaService    │     │    MemoryService    │     │   GeminiService     │
   │ • Curated Personas  │     │ • Working Context   │     │ • Firebase AI SDK   │
-  │ • Custom Creation   │     │ • Pure Dart Cosine  │     │ • gemini-3.1-lite   │
+  │ • 1-Tap Presets     │     │ • Pure Dart Cosine  │     │ • gemini-3.1-lite   │
   │ • Category Filtering│     │ • Episodic Retrieval│     │ • gemini-3.8-flash  │
   └──────────┬──────────┘     └──────────┬──────────┘     └──────────┬──────────┘
              │                           │                           │
@@ -44,11 +60,16 @@ Going beyond standard single-turn LLM wrappers, ChatBud features an **Open-Sourc
 
 ### 1. Open-Source Persona Hub
 - **Curated Multi-Agent Roster**:
-  - **Athena** (Senior System Architect): Scalable distributed systems, design patterns, clean code review.
+  - **Harper** (HR & Talent Coach): Behavioral STAR mock interviews, candidate scorecards, competitive job descriptions.
+  - **Aria** (Workplace Productivity Assistant): Executive email polish, meeting agendas, action items, executive summaries.
+  - **Leo** (Career & Resume Advisor): High-impact resume rewriting, promotion strategy, salary negotiation.
+  - **Athena** (Senior System Architect): Scalable distributed systems, design patterns, clean architecture.
   - **Cipher** (Cybersecurity & AppSec Specialist): Threat modeling, vulnerability auditing, OWASP/App Check guardian.
   - **Marcus** (Stoic Philosopher & Executive Coach): Perspective shifting, resilience, decision-making under high pressure.
   - **Nova** (Creative Brand Strategist & Storyteller): Compelling hooks, copywriting, brand identity.
-- **Custom Persona Authoring**: Create custom agents with custom system prompts, categories, tags, and temperature controls.
+- **1-Tap Preset Persona Authoring**: Tap any role template (HR Recruiter, Executive Assistant, Copywriter, Customer Support) to instantly generate personas without writing prompt code.
+- **Dynamic Starter Chips**: Context-aware suggested prompts displayed above the composer and in empty chat states to eliminate "blank page" syndrome.
+- **Transcript Export**: Export any conversation transcript to the clipboard as formatted plain text or Markdown for immediate workplace use.
 
 ### 2. Two-Layer Memory Engine (100% Free Tier)
 - **Layer 1 (Working Context)**: Sliding multi-turn conversation history cached in memory and `StorageService` (`SharedPreferences`).
