@@ -1,6 +1,7 @@
 import 'package:chatbud/route_generator.dart';
 import 'package:chatbud/src/auth/auth_service.dart';
 import 'package:chatbud/src/core/app_state.dart';
+import 'package:chatbud/src/core/avatar_helper.dart';
 import 'package:chatbud/src/services/chat_service.dart';
 import 'package:chatbud/src/widgets/legal_dialog.dart';
 import 'package:chatbud/theme_data.dart';
@@ -270,46 +271,34 @@ class ContactPage extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      Stack(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: context.accent,
-                                width: 2,
-                              ),
-                            ),
-                            child: CircleAvatar(
-                              radius: 44,
-                              backgroundColor: context.accentSubtle,
-                              child: Icon(Icons.person_rounded,
-                                  color: context.accent, size: 44),
+                      GestureDetector(
+                        onTap: () => _showEditNameDialog(context),
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: context.accent,
+                              width: 2,
                             ),
                           ),
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: GestureDetector(
-                              onTap: () => _showEditNameDialog(context),
-                              child: Container(
-                                width: 28,
-                                height: 28,
-                                decoration: BoxDecoration(
-                                  color: context.accent,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: context.bgSurface,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: const Icon(Icons.edit_rounded,
-                                    size: 14, color: Colors.white),
+                          child: CircleAvatar(
+                            radius: 44,
+                            backgroundColor: getAvatarColor(
+                              state.displayName.isNotEmpty && state.displayName != 'Guest User'
+                                  ? state.displayName
+                                  : state.email,
+                            ),
+                            child: Text(
+                              getInitials(state.displayName, state.email),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 32,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
-                        ],
+                        ),
                       ),
                       const SizedBox(height: 14),
                       Text(
@@ -489,7 +478,7 @@ class ContactPage extends StatelessWidget {
                         ),
                       ],
                       SizedBox(
-                        height: MediaQuery.of(context).padding.bottom + 48,
+                        height: MediaQuery.of(context).padding.bottom + 84,
                       ),
                     ],
                   ),

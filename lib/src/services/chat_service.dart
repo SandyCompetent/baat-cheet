@@ -484,9 +484,14 @@ class ChatService {
     required String messageText,
     String? reporterId,
   }) async {
-    final effectiveReporterId = reporterId ??
-        _currentUser?.uid ??
-        'anonymous';
+    final user = _currentUser;
+    final effectiveReporterId = (user != null && user.uid.isNotEmpty)
+        ? user.uid
+        : 'anonymous';
+
+    final truncatedText = messageText.length > 5000
+        ? messageText.substring(0, 5000)
+        : messageText;
 
     // 1. Always store locally in StorageService as fallback & offline persistence
     try {
@@ -494,7 +499,7 @@ class ChatService {
         'reportedUserId': reportedUserId,
         'messageId': messageId,
         'reason': reason,
-        'messageText': messageText,
+        'messageText': truncatedText,
         'reporterId': effectiveReporterId,
         'createdAt': DateTime.now().toIso8601String(),
         'status': 'pending_review',
@@ -509,7 +514,7 @@ class ChatService {
           'reportedUserId': reportedUserId,
           'messageId': messageId,
           'reason': reason,
-          'messageText': messageText,
+          'messageText': truncatedText,
           'reporterId': effectiveReporterId,
           'createdAt': FieldValue.serverTimestamp(),
           'status': 'pending_review',

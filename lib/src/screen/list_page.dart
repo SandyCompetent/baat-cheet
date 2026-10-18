@@ -75,7 +75,12 @@ class ListPage extends StatelessWidget {
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(context).padding.bottom + 16,
+            ),
             itemCount: saved.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {

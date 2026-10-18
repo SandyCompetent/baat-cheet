@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:chatbud/src/core/avatar_helper.dart';
 import 'package:flutter/material.dart';
 import '../../theme_data.dart';
 
@@ -46,12 +47,20 @@ class ChatGlassHeader extends StatelessWidget implements PreferredSizeWidget {
                     children: [
                       CircleAvatar(
                         radius: 18,
-                        backgroundColor: context.accentSubtle,
+                        backgroundColor: isAi
+                            ? context.accentSubtle
+                            : getAvatarColor(title),
                         child: isAi
                             ? Icon(Icons.smart_toy_rounded,
                                 color: context.accent, size: 20)
-                            : Icon(Icons.person_rounded,
-                                color: context.accent, size: 20),
+                            : Text(
+                                getInitials(title, ''),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
                       ),
                       Positioned(
                         right: 0,
@@ -89,7 +98,7 @@ class ChatGlassHeader extends StatelessWidget implements PreferredSizeWidget {
                         Text(
                           isTyping
                               ? 'Typing...'
-                              : (isAi ? 'Online • Gemini AI' : 'Online'),
+                              : (isAi ? 'Online • AI Assistant' : 'Online'),
                           style: TextStyle(
                             color: isTyping
                                 ? context.accent

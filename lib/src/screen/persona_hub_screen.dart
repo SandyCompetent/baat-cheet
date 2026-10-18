@@ -530,7 +530,7 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 84),
                   itemCount: filtered.length,
                   itemBuilder: (context, idx) {
                     final persona = filtered[idx];

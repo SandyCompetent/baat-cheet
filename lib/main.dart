@@ -193,39 +193,42 @@ class _MyHomePageState extends State<MyHomePage> {
         notchMargin: 6,
         padding: EdgeInsets.zero,
         height: 64,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _NavItem(
-              icon: Icons.chat_bubble_outline_rounded,
-              label: 'Chats',
-              index: 0,
-              current: _currentIndex,
-              onTap: _onTappedBar,
-            ),
-            _NavItem(
-              icon: Icons.smart_toy_outlined,
-              label: 'Persona',
-              index: 1,
-              current: _currentIndex,
-              onTap: _onTappedBar,
-            ),
-            const SizedBox(width: 48), // notch gap for FAB
-            _NavItem(
-              icon: Icons.psychology_outlined,
-              label: 'Memory',
-              index: 2,
-              current: _currentIndex,
-              onTap: _onTappedBar,
-            ),
-            _NavItem(
-              icon: Icons.person_outline_rounded,
-              label: 'Profile',
-              index: 3,
-              current: _currentIndex,
-              onTap: _onTappedBar,
-            ),
-          ],
+        child: SafeArea(
+          top: false,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _NavItem(
+                icon: Icons.chat_bubble_outline_rounded,
+                label: 'Chats',
+                index: 0,
+                current: _currentIndex,
+                onTap: _onTappedBar,
+              ),
+              _NavItem(
+                icon: Icons.smart_toy_outlined,
+                label: 'Persona',
+                index: 1,
+                current: _currentIndex,
+                onTap: _onTappedBar,
+              ),
+              const SizedBox(width: 48), // notch gap for FAB
+              _NavItem(
+                icon: Icons.psychology_outlined,
+                label: 'Memory',
+                index: 2,
+                current: _currentIndex,
+                onTap: _onTappedBar,
+              ),
+              _NavItem(
+                icon: Icons.person_outline_rounded,
+                label: 'Profile',
+                index: 3,
+                current: _currentIndex,
+                onTap: _onTappedBar,
+              ),
+            ],
+          ),
         ),
       ),
     );

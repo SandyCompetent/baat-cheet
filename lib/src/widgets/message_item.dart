@@ -1,3 +1,4 @@
+import 'package:chatbud/src/core/avatar_helper.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
 
@@ -44,11 +45,20 @@ class MessageItem extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 26,
-                  backgroundColor: context.accentSubtle,
+                  backgroundColor: isAi
+                      ? context.accentSubtle
+                      : getAvatarColor(txtPersonName),
                   child: isAi
                       ? Icon(Icons.smart_toy_rounded,
                           color: context.accent, size: 26)
-                      : Image.asset(imgRef, height: 36, width: 36),
+                      : Text(
+                          getInitials(txtPersonName, ''),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
+                          ),
+                        ),
                 ),
                 // Online presence dot
                 Positioned(

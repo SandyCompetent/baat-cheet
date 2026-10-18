@@ -267,7 +267,7 @@ class _MessagePageState extends State<MessagePage> {
                         ),
                       )
                     : ListView.separated(
-                        padding: EdgeInsets.zero,
+                        padding: const EdgeInsets.only(bottom: 84),
                         itemCount: visible.length,
                         separatorBuilder: (_, __) => Divider(
                             height: 1,

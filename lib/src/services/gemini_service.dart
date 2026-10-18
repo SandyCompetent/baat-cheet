@@ -124,7 +124,7 @@ class GeminiService {
           'The Soft Minimalist Slate theme uses cool slate-tinted neutrals (#F8FAFC canvas, #FFFFFF surface, #111827 dark mode) with high-contrast electric indigo accents.';
     } else if (lower.contains('firebase') || lower.contains('free') || lower.contains('ai') || lower.contains('model')) {
       reply =
-          'ChatBud runs on Gemini 3.1 Flash-Lite ($defaultModel).';
+          'ChatBud runs on AI Assistant ($defaultModel).';
     } else {
       reply =
           'I am ChatBud AI Assistant. I received your message: "$prompt". What would you like to explore or discuss next?';

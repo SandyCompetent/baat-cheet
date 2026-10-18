@@ -42,7 +42,7 @@ void main() {
       await tester.pumpWidget(buildApp());
       expect(find.text('Guest User'), findsWidgets);
 
-      await tester.tap(find.byIcon(Icons.edit_rounded));
+      await tester.tap(find.text('Display Name'));
       await tester.pumpAndSettle();
 
       expect(find.text('Edit Display Name'), findsOneWidget);

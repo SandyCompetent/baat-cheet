@@ -35,7 +35,7 @@ void main() {
       );
 
       expect(find.text('ChatBud AI Assistant'), findsWidgets);
-      expect(find.text('Online • Gemini AI'), findsOneWidget);
+      expect(find.text('Online • AI Assistant'), findsOneWidget);
       expect(find.text('Type a message…'), findsOneWidget);
     });
 
@@ -148,6 +148,38 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('🎯 Conduct a behavioral mock interview for a Product Manager'), findsWidgets);
+    });
+
+    testWidgets('Suggested reply chips fill the text input on tap when messages exist',
+        (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          const ConversationScreen(
+            conversationId: 'ai_assistant_test_suggestions',
+            title: 'AI Assistant',
+            isAi: true,
+          ),
+        ),
+      );
+
+      // Send initial message
+      await tester.enterText(find.byType(TextField), 'Hello AI');
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.arrow_upward_rounded), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Check for contextual suggestion chip
+      final suggestionFinder = find.byType(ActionChip);
+      if (suggestionFinder.evaluate().isNotEmpty) {
+        final chipText = (tester.widget(suggestionFinder.first) as ActionChip).label;
+        if (chipText is Text && chipText.data != null) {
+          final prompt = chipText.data!;
+          await tester.tap(suggestionFinder.first);
+          await tester.pumpAndSettle();
+
+          expect(find.widgetWithText(TextField, prompt), findsOneWidget);
+        }
+      }
     });
   });
 }

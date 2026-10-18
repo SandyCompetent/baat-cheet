@@ -438,9 +438,61 @@ class _ConversationScreenState extends State<ConversationScreen>
     }
   }
 
-  Widget _buildSuggestionsBar() {
-    final starters = _starterPrompts;
-    if (starters.isEmpty) return const SizedBox.shrink();
+  void _onSuggestionTap(String text) {
+    _textCtrl.text = text;
+    _textCtrl.selection = TextSelection.fromPosition(
+      TextPosition(offset: text.length),
+    );
+  }
+
+  List<String> get _suggestedReplies {
+    final messages = _messagesNotifier.value;
+    if (messages.isNotEmpty) {
+      final lastMsg = messages.last;
+      if (!lastMsg.isUser && lastMsg.text.isNotEmpty) {
+        final textLower = lastMsg.text.toLowerCase();
+        if (textLower.contains('code') ||
+            textLower.contains('function') ||
+            textLower.contains('class') ||
+            textLower.contains('flutter') ||
+            textLower.contains('dart')) {
+          return const [
+            'Can you add comments to this code?',
+            'How do I test this function?',
+            'Explain this step-by-step',
+          ];
+        } else if (textLower.contains('step') ||
+            textLower.contains('how to') ||
+            textLower.contains('guide')) {
+          return const [
+            'Give me a concrete example',
+            'What are the common pitfalls?',
+            'Summarize key takeaways',
+          ];
+        } else if (textLower.contains('?') ||
+            textLower.contains('would you like')) {
+          return const [
+            'Yes, please tell me more!',
+            'Let\'s try another approach',
+            'Can you clarify that last part?',
+          ];
+        } else {
+          return const [
+            'Can you elaborate on that?',
+            'Give me a practical example',
+            'Summarize in 3 bullet points',
+          ];
+        }
+      }
+    }
+    return _starterPrompts;
+  }
+
+  Widget _buildSuggestionsBar(List<ChatMessage> messages) {
+    if (messages.isEmpty) return const SizedBox.shrink();
+
+    final suggestions = _suggestedReplies;
+    if (suggestions.isEmpty) return const SizedBox.shrink();
 
     return Container(
       height: 38,
@@ -448,13 +500,14 @@ class _ConversationScreenState extends State<ConversationScreen>
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: starters.length,
+        itemCount: suggestions.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (ctx, i) {
-          final prompt = starters[i];
+          final prompt = suggestions[i];
           return ActionChip(
             backgroundColor: context.bgElevated,
             side: BorderSide(color: context.borderSubtle),
+            avatar: Icon(Icons.auto_awesome_rounded, size: 14, color: context.accent),
             label: Text(
               prompt,
               style: TextStyle(
@@ -463,7 +516,7 @@ class _ConversationScreenState extends State<ConversationScreen>
                 fontWeight: FontWeight.w500,
               ),
             ),
-            onPressed: () => _sendStarter(prompt),
+            onPressed: () => _onSuggestionTap(prompt),
           );
         },
       ),
@@ -530,7 +583,13 @@ class _ConversationScreenState extends State<ConversationScreen>
                 child: ValueListenableBuilder<List<ChatMessage>>(
                   valueListenable: _messagesNotifier,
                   builder: (context, messages, _) {
-                    return _buildMessageFeed(messages);
+                    return Column(
+                      children: [
+                        Expanded(child: _buildMessageFeed(messages)),
+                        if (widget.isAi && messages.isNotEmpty)
+                          _buildSuggestionsBar(messages),
+                      ],
+                    );
                   },
                 ),
               ),
@@ -545,7 +604,6 @@ class _ConversationScreenState extends State<ConversationScreen>
                   return const SizedBox.shrink();
                 },
               ),
-              if (widget.isAi) _buildSuggestionsBar(),
               ChatComposer(
                 textCtrl: _textCtrl,
                 hasText: _hasText,
