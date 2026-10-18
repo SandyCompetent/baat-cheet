@@ -30,12 +30,25 @@ class ContactPage extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final newName = ctrl.text.trim();
               if (newName.isNotEmpty) {
-                AppState.instance.updateDisplayName(newName);
+                await AppState.instance.updateDisplayName(newName);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        AppState.instance.isLoggedIn
+                            ? 'Display name updated to "$newName".'
+                            : 'Display name temporarily set to "$newName" (Guest mode).',
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
               }
-              Navigator.pop(ctx);
+              if (ctx.mounted) Navigator.pop(ctx);
             },
             child: const Text('Save'),
           ),

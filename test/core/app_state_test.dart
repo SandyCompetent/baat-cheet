@@ -17,7 +17,7 @@ void main() {
       final state = AppState.instance;
       expect(state.isGuest, true);
       expect(state.isLoggedIn, false);
-      expect(state.displayName, 'Guest Explorer');
+      expect(state.displayName, 'Guest User');
       expect(state.email, 'guest@chatbud.local');
       expect(state.themeMode, ThemeMode.system);
     });

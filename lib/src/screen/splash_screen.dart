@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -162,17 +161,7 @@ class _SplashScreenState extends State<SplashScreen>
                   );
                 },
               ),
-              const SizedBox(height: 48),
-              const Text(
-                "POWERED BY FIREBASE AI LOGIC",
-                style: TextStyle(
-                  color: Color(0xFF5A6276),
-                  fontSize: 10,
-                  letterSpacing: 1.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 96),
             ],
           ),
         ),

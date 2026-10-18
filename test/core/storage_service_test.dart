@@ -108,5 +108,24 @@ void main() {
       expect(loaded.first.id, 'ai_assistant');
       expect(loaded.first.title, 'ChatBud AI Assistant');
     });
+
+    test('saveLocalFeedback and getStoredFeedback persist feedback offline', () async {
+      expect(StorageService.getStoredFeedback(), isEmpty);
+
+      final feedback = {
+        'reportedUserId': 'system',
+        'messageId': 'fb_1',
+        'reason': 'User Feedback',
+        'messageText': 'Loving ChatBud so far!',
+        'reporterId': 'anonymous',
+        'status': 'pending_review',
+      };
+
+      await StorageService.saveLocalFeedback(feedback);
+      final list = StorageService.getStoredFeedback();
+      expect(list.length, 1);
+      expect(list.first['messageText'], 'Loving ChatBud so far!');
+      expect(list.first['reporterId'], 'anonymous');
+    });
   });
 }

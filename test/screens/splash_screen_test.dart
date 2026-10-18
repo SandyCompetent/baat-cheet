@@ -1,4 +1,3 @@
-import 'package:chatbud/project_meta_data.dart';
 import 'package:chatbud/route_generator.dart';
 import 'package:chatbud/src/screen/splash_screen.dart';
 import 'package:chatbud/theme_data.dart';

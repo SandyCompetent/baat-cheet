@@ -1,11 +1,11 @@
 # ChatBud — Stateful Multi-Agent Workspace & Persona Hub
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.33+-02569B?logo=flutter)](https://flutter.dev)
-[![Firebase AI Logic](https://img.shields.io/badge/Firebase%20AI-Gemini%203.x-FFA000?logo=firebase)](https://firebase.google.com/docs/ai-logic)
+[![Firebase AI](https://img.shields.io/badge/Firebase%20AI-Gemini%203.x-FFA000?logo=firebase)](https://firebase.google.com/docs)
 [![Tests](https://img.shields.io/badge/Tests-101%20Passed-10B981)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F46E5.svg)](LICENSE)
 
-**ChatBud** is a production-grade, stateful multi-agent messaging workspace built with **Flutter**, **Firebase AI Logic (`firebase_ai`)**, and a **100% free serverless architecture**.
+**ChatBud** is a production-grade, stateful multi-agent messaging workspace built with **Flutter**, **Firebase AI (`firebase_ai`)**, and a **100% free serverless architecture**.
 
 Going beyond standard single-turn LLM wrappers, ChatBud features an **Open-Source Persona Hub**, an **on-device Two-Layer Memory Engine** powered by vector cosine similarity, **Dynamic Relationship & Mood States**, and **Multi-Agent Group Channels**.
 
@@ -23,7 +23,7 @@ Going beyond standard single-turn LLM wrappers, ChatBud features an **Open-Sourc
              ▼                           ▼                           ▼
   ┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
   │   PersonaService    │     │    MemoryService    │     │   GeminiService     │
-  │ • Curated Personas  │     │ • Working Context   │     │ • Firebase AI Logic │
+  │ • Curated Personas  │     │ • Working Context   │     │ • Firebase AI SDK   │
   │ • Custom Creation   │     │ • Pure Dart Cosine  │     │ • gemini-3.1-lite   │
   │ • Category Filtering│     │ • Episodic Retrieval│     │ • gemini-3.8-flash  │
   └──────────┬──────────┘     └──────────┬──────────┘     └──────────┬──────────┘
@@ -67,7 +67,7 @@ Going beyond standard single-turn LLM wrappers, ChatBud features an **Open-Sourc
 - Group channels support multi-persona collaboration.
 - Mentioning `@Athena`, `@Cipher`, `@Marcus`, or `@Nova` orchestrates autonomous turns, allowing different personas to debate and advise on complex topics.
 
-### 5. Production Firebase AI Logic (`firebase_ai`)
+### 5. Production Firebase AI SDK (`firebase_ai`)
 - Integrates Google's modern Gemini 3.x developer stack (`gemini-3.1-flash-lite` and `gemini-3.8-flash`).
 - Dynamic model resolution protects against breaking `404 Not Found` errors caused by upstream model retirements.
 - Completely free serverless tier without mandatory Blaze Cloud Functions or external vector DB subscriptions.
@@ -98,7 +98,7 @@ lib/
     │   └── user_memory.dart       # Episodic facts with vector embeddings
     ├── services/
     │   ├── chat_service.dart      # Real-time message streaming & @mention router
-    │   ├── gemini_service.dart    # Firebase AI Logic SDK integration
+    │   ├── gemini_service.dart    # Firebase AI SDK integration
     │   ├── group_service.dart     # Firestore-backed group management
     │   ├── memory_service.dart    # On-device cosine similarity & memory retrieval
     │   └── persona_service.dart   # Persona hub repository & active agent state

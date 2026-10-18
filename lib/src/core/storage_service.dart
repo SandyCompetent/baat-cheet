@@ -70,6 +70,26 @@ class StorageService {
     await _prefs?.setString(_guestNameKey, name);
   }
 
+  // ── Feedback & UGC Reports Offline Persistence ────────────────────────────
+  static const String _feedbackKey = 'stored_feedback_reports';
+
+  static List<Map<String, dynamic>> getStoredFeedback() {
+    final raw = _prefs?.getString(_feedbackKey);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<void> saveLocalFeedback(Map<String, dynamic> feedback) async {
+    final list = getStoredFeedback();
+    list.add(feedback);
+    await _prefs?.setString(_feedbackKey, jsonEncode(list));
+  }
+
   // ── Custom Groups Persistence ─────────────────────────────────────────────
   static List<Map<String, dynamic>> getSavedGroups() {
     final raw = _prefs?.getString(_customGroupsKey);

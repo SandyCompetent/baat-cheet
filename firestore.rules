@@ -65,7 +65,7 @@ rules_version = '2';
 //   - messageId: string (required, 1..128 chars, ID of offending message)
 //   - reason: string (required, 1..500 chars, reason for report)
 //   - messageText: string (required, 0..5000 chars, text of offending message)
-//   - reporterId: string (required, 1..128 chars, matches auth.uid)
+//   - reporterId: string (required, 1..128 chars, matches auth.uid when authenticated, or 'anonymous' for guest/unauthenticated users)
 //   - timestamp: timestamp (optional, report timestamp)
 //   - createdAt: timestamp (optional, report timestamp)
 //   - status: string (optional, 0..50 chars, moderation status)
@@ -286,10 +286,12 @@ service cloud.firestore {
       // Regular users must NOT read, update, or delete abuse reports; backend/admin only
       allow read, update, delete: if false;
 
-      // Authenticated users can create abuse reports where reporterId matches auth uid
-      allow create: if isAuthenticated() &&
-        request.resource.data.reporterId == request.auth.uid &&
-        isValidReport(request.resource.data);
+      // Allow authenticated users (matching auth.uid) and unauthenticated users (as 'anonymous') to create reports
+      allow create: if isValidReport(request.resource.data) &&
+        (
+          (isAuthenticated() && request.resource.data.reporterId == request.auth.uid) ||
+          (!isAuthenticated() && request.resource.data.reporterId == 'anonymous')
+        );
     }
 
     // Default deny for all other collections and paths

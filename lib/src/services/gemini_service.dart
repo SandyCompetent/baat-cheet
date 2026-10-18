@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:firebase_ai/firebase_ai.dart';
 import '../models/chat_message.dart';
 
-/// Production AI Service powered by the Firebase AI Logic SDK (`firebase_ai`).
+/// Production AI Service powered by the Firebase AI SDK (`firebase_ai`).
 /// Connects to the Gemini Developer API with a 100% free serverless tier.
 /// Follows official Google documentation on model retirement:
 /// Uses modern Gemini 3.x models (`gemini-3.1-flash-lite` by default, `gemini-3.8-flash`)
@@ -11,7 +11,7 @@ class GeminiService {
   static final GeminiService instance = GeminiService._internal();
   GeminiService._internal();
 
-  /// Default fast, lightweight free-tier model recommended by Firebase AI Logic
+  /// Default fast, lightweight free-tier model recommended for use
   static const String defaultModel = 'gemini-3.1-flash-lite';
   static const String proModel = 'gemini-3.8-flash';
   static const String modelFlashLite = defaultModel;
@@ -59,7 +59,7 @@ class GeminiService {
     }
   }
 
-  /// Streams token-by-token chunks using Firebase AI Logic
+  /// Streams token-by-token chunks using Firebase AI SDK
   Stream<String> streamResponse({
     required String prompt,
     List<ChatMessage> history = const [],
@@ -104,7 +104,7 @@ class GeminiService {
       }
     } catch (e) {
       if (!hasEmitted) {
-        // Graceful fallback if Firebase AI Logic is not yet provisioned in Firebase console or offline
+        // Graceful fallback if Firebase AI is not yet provisioned in Firebase console or offline
         yield* _streamFallbackResponse(prompt);
       } else {
         yield '\n\n[Response paused. Please check your connection.]';
@@ -118,13 +118,13 @@ class GeminiService {
 
     if (lower.contains('hello') || lower.contains('hi') || lower.contains('hey')) {
       reply =
-          'Hello! I am ChatBud AI Assistant, powered by Firebase AI Logic. How can I help you today?';
+          'Hello! I am ChatBud AI Assistant. How can I help you today?';
     } else if (lower.contains('theme') || lower.contains('slate')) {
       reply =
           'The Soft Minimalist Slate theme uses cool slate-tinted neutrals (#F8FAFC canvas, #FFFFFF surface, #111827 dark mode) with high-contrast electric indigo accents.';
-    } else if (lower.contains('firebase') || lower.contains('free') || lower.contains('ai logic') || lower.contains('model')) {
+    } else if (lower.contains('firebase') || lower.contains('free') || lower.contains('ai') || lower.contains('model')) {
       reply =
-          'ChatBud runs on Firebase AI Logic (firebase_ai) with Gemini 3.1 Flash-Lite ($defaultModel). It operates on a 100% free serverless tier without requiring an embedded API key!';
+          'ChatBud runs on Gemini 3.1 Flash-Lite ($defaultModel).';
     } else {
       reply =
           'I am ChatBud AI Assistant. I received your message: "$prompt". What would you like to explore or discuss next?';

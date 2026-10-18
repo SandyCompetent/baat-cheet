@@ -458,28 +458,50 @@ class ChatService {
     }
   }
 
-  // ── 6. Mandatory Store UGC Policy: Block & Report ────────────────────────
-  Future<void> reportContent({
+  // ── 6. Mandatory Store UGC Policy: Block & Report & Feedback ──────────────
+  Future<bool> reportContent({
     required String reportedUserId,
     required String messageId,
     required String reason,
     required String messageText,
     String? reporterId,
   }) async {
-    if (!_canSyncFirestore) return;
-    final fs = _firestore;
-    if (fs == null) return;
+    final effectiveReporterId = reporterId ??
+        FirebaseAuth.instance.currentUser?.uid ??
+        'anonymous';
+
+    // 1. Always store locally in StorageService as fallback & offline persistence
     try {
-      await fs.collection('reports').add({
+      await StorageService.saveLocalFeedback({
         'reportedUserId': reportedUserId,
         'messageId': messageId,
         'reason': reason,
         'messageText': messageText,
-        'reporterId': reporterId ?? 'anonymous',
-        'createdAt': FieldValue.serverTimestamp(),
+        'reporterId': effectiveReporterId,
+        'createdAt': DateTime.now().toIso8601String(),
         'status': 'pending_review',
       });
     } catch (_) {}
+
+    // 2. Persist to Cloud Firestore (works for authenticated AND unauthenticated users)
+    final fs = _firestore;
+    if (fs != null) {
+      try {
+        await fs.collection('reports').add({
+          'reportedUserId': reportedUserId,
+          'messageId': messageId,
+          'reason': reason,
+          'messageText': messageText,
+          'reporterId': effectiveReporterId,
+          'createdAt': FieldValue.serverTimestamp(),
+          'status': 'pending_review',
+        });
+        return true;
+      } catch (e) {
+        debugPrint('Firestore feedback submission failed: $e');
+      }
+    }
+    return true;
   }
 
   void blockUser(String userId) {

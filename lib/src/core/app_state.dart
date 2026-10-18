@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'storage_service.dart';
@@ -25,6 +26,22 @@ class AppState extends ChangeNotifier {
   String get email => _firebaseUser?.email ?? 'guest@chatbud.local';
   ThemeMode get themeMode => _themeMode;
 
+  FirebaseAuth? get _auth {
+    try {
+      return FirebaseAuth.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  FirebaseFirestore? get _firestore {
+    try {
+      return FirebaseFirestore.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> initialize() async {
     // 1. Initialize persistent storage
     await StorageService.init();
@@ -37,37 +54,66 @@ class AppState extends ChangeNotifier {
       _ => ThemeMode.system,
     };
 
-    // 3. Load guest name if any
-    _displayName = StorageService.getGuestName();
+    // 3. Initial display name defaults to Guest User for unauthenticated visitors
+    _displayName = 'Guest User';
 
     // 4. Listen to Firebase auth state changes
     try {
-      _firebaseUser = FirebaseAuth.instance.currentUser;
-      if (_firebaseUser != null) {
+      final auth = _auth;
+      final initialUser = auth?.currentUser;
+      if (initialUser != null && !initialUser.isAnonymous) {
+        _firebaseUser = initialUser;
         _isGuest = false;
-        _displayName = _firebaseUser!.displayName ??
-            _firebaseUser!.email?.split('@').first ??
-            'User';
+        await _syncAuthenticatedUserProfile(initialUser);
+      } else {
+        _isGuest = true;
+        _displayName = 'Guest User';
       }
 
-      _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
-        _firebaseUser = user;
-        if (user != null) {
-          _isGuest = false;
-          _displayName = user.displayName ??
-              user.email?.split('@').first ??
-              'User';
-        } else {
-          _isGuest = true;
-          _displayName = StorageService.getGuestName();
-        }
-        notifyListeners();
-      });
+      if (auth != null) {
+        _authSub = auth.authStateChanges().listen((user) async {
+          _firebaseUser = user;
+          if (user != null && !user.isAnonymous) {
+            _isGuest = false;
+            await _syncAuthenticatedUserProfile(user);
+          } else {
+            _isGuest = true;
+            _displayName = 'Guest User';
+          }
+          notifyListeners();
+        });
+      }
     } catch (_) {
       // Offline or mock environment fallback
     }
 
     notifyListeners();
+  }
+
+  Future<void> _syncAuthenticatedUserProfile(User user) async {
+    String? name = user.displayName;
+    if (name == null || name.trim().isEmpty) {
+      final fs = _firestore;
+      if (fs != null) {
+        try {
+          final doc = await fs.collection('users').doc(user.uid).get();
+          if (doc.exists) {
+            final data = doc.data();
+            final fsName = data?['displayName'] as String?;
+            if (fsName != null && fsName.trim().isNotEmpty) {
+              name = fsName.trim();
+              try {
+                await user.updateDisplayName(name);
+              } catch (_) {}
+            }
+          }
+        } catch (_) {}
+      }
+    }
+
+    _displayName = (name != null && name.trim().isNotEmpty)
+        ? name.trim()
+        : (user.email?.split('@').first ?? 'User');
   }
 
   void setThemeMode(ThemeMode mode) {
@@ -86,22 +132,45 @@ class AppState extends ChangeNotifier {
     if (trimmed.isEmpty) return;
     _displayName = trimmed;
 
-    if (_firebaseUser != null) {
-      await _firebaseUser!.updateDisplayName(trimmed);
-      await _firebaseUser!.reload();
+    final auth = _auth;
+    final user = auth?.currentUser ?? _firebaseUser;
+    if (user != null && !user.isAnonymous) {
+      // Authenticated user: persist to Firebase Auth and Firestore
+      try {
+        await user.updateDisplayName(trimmed);
+        await user.reload();
+        _firebaseUser = auth?.currentUser ?? user;
+      } catch (e) {
+        debugPrint('Auth profile update error: $e');
+      }
+
+      final fs = _firestore;
+      if (fs != null) {
+        try {
+          await fs.collection('users').doc(user.uid).set({
+            'uid': user.uid,
+            'email': user.email ?? '',
+            'displayName': trimmed,
+            'isOnline': true,
+            'lastSeen': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        } catch (e) {
+          debugPrint('Firestore profile update error: $e');
+        }
+      }
     } else {
-      await StorageService.setGuestName(trimmed);
+      // Unauthenticated user: temporary in-memory display name while using the app
     }
     notifyListeners();
   }
 
   Future<void> signOut() async {
     try {
-      await FirebaseAuth.instance.signOut();
+      await _auth?.signOut();
     } catch (_) {}
     _isGuest = true;
     _firebaseUser = null;
-    _displayName = StorageService.getGuestName();
+    _displayName = 'Guest User';
     notifyListeners();
   }
 

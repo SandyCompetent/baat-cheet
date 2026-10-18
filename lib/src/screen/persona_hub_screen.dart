@@ -261,22 +261,59 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                               fontSize: 12,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 10),
                           Row(
                             children: [
-                              Text(
-                                'Trust: ${rel.trustLevel}/10',
-                                style: TextStyle(
-                                  color: context.accent,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
+                              Tooltip(
+                                message:
+                                    'Trust increases as you chat. Higher trust unlocks more personalized responses.',
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: rel.trustLevel >= 8
+                                        ? Colors.amber.withAlpha(30)
+                                        : context.accentSubtle,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: rel.trustLevel >= 8
+                                          ? Colors.amber.withAlpha(80)
+                                          : context.accent.withAlpha(50),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.handshake_outlined,
+                                        size: 14,
+                                        color: rel.trustLevel >= 8
+                                            ? Colors.amber.shade400
+                                            : context.accent,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Trust: ${rel.trustLevel}/10',
+                                        style: TextStyle(
+                                          color: rel.trustLevel >= 8
+                                              ? Colors.amber.shade400
+                                              : context.accent,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6),
-                                child: Text('•', style: TextStyle(color: context.textMuted)),
-                              ),
-                              Flexible(
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: context.bgElevated,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 child: Text(
                                   'Mood: ${rel.mood}',
                                   style: TextStyle(
@@ -561,30 +598,61 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                 Expanded(
                                   child: Row(
                                     children: [
-                                      Icon(Icons.handshake_outlined,
-                                          size: 15, color: context.accent),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        'Trust: ${rel.trustLevel}/10',
-                                        style: TextStyle(
-                                          color: context.accent,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
+                                      Tooltip(
+                                        message:
+                                            'Trust increases as you chat. Higher trust unlocks more personalized responses.',
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: rel.trustLevel >= 8
+                                                ? Colors.amber.withAlpha(30)
+                                                : context.accentSubtle,
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: rel.trustLevel >= 8
+                                                  ? Colors.amber.withAlpha(80)
+                                                  : context.accent.withAlpha(50),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.handshake_outlined,
+                                                size: 14,
+                                                color: rel.trustLevel >= 8
+                                                    ? Colors.amber.shade400
+                                                    : context.accent,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'Trust: ${rel.trustLevel}/10',
+                                                style: TextStyle(
+                                                  color: rel.trustLevel >= 8
+                                                      ? Colors.amber.shade400
+                                                      : context.accent,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                      Padding(
+                                      const SizedBox(width: 8),
+                                      Container(
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 6),
-                                        child: Text('•',
-                                            style: TextStyle(
-                                                color: context.textMuted)),
-                                      ),
-                                      Flexible(
+                                            horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: context.bgElevated,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
                                         child: Text(
                                           'Mood: ${rel.mood}',
                                           style: TextStyle(
                                             color: context.textSecondary,
-                                            fontSize: 12,
+                                            fontSize: 11,
                                             fontWeight: FontWeight.w500,
                                           ),
                                           overflow: TextOverflow.ellipsis,

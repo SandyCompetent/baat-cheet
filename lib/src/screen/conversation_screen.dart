@@ -476,7 +476,7 @@ class _ConversationScreenState extends State<ConversationScreen>
         title: Text(widget.title),
         content: Text(
           widget.isAi
-              ? 'ChatBud AI Assistant is powered by Google Gemini API with token streaming. Ask any question or draft messages in real time.'
+              ? 'ChatBud AI Assistant answers any question or drafts messages in real time.'
               : 'End-to-end cloud synchronized conversation with ${widget.title}.',
         ),
         actions: [

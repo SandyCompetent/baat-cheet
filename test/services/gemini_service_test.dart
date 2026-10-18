@@ -3,7 +3,7 @@ import 'package:chatbud/src/models/chat_message.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('GeminiService (Firebase AI Logic) Tests', () {
+  group('GeminiService Tests', () {
     test('Singleton instance initializes without crashing', () {
       final service = GeminiService.instance;
       expect(service, isNotNull);
