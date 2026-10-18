@@ -1,6 +1,7 @@
 import 'package:chatbud/route_generator.dart';
 import 'package:chatbud/src/auth/auth_service.dart';
 import 'package:chatbud/src/core/app_state.dart';
+import 'package:chatbud/src/services/chat_service.dart';
 import 'package:chatbud/src/widgets/legal_dialog.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
@@ -90,45 +91,6 @@ class ContactPage extends StatelessWidget {
     );
   }
 
-  void _showAiStatusDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.smart_toy_outlined, color: Color(0xFF4F46E5)),
-            SizedBox(width: 8),
-            Text('AI Assistant Status'),
-          ],
-        ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Powered by Firebase AI Logic (Google Gemini 1.5 Flash).',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '• Backend: Gemini Developer API\n'
-              '• Free Tier: 15 RPM / 1M TPM / 1,500 RPD\n'
-              '• Client Keys: None required (secure serverless auth)\n'
-              '• Status: Active & Ready',
-              style: TextStyle(fontSize: 13, height: 1.5),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showFeedbackDialog(BuildContext context) {
     final ctrl = TextEditingController();
     showDialog(
@@ -148,14 +110,28 @@ class ContactPage extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Thank you! Your feedback has been received.'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+            onPressed: () async {
+              final text = ctrl.text.trim();
+              if (text.isNotEmpty) {
+                final currentUid =
+                    AuthService.currentUser?.uid ?? 'anonymous';
+                await ChatService.instance.reportContent(
+                  reportedUserId: 'system',
+                  messageId: 'feedback_${DateTime.now().millisecondsSinceEpoch}',
+                  reason: 'User Feedback',
+                  messageText: text,
+                  reporterId: currentUid,
+                );
+              }
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Thank you! Your feedback has been received and saved.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
             },
             child: const Text('Submit'),
           ),
@@ -415,7 +391,7 @@ class ContactPage extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Sign in to sync your messages, join private groups, and add contacts.',
+                                      'Sign in to sync your messages and custom personas.',
                                       style: TextStyle(
                                         color: context.textSecondary,
                                         fontSize: 12,
@@ -458,11 +434,6 @@ class ContactPage extends StatelessWidget {
                               ThemeMode.system => 'System',
                             },
                             onTap: () => _showThemeDialog(context),
-                          ),
-                          _SettingsItem(
-                            icon: Icons.smart_toy_outlined,
-                            label: 'AI Assistant (Firebase AI Logic)',
-                            onTap: () => _showAiStatusDialog(context),
                           ),
                         ],
                       ),

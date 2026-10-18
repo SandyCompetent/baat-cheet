@@ -27,18 +27,23 @@ void main() {
         ),
       );
 
-      // Verify initial tab (Chats)
+      // Verify initial default tab (Persona)
+      expect(find.text('Persona Hub'), findsOneWidget);
+
+      // Tap 'Chats' tab in bottom bar
+      await tester.tap(find.byIcon(Icons.chat_bubble_outline_rounded).last);
+      await tester.pumpAndSettle();
       expect(find.text('Messages'), findsOneWidget);
 
-      // Tap 'Groups' tab in bottom bar
-      await tester.tap(find.byIcon(Icons.group_outlined).last);
+      // Tap 'Persona' tab in bottom bar
+      await tester.tap(find.byIcon(Icons.smart_toy_outlined).last);
       await tester.pumpAndSettle();
-      expect(find.text('No Groups Yet'), findsOneWidget);
+      expect(find.text('Persona Hub'), findsOneWidget);
 
-      // Tap 'Saved' tab in bottom bar
-      await tester.tap(find.byIcon(Icons.bookmark_border_rounded).last);
+      // Tap 'Memory' tab in bottom bar
+      await tester.tap(find.byIcon(Icons.psychology_outlined).last);
       await tester.pumpAndSettle();
-      expect(find.text('Nothing Saved Yet'), findsOneWidget);
+      expect(find.text('Long-Term Memory'), findsOneWidget);
 
       // Tap 'Profile' tab in bottom bar
       await tester.tap(find.byIcon(Icons.person_outline_rounded).last);

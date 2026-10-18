@@ -20,6 +20,9 @@ dependencies:
   cloud_firestore: ^7.0.0
   flutter_secure_storage: ^11.2.0
   firebase_ai: ^5.0.0
+  flutter_markdown_plus: ^1.0.12
+  google_sign_in: ^6.2.2
+  sign_in_with_apple: ^8.2.0
 
 dev_dependencies:
   flutter_test:

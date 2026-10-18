@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 import '../../theme_data.dart';
 import '../core/app_state.dart';
@@ -634,13 +635,74 @@ class _ConversationScreenState extends State<ConversationScreen>
                     : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    msg.text,
-                    style: TextStyle(
-                      color:
-                          isUser ? SlateTokens.textOnAccent : context.textPrimary,
-                      fontSize: 15,
-                      height: 1.45,
+                  MarkdownBody(
+                    data: msg.text,
+                    selectable: false,
+                    shrinkWrap: true,
+                    styleSheet: MarkdownStyleSheet(
+                      p: TextStyle(
+                        color: isUser
+                            ? SlateTokens.textOnAccent
+                            : context.textPrimary,
+                        fontSize: 15,
+                        height: 1.45,
+                      ),
+                      strong: TextStyle(
+                        color: isUser
+                            ? SlateTokens.textOnAccent
+                            : context.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        height: 1.45,
+                      ),
+                      em: TextStyle(
+                        color: isUser
+                            ? SlateTokens.textOnAccent
+                            : context.textPrimary,
+                        fontSize: 15,
+                        fontStyle: FontStyle.italic,
+                        height: 1.45,
+                      ),
+                      del: TextStyle(
+                        color: isUser
+                            ? SlateTokens.textOnAccent
+                            : context.textPrimary,
+                        fontSize: 15,
+                        decoration: TextDecoration.lineThrough,
+                        height: 1.45,
+                      ),
+                      code: TextStyle(
+                        color: isUser ? Colors.white : context.accent,
+                        backgroundColor:
+                            isUser ? Colors.white24 : context.accentSubtle,
+                        fontFamily: 'monospace',
+                        fontSize: 13.5,
+                      ),
+                      codeblockDecoration: BoxDecoration(
+                        color: isUser
+                            ? Colors.black26
+                            : context.bgElevated,
+                        borderRadius: BorderRadius.circular(8),
+                        border: isUser
+                            ? null
+                            : Border.all(color: context.borderSubtle),
+                      ),
+                      codeblockPadding: const EdgeInsets.all(8),
+                      listBullet: TextStyle(
+                        color: isUser
+                            ? SlateTokens.textOnAccent
+                            : context.textPrimary,
+                        fontSize: 15,
+                      ),
+                      blockquote: TextStyle(
+                        color: isUser ? Colors.white70 : context.textSecondary,
+                        fontStyle: FontStyle.italic,
+                        fontSize: 14.5,
+                      ),
+                      a: TextStyle(
+                        color: isUser ? Colors.white : context.accent,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
                   if (isLastInGroup) ...[

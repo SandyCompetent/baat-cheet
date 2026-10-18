@@ -6,13 +6,14 @@ import '../../theme_data.dart';
 import '../widgets/legal_dialog.dart';
 import 'auth_service.dart';
 
-enum _AuthMode {
-  emailInput,
-  signInPassword,
-  createAccount,
-  forgotPassword,
-}
-
+/// Unified single login/sign-up screen for ChatBud.
+///
+/// Features:
+/// - Single email & password form (auto-detects login vs account creation)
+/// - No "Already have an account? Sign In" or "Don't have an account? Sign Up" toggles
+/// - Google Sign-In and Apple Sign-In support
+/// - Forgot password reset dialog
+/// - Compliant with Soft Minimalist Slate design system
 class UnifiedAuthScreen extends StatefulWidget {
   const UnifiedAuthScreen({super.key});
 
@@ -21,27 +22,17 @@ class UnifiedAuthScreen extends StatefulWidget {
 }
 
 class _UnifiedAuthScreenState extends State<UnifiedAuthScreen> {
-  _AuthMode _mode = _AuthMode.emailInput;
   bool _isLoading = false;
   String? _errorMessage;
 
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  final _nameCtrl = TextEditingController();
 
   @override
   void dispose() {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
-    _nameCtrl.dispose();
     super.dispose();
-  }
-
-  void _setMode(_AuthMode mode) {
-    setState(() {
-      _errorMessage = null;
-      _mode = mode;
-    });
   }
 
   void _setLoading(bool val) => setState(() => _isLoading = val);
@@ -50,43 +41,12 @@ class _UnifiedAuthScreenState extends State<UnifiedAuthScreen> {
   bool _isValidEmail(String e) =>
       RegExp(r'^[\w\-\.]+@[\w\-]+\.[a-zA-Z]{2,}$').hasMatch(e.trim());
 
-  Future<void> _handleEmailContinue() async {
+  Future<void> _handleUnifiedAuth() async {
     final email = _emailCtrl.text.trim();
+    final pass = _passwordCtrl.text;
+
     if (!_isValidEmail(email)) {
       _setError('Please enter a valid email address.');
-      return;
-    }
-    _setMode(_AuthMode.signInPassword);
-  }
-
-  Future<void> _handleSignIn() async {
-    final email = _emailCtrl.text.trim();
-    final pass = _passwordCtrl.text;
-    if (pass.isEmpty) {
-      _setError('Please enter your password.');
-      return;
-    }
-
-    _setLoading(true);
-    _setError(null);
-
-    final res = await AuthService.signIn(email: email, password: pass);
-    _setLoading(false);
-
-    if (res.success) {
-      _onAuthSuccess();
-    } else {
-      _setError(res.errorMessage);
-    }
-  }
-
-  Future<void> _handleCreateAccount() async {
-    final email = _emailCtrl.text.trim();
-    final name = _nameCtrl.text.trim();
-    final pass = _passwordCtrl.text;
-
-    if (name.isEmpty) {
-      _setError('Please enter your display name.');
       return;
     }
     if (pass.length < 6) {
@@ -97,10 +57,9 @@ class _UnifiedAuthScreenState extends State<UnifiedAuthScreen> {
     _setLoading(true);
     _setError(null);
 
-    final res = await AuthService.createAccount(
+    final res = await AuthService.authenticateUnified(
       email: email,
       password: pass,
-      displayName: name,
     );
     _setLoading(false);
 
@@ -111,43 +70,47 @@ class _UnifiedAuthScreenState extends State<UnifiedAuthScreen> {
     }
   }
 
-  Future<void> _handleSendResetEmail() async {
-    final email = _emailCtrl.text.trim();
-    if (!_isValidEmail(email)) {
-      _setError('Please enter a valid email address.');
-      return;
-    }
-
+  Future<void> _handleGoogleSignIn() async {
     _setLoading(true);
     _setError(null);
 
-    final res = await AuthService.sendPasswordResetEmail(email);
+    final res = await AuthService.signInWithGoogle();
     _setLoading(false);
 
     if (res.success) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('Password Reset Sent'),
-            content: Text(
-              'A password reset link has been dispatched to $email. Follow the link in your email to choose a new password, then return here to sign in.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _setMode(_AuthMode.signInPassword);
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
+      _onAuthSuccess();
     } else {
-      _setError(res.errorMessage);
+      if (res.errorMessage != null &&
+          !res.errorMessage!.contains('cancelled')) {
+        _setError(res.errorMessage);
+      }
     }
+  }
+
+  Future<void> _handleAppleSignIn() async {
+    _setLoading(true);
+    _setError(null);
+
+    final res = await AuthService.signInWithApple();
+    _setLoading(false);
+
+    if (res.success) {
+      _onAuthSuccess();
+    } else {
+      if (res.errorMessage != null &&
+          !res.errorMessage!.contains('cancelled')) {
+        _setError(res.errorMessage);
+      }
+    }
+  }
+
+  void _showForgotPasswordDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => _ForgotPasswordDialog(
+        initialEmail: _emailCtrl.text.trim(),
+      ),
+    );
   }
 
   void _onAuthSuccess() {
@@ -164,21 +127,20 @@ class _UnifiedAuthScreenState extends State<UnifiedAuthScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            if (_mode != _AuthMode.emailInput)
+            if (Navigator.of(context).canPop())
               Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
                   padding: const EdgeInsets.only(left: 8, top: 8),
                   child: IconButton(
-                    icon: Icon(Icons.arrow_back_ios_new_rounded,
-                        color: context.accent, size: 20),
+                    icon: Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: context.accent,
+                      size: 20,
+                    ),
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      if (_mode == _AuthMode.forgotPassword) {
-                        _setMode(_AuthMode.signInPassword);
-                      } else {
-                        _setMode(_AuthMode.emailInput);
-                      }
+                      Navigator.of(context).pop();
                     },
                   ),
                 ),
@@ -188,15 +150,10 @@ class _UnifiedAuthScreenState extends State<UnifiedAuthScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 28),
                 child: Column(
                   children: [
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     _BrandHeader(),
-                    const SizedBox(height: 32),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      switchInCurve: Curves.easeOut,
-                      switchOutCurve: Curves.easeIn,
-                      child: _buildCurrentCard(context),
-                    ),
+                    const SizedBox(height: 28),
+                    _buildFormCard(context),
                     if (_errorMessage != null) ...[
                       const SizedBox(height: 16),
                       _ErrorBanner(message: _errorMessage!),
@@ -214,18 +171,9 @@ class _UnifiedAuthScreenState extends State<UnifiedAuthScreen> {
     );
   }
 
-  Widget _buildCurrentCard(BuildContext context) {
-    return switch (_mode) {
-      _AuthMode.emailInput => _buildEmailCard(context),
-      _AuthMode.signInPassword => _buildSignInCard(context),
-      _AuthMode.createAccount => _buildCreateAccountCard(context),
-      _AuthMode.forgotPassword => _buildForgotPasswordCard(context),
-    };
-  }
-
-  Widget _buildEmailCard(BuildContext context) {
+  Widget _buildFormCard(BuildContext context) {
     return Column(
-      key: const ValueKey('emailInput'),
+      key: const ValueKey('unifiedAuthForm'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -241,202 +189,115 @@ class _UnifiedAuthScreenState extends State<UnifiedAuthScreen> {
           'Enter your email to sign in or create an account.',
           style: TextStyle(color: context.textSecondary, fontSize: 15),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 24),
+
+        // Email field
         _AuthField(
           controller: _emailCtrl,
           hint: 'Email address',
           prefixIcon: Icons.email_outlined,
           keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.done,
-          onSubmitted: _handleEmailContinue,
-        ),
-        const SizedBox(height: 20),
-        _PrimaryButton(
-          label: 'Continue',
-          isLoading: _isLoading,
-          onTap: _handleEmailContinue,
-        ),
-        const SizedBox(height: 16),
-        Center(
-          child: TextButton(
-            onPressed: () async {
-              await AuthService.signInAnonymously();
-              if (context.mounted) {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  homeRoute,
-                  (route) => false,
-                );
-              }
-            },
-            child: Text(
-              'Continue as Guest',
-              style: TextStyle(
-                color: context.textSecondary,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSignInCard(BuildContext context) {
-    return Column(
-      key: const ValueKey('signInPassword'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Enter your password',
-          style: TextStyle(
-            color: context.textPrimary,
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          _emailCtrl.text.trim(),
-          style: TextStyle(
-            color: context.textSecondary,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 24),
-        _AuthField(
-          controller: _passwordCtrl,
-          hint: 'Password',
-          prefixIcon: Icons.lock_outline_rounded,
-          isPassword: true,
-          textInputAction: TextInputAction.done,
-          onSubmitted: _handleSignIn,
-        ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              onTap: () => _setMode(_AuthMode.createAccount),
-              child: Text(
-                'Need an account? Sign up',
-                style: TextStyle(
-                  color: context.accent,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () => _setMode(_AuthMode.forgotPassword),
-              child: Text(
-                'Forgot password?',
-                style: TextStyle(
-                  color: context.accent,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        _PrimaryButton(
-          label: 'Sign In',
-          isLoading: _isLoading,
-          onTap: _handleSignIn,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCreateAccountCard(BuildContext context) {
-    return Column(
-      key: const ValueKey('createAccount'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Create your account',
-          style: TextStyle(
-            color: context.textPrimary,
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Joining with ${_emailCtrl.text.trim()}',
-          style: TextStyle(color: context.textSecondary, fontSize: 14),
-        ),
-        const SizedBox(height: 24),
-        _AuthField(
-          controller: _nameCtrl,
-          hint: 'Full Name',
-          prefixIcon: Icons.person_outline_rounded,
-          keyboardType: TextInputType.name,
           textInputAction: TextInputAction.next,
         ),
         const SizedBox(height: 14),
+
+        // Password field
         _AuthField(
           controller: _passwordCtrl,
           hint: 'Password (min 6 characters)',
           prefixIcon: Icons.lock_outline_rounded,
           isPassword: true,
           textInputAction: TextInputAction.done,
-          onSubmitted: _handleCreateAccount,
+          onSubmitted: _handleUnifiedAuth,
         ),
-        const SizedBox(height: 16),
-        GestureDetector(
-          onTap: () => _setMode(_AuthMode.signInPassword),
-          child: Text(
-            'Already have an account? Sign In',
-            style: TextStyle(
-              color: context.accent,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+        const SizedBox(height: 10),
+
+        // Forgot password
+        Align(
+          alignment: Alignment.centerRight,
+          child: GestureDetector(
+            onTap: _showForgotPasswordDialog,
+            child: Text(
+              'Forgot password?',
+              style: TextStyle(
+                color: context.accent,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
+
+        // Primary Continue Button
         _PrimaryButton(
-          label: 'Register Account',
+          label: 'Continue',
           isLoading: _isLoading,
-          onTap: _handleCreateAccount,
+          onTap: _handleUnifiedAuth,
+        ),
+        const SizedBox(height: 24),
+
+        // Divider
+        Row(
+          children: [
+            Expanded(child: Divider(color: context.borderSubtle)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Text(
+                'or continue with',
+                style: TextStyle(
+                  color: context.textMuted,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Expanded(child: Divider(color: context.borderSubtle)),
+          ],
+        ),
+        const SizedBox(height: 20),
+
+        // Google Sign-In
+        _SocialButton(
+          label: 'Continue with Google',
+          icon: _buildGoogleLogo(),
+          onTap: _isLoading ? null : _handleGoogleSignIn,
+        ),
+        const SizedBox(height: 12),
+
+        // Apple Sign-In
+        _SocialButton(
+          label: 'Continue with Apple',
+          icon: Icon(
+            Icons.apple,
+            size: 22,
+            color: context.isDark ? Colors.black : Colors.white,
+          ),
+          isApple: true,
+          onTap: _isLoading ? null : _handleAppleSignIn,
         ),
       ],
     );
   }
 
-  Widget _buildForgotPasswordCard(BuildContext context) {
-    return Column(
-      key: const ValueKey('forgotPassword'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Reset Password',
-          style: TextStyle(
-            color: context.textPrimary,
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-          ),
+  Widget _buildGoogleLogo() {
+    return Container(
+      width: 22,
+      height: 22,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+      ),
+      child: const Text(
+        'G',
+        style: TextStyle(
+          color: Color(0xFF4285F4),
+          fontSize: 15,
+          fontWeight: FontWeight.w900,
+          fontFamily: 'Roboto',
         ),
-        const SizedBox(height: 6),
-        Text(
-          'We will send a password reset email to ${_emailCtrl.text.trim()}',
-          style: TextStyle(
-            color: context.textSecondary,
-            fontSize: 14,
-            height: 1.4,
-          ),
-        ),
-        const SizedBox(height: 24),
-        _PrimaryButton(
-          label: 'Send Reset Link',
-          isLoading: _isLoading,
-          onTap: _handleSendResetEmail,
-        ),
-      ],
+      ),
     );
   }
 }
@@ -447,26 +308,93 @@ class _BrandHeader extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 72,
-          height: 72,
+          width: 68,
+          height: 68,
           decoration: BoxDecoration(
             color: context.accentSubtle,
             shape: BoxShape.circle,
           ),
-          child: Icon(Icons.chat_bubble_outline_rounded,
-              color: context.accent, size: 36),
+          child: Icon(
+            Icons.chat_bubble_outline_rounded,
+            color: context.accent,
+            size: 34,
+          ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         Text(
           'ChatBud',
           style: TextStyle(
             color: context.textPrimary,
-            fontSize: 28,
+            fontSize: 26,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.5,
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SocialButton extends StatelessWidget {
+  final String label;
+  final Widget icon;
+  final VoidCallback? onTap;
+  final bool isApple;
+
+  const _SocialButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    this.isApple = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color bgColor;
+    final Color textColor;
+    final Border? border;
+
+    if (isApple) {
+      bgColor = context.isDark ? Colors.white : Colors.black;
+      textColor = context.isDark ? Colors.black : Colors.white;
+      border = null;
+    } else {
+      bgColor = context.bgSurface;
+      textColor = context.textPrimary;
+      border = Border.all(color: context.borderSubtle);
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: OutlinedButton(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: bgColor,
+          foregroundColor: textColor,
+          side: border != null ? BorderSide(color: context.borderSubtle) : BorderSide.none,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            icon,
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -666,3 +594,114 @@ class _PrimaryButton extends StatelessWidget {
     );
   }
 }
+
+class _ForgotPasswordDialog extends StatefulWidget {
+  final String initialEmail;
+
+  const _ForgotPasswordDialog({required this.initialEmail});
+
+  @override
+  State<_ForgotPasswordDialog> createState() => _ForgotPasswordDialogState();
+}
+
+class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
+  late final TextEditingController _resetCtrl;
+  bool _isSending = false;
+  String? _resetError;
+
+  @override
+  void initState() {
+    super.initState();
+    _resetCtrl = TextEditingController(text: widget.initialEmail);
+  }
+
+  @override
+  void dispose() {
+    _resetCtrl.dispose();
+    super.dispose();
+  }
+
+  bool _isValidEmail(String e) =>
+      RegExp(r'^[\w\-\.]+@[\w\-]+\.[a-zA-Z]{2,}$').hasMatch(e.trim());
+
+  Future<void> _handleSend() async {
+    final email = _resetCtrl.text.trim();
+    if (!_isValidEmail(email)) {
+      setState(() => _resetError = 'Please enter a valid email address.');
+      return;
+    }
+    setState(() {
+      _isSending = true;
+      _resetError = null;
+    });
+
+    final res = await AuthService.sendPasswordResetEmail(email);
+    if (!mounted) return;
+
+    if (res.success) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Password reset link dispatched to $email'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      setState(() {
+        _isSending = false;
+        _resetError = res.errorMessage;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Reset Password'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Enter your email address to receive a secure password reset link.',
+            style: TextStyle(fontSize: 14, height: 1.4),
+          ),
+          const SizedBox(height: 16),
+          _AuthField(
+            controller: _resetCtrl,
+            hint: 'Email address',
+            prefixIcon: Icons.email_outlined,
+            keyboardType: TextInputType.emailAddress,
+          ),
+          if (_resetError != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              _resetError!,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isSending ? null : _handleSend,
+          child: _isSending
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Send Link'),
+        ),
+      ],
+    );
+  }
+}
+

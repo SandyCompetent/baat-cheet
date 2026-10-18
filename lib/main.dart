@@ -2,9 +2,9 @@ import 'package:chatbud/firebase_options.dart';
 import 'package:chatbud/src/core/app_state.dart';
 import 'package:chatbud/src/screen/contact_page.dart';
 import 'package:chatbud/src/screen/conversation_screen.dart';
-import 'package:chatbud/src/screen/group_page.dart';
-import 'package:chatbud/src/screen/list_page.dart';
+import 'package:chatbud/src/screen/memory_page.dart';
 import 'package:chatbud/src/screen/message_page.dart';
+import 'package:chatbud/src/screen/persona_hub_screen.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -65,12 +65,12 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _currentIndex = 0;
+  int _currentIndex = 1;
 
   final List<Widget> _children = [
     const MessagePage(),
-    const GroupPage(),
-    const ListPage(),
+    const PersonaHubScreen(),
+    const MemoryPage(),
     const ContactPage(),
   ];
 
@@ -78,45 +78,6 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _currentIndex = index;
     });
-  }
-
-  void _checkLoginAndProceed(VoidCallback onAuthorized, String featureName) {
-    if (AppState.instance.isLoggedIn) {
-      onAuthorized();
-    } else {
-      _showLoginRequiredDialog(featureName);
-    }
-  }
-
-  void _showLoginRequiredDialog(String featureName) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.lock_outline, color: context.statusDanger, size: 22),
-            const SizedBox(width: 8),
-            const Text('Sign In Required'),
-          ],
-        ),
-        content: Text(
-          'You are currently in Guest Mode. Please sign in to access $featureName and sync your account.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Continue as Guest'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.of(context).pushNamed(loginRoute);
-            },
-            child: const Text('Sign In / Register'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _onFabPressed() {
@@ -192,15 +153,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   color: context.accentSubtle,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.group_add_outlined, color: context.accent, size: 22),
+                child: Icon(Icons.hub_outlined, color: context.accent, size: 22),
               ),
-              title: const Text('New Group Channel'),
-              subtitle: const Text('Collaborate with friends or teammates'),
+              title: const Text('Browse AI Personas'),
+              subtitle: const Text('Explore engineering, security & creative minds'),
               onTap: () {
                 Navigator.pop(ctx);
-                _checkLoginAndProceed(() {
-                  setState(() => _currentIndex = 1);
-                }, 'Group Channels');
+                setState(() => _currentIndex = 1);
               },
             ),
           ],
@@ -241,16 +200,16 @@ class _MyHomePageState extends State<MyHomePage> {
               onTap: _onTappedBar,
             ),
             _NavItem(
-              icon: Icons.group_outlined,
-              label: 'Groups',
+              icon: Icons.smart_toy_outlined,
+              label: 'Persona',
               index: 1,
               current: _currentIndex,
               onTap: _onTappedBar,
             ),
             const SizedBox(width: 48), // notch gap for FAB
             _NavItem(
-              icon: Icons.bookmark_border_rounded,
-              label: 'Saved',
+              icon: Icons.psychology_outlined,
+              label: 'Memory',
               index: 2,
               current: _currentIndex,
               onTap: _onTappedBar,

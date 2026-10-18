@@ -1,7 +1,7 @@
 import 'package:chatbud/project_meta_data.dart';
 import 'package:chatbud/src/models/conversation.dart';
 import 'package:chatbud/src/screen/conversation_screen.dart';
-import 'package:chatbud/src/screen/persona_hub_screen.dart';
+import 'package:chatbud/src/screen/list_page.dart';
 import 'package:chatbud/src/services/chat_service.dart';
 import 'package:chatbud/src/widgets/message_item.dart';
 import 'package:chatbud/theme_data.dart';
@@ -15,8 +15,7 @@ class MessagePage extends StatefulWidget {
 }
 
 class _MessagePageState extends State<MessagePage> {
-  int _filterIndex = 0;
-  final _filters = ['All', 'Unread', 'Groups'];
+  String _selectedFilter = 'All';
 
   bool _isSearching = false;
   final TextEditingController _searchCtrl = TextEditingController();
@@ -36,11 +35,15 @@ class _MessagePageState extends State<MessagePage> {
     super.dispose();
   }
 
-  List<Conversation> _applyFilterAndSearch(List<Conversation> raw) {
+  List<Conversation> _applyFilterAndSearch(
+    List<Conversation> raw,
+    String selectedFilter,
+  ) {
     return raw.where((conv) {
-      // 1. Filter tab
-      if (_filterIndex == 1 && conv.unreadCount == 0) return false;
-      if (_filterIndex == 2 && !conv.isGroup) return false;
+      // 1. Persona filter
+      if (selectedFilter != 'All' && conv.title.trim() != selectedFilter) {
+        return false;
+      }
 
       // 2. Search query
       if (_searchQuery.isNotEmpty) {
@@ -85,12 +88,12 @@ class _MessagePageState extends State<MessagePage> {
         actions: [
           if (!_isSearching)
             IconButton(
-              icon: Icon(Icons.hub_outlined, color: context.accent),
-              tooltip: 'Persona Hub',
+              icon: Icon(Icons.bookmark_border_rounded, color: context.accent),
+              tooltip: 'Saved Chats',
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => const PersonaHubScreen(),
+                    builder: (_) => const ListPage(),
                   ),
                 );
               },
@@ -120,153 +123,182 @@ class _MessagePageState extends State<MessagePage> {
           child: Divider(height: 1, color: context.borderSubtle),
         ),
       ),
-      body: Column(
-        children: [
-          Container(
-            color: context.bgSurface,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              children: List.generate(_filters.length, (i) {
-                final selected = i == _filterIndex;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    onTap: () => setState(() => _filterIndex = i),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? context.accentSubtle
-                            : context.bgElevated,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: selected
-                              ? context.accent.withValues(alpha: 0.4)
-                              : context.borderSubtle,
-                        ),
-                      ),
-                      child: Text(
-                        _filters[i],
-                        style: TextStyle(
-                          color: selected ? context.accent : context.textSecondary,
-                          fontSize: 13,
-                          fontWeight:
-                              selected ? FontWeight.w600 : FontWeight.w400,
-                        ),
-                      ),
+      body: ValueListenableBuilder<List<Conversation>>(
+        valueListenable: ChatService.instance.conversationsNotifier,
+        builder: (context, conversations, _) {
+          final hasConversations = conversations.isNotEmpty;
+
+          // Build dynamic list of filters from active chats: 'All' + distinct persona titles
+          final personaFilters = <String>['All'];
+          for (final c in conversations) {
+            final name = c.title.trim();
+            if (name.isNotEmpty && !personaFilters.contains(name)) {
+              personaFilters.add(name);
+            }
+          }
+
+          final activeFilter = personaFilters.contains(_selectedFilter)
+              ? _selectedFilter
+              : 'All';
+
+          final visible = _applyFilterAndSearch(conversations, activeFilter);
+
+          return Column(
+            children: [
+              if (hasConversations) ...[
+                Container(
+                  color: context.bgSurface,
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: personaFilters.map((filterName) {
+                        final selected = filterName == activeFilter;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: GestureDetector(
+                            onTap: () =>
+                                setState(() => _selectedFilter = filterName),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 180),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? context.accentSubtle
+                                    : context.bgElevated,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: selected
+                                      ? context.accent.withValues(alpha: 0.4)
+                                      : context.borderSubtle,
+                                ),
+                              ),
+                              child: Text(
+                                filterName,
+                                style: TextStyle(
+                                  color: selected
+                                      ? context.accent
+                                      : context.textSecondary,
+                                  fontSize: 13,
+                                  fontWeight: selected
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
-                );
-              }),
-            ),
-          ),
-          Divider(height: 1, color: context.borderSubtle),
-          Expanded(
-            child: ValueListenableBuilder<List<Conversation>>(
-              valueListenable: ChatService.instance.conversationsNotifier,
-              builder: (context, conversations, _) {
-                final visible = _applyFilterAndSearch(conversations);
-
-                if (visible.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            color: context.accentSubtle,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            _searchQuery.isNotEmpty
-                                ? Icons.search_off_rounded
-                                : Icons.chat_bubble_outline_rounded,
-                            color: context.accent,
-                            size: 28,
-                          ),
+                ),
+                Divider(height: 1, color: context.borderSubtle),
+              ],
+              Expanded(
+                child: visible.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                color: context.accentSubtle,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _searchQuery.isNotEmpty
+                                    ? Icons.search_off_rounded
+                                    : Icons.chat_bubble_outline_rounded,
+                                color: context.accent,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _searchQuery.isNotEmpty
+                                  ? 'No chats match "$_searchQuery"'
+                                  : (activeFilter != 'All'
+                                      ? 'No chats found for "$activeFilter"'
+                                      : 'No conversations found'),
+                              style: TextStyle(
+                                color: context.textPrimary,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _searchQuery.isNotEmpty
+                                  ? 'Try searching by a different name or keyword'
+                                  : 'Start a new conversation or chat with AI',
+                              style: TextStyle(
+                                color: context.textSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+                            if (_searchQuery.isEmpty && !hasConversations) ...[
+                              const SizedBox(height: 20),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const ConversationScreen(
+                                        conversationId: 'ai_assistant',
+                                        title: 'ChatBud AI Assistant',
+                                        isAi: true,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.smart_toy_rounded,
+                                    size: 18),
+                                label: const Text('Chat with AI Assistant'),
+                              ),
+                            ],
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _searchQuery.isNotEmpty
-                              ? 'No chats match "$_searchQuery"'
-                              : 'No conversations found',
-                          style: TextStyle(
-                            color: context.textPrimary,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          _searchQuery.isNotEmpty
-                              ? 'Try searching by a different name or keyword'
-                              : 'Start a new conversation or chat with AI',
-                          style: TextStyle(
-                            color: context.textSecondary,
-                            fontSize: 13,
-                          ),
-                        ),
-                        if (_searchQuery.isEmpty) ...[
-                          const SizedBox(height: 20),
-                          ElevatedButton.icon(
-                            onPressed: () {
+                      )
+                    : ListView.separated(
+                        padding: EdgeInsets.zero,
+                        itemCount: visible.length,
+                        separatorBuilder: (_, __) => Divider(
+                            height: 1,
+                            indent: 74,
+                            color: context.borderSubtle),
+                        itemBuilder: (context, index) {
+                          final item = visible[index];
+                          return MessageItem(
+                            imgRef: appLogo,
+                            txtPersonName: item.title,
+                            txtMessage: item.lastMessage,
+                            txtTime: item.lastTime,
+                            isAi: item.isAi,
+                            unreadCount: item.unreadCount,
+                            onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (_) => const ConversationScreen(
-                                    conversationId: 'ai_assistant',
-                                    title: 'ChatBud AI Assistant',
-                                    isAi: true,
+                                  builder: (_) => ConversationScreen(
+                                    conversationId: item.id,
+                                    title: item.title,
+                                    isAi: item.isAi,
                                   ),
                                 ),
                               );
                             },
-                            icon: const Icon(Icons.smart_toy_rounded, size: 18),
-                            label: const Text('Chat with AI Assistant'),
-                          ),
-                        ],
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.separated(
-                  padding: EdgeInsets.zero,
-                  itemCount: visible.length,
-                  separatorBuilder: (_, __) =>
-                      Divider(height: 1, indent: 74, color: context.borderSubtle),
-                  itemBuilder: (context, index) {
-                    final item = visible[index];
-                    return MessageItem(
-                      imgRef: appLogo,
-                      txtPersonName: item.title,
-                      txtMessage: item.lastMessage,
-                      txtTime: item.lastTime,
-                      isAi: item.isAi,
-                      unreadCount: item.unreadCount,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => ConversationScreen(
-                              conversationId: item.id,
-                              title: item.title,
-                              isAi: item.isAi,
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
+                          );
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

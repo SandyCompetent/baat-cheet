@@ -231,7 +231,7 @@ class ChatService {
     // Optimistically update local notifier
     final notifier = getMessagesNotifier(conversationId);
     notifier.value = [...notifier.value, message];
-    _updateLocalConversationPreview(conversationId, text, timeStr);
+    _updateLocalConversationPreview(conversationId, text, timeStr, senderName: senderName);
     StorageService.saveConversationMessages(conversationId, notifier.value);
 
     // Heuristic fact extraction for two-layer memory engine
@@ -406,7 +406,7 @@ class ChatService {
     final now = DateTime.now();
     final timeStr =
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    _updateLocalConversationPreview(conversationId, fullReply, timeStr);
+    _updateLocalConversationPreview(conversationId, fullReply, timeStr, senderName: persona.name);
     StorageService.saveConversationMessages(conversationId, notifier.value);
 
     // Evolve relationship state
@@ -549,8 +549,9 @@ class ChatService {
   void _updateLocalConversationPreview(
     String conversationId,
     String lastText,
-    String timeStr,
-  ) {
+    String timeStr, {
+    String? senderName,
+  }) {
     final list = List<Conversation>.from(conversationsNotifier.value);
     final idx = list.indexWhere((c) => c.id == conversationId);
     if (idx != -1) {
@@ -563,13 +564,27 @@ class ChatService {
       conversationsNotifier.value = list;
     } else {
       // Add conversation if not present
-      final isAi = conversationId == 'ai_assistant';
+      final isAi = conversationId == 'ai_assistant' ||
+          conversationId.startsWith('ai_persona_');
+      String title = isAi ? 'ChatBud AI Assistant' : 'Chat';
+      if (conversationId.startsWith('ai_persona_')) {
+        final pId = conversationId.replaceFirst('ai_persona_', '');
+        title = PersonaService.instance.getPersonaById(pId).name;
+      } else if (senderName != null &&
+          senderName.isNotEmpty &&
+          senderName != 'User' &&
+          senderName != 'Guest User') {
+        title = senderName;
+      }
       final newConv = Conversation(
         id: conversationId,
-        title: isAi ? 'ChatBud AI Assistant' : 'Chat',
+        title: title,
         lastMessage: lastText,
         lastTime: timeStr,
         isAi: isAi,
+        personaId: conversationId.startsWith('ai_persona_')
+            ? conversationId.replaceFirst('ai_persona_', '')
+            : null,
       );
       conversationsNotifier.value = [newConv, ...list];
     }

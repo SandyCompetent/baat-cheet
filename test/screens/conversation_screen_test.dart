@@ -78,5 +78,28 @@ void main() {
       expect(find.byIcon(Icons.attach_file), findsNothing);
       expect(find.byIcon(Icons.info_outline_rounded), findsOneWidget);
     });
+
+    testWidgets('Renders Markdown formatting in chat bubbles',
+        (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          const ConversationScreen(
+            conversationId: 'user_bruce',
+            title: 'Bruce Wayne',
+            isAi: false,
+          ),
+        ),
+      );
+
+      await tester.enterText(
+          find.byType(TextField), 'You work at **Google**.');
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.arrow_upward_rounded),
+          warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.text('You work at Google.', findRichText: true),
+          findsOneWidget);
+    });
   });
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme_data.dart';
 import '../models/persona.dart';
-import '../models/user_memory.dart';
 import '../services/chat_service.dart';
 import '../services/memory_service.dart';
 import '../services/persona_service.dart';
@@ -165,143 +164,7 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
     );
   }
 
-  void _showMemoryVaultSheet() {
-    final factCtrl = TextEditingController();
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: context.bgSurface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.psychology_outlined, color: context.accent, size: 24),
-                const SizedBox(width: 8),
-                Text(
-                  'Long-Term Memory Vault',
-                  style: TextStyle(
-                    color: context.textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(ctx),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Facts and preferences remembered across all conversations. Retrieved dynamically via vector cosine similarity.',
-              style: TextStyle(color: context.textSecondary, fontSize: 13),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: factCtrl,
-                    style: TextStyle(color: context.textPrimary, fontSize: 13),
-                    decoration: InputDecoration(
-                      hintText: 'Add a new fact (e.g. "I work in Flutter")',
-                      hintStyle: TextStyle(color: context.textMuted),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  icon: const Icon(Icons.add),
-                  onPressed: () async {
-                    if (factCtrl.text.trim().isNotEmpty) {
-                      await MemoryService.instance.addMemory(
-                        fact: factCtrl.text.trim(),
-                        category: 'manual',
-                      );
-                      factCtrl.clear();
-                    }
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 280),
-              child: ValueListenableBuilder<List<UserMemory>>(
-                valueListenable: MemoryService.instance.memoriesNotifier,
-                builder: (context, memories, _) {
-                  if (memories.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Text(
-                          'No memories recorded yet.\nChat with personas to automatically record facts.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: context.textMuted, fontSize: 13),
-                        ),
-                      ),
-                    );
-                  }
-
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: memories.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, idx) {
-                      final mem = memories[idx];
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: context.bgElevated,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: context.borderSubtle),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.bookmark_border, size: 16, color: context.accent),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                mem.fact,
-                                style: TextStyle(
-                                  color: context.textPrimary,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete_outline,
-                                  size: 16, color: context.statusDanger),
-                              onPressed: () =>
-                                  MemoryService.instance.deleteMemory(mem.id),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -310,11 +173,6 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
       appBar: AppBar(
         title: const Text('Persona Hub'),
         actions: [
-          IconButton(
-            tooltip: 'Memory Vault',
-            icon: const Icon(Icons.psychology_outlined),
-            onPressed: _showMemoryVaultSheet,
-          ),
           IconButton(
             tooltip: 'Create Persona',
             icon: const Icon(Icons.add_circle_outline),
@@ -414,12 +272,19 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Mood: ${rel.mood}',
-                                style: TextStyle(
-                                  color: context.textMuted,
-                                  fontSize: 11,
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                child: Text('•', style: TextStyle(color: context.textMuted)),
+                              ),
+                              Flexible(
+                                child: Text(
+                                  'Mood: ${rel.mood}',
+                                  style: TextStyle(
+                                    color: context.textSecondary,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -427,7 +292,14 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                         ],
                       ),
                     ),
-                    FilledButton.tonal(
+                    const SizedBox(width: 8),
+                    IconButton.filledTonal(
+                      tooltip: 'Chat with ${activePersona.name}',
+                      style: IconButton.styleFrom(
+                        padding: const EdgeInsets.all(10),
+                        minimumSize: const Size(38, 38),
+                      ),
+                      icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
                       onPressed: () async {
                         final conv = await ChatService.instance
                             .startPersonaConversation(activePersona);
@@ -444,7 +316,6 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                           );
                         }
                       },
-                      child: const Text('Chat'),
                     ),
                   ],
                 ),
@@ -520,6 +391,7 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CircleAvatar(
                                   radius: 20,
@@ -581,13 +453,74 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                     ],
                                   ),
                                 ),
-                                if (!persona.isCurated)
+                                const SizedBox(width: 8),
+                                ValueListenableBuilder<Persona>(
+                                  valueListenable: PersonaService.instance.activePersonaNotifier,
+                                  builder: (context, activeP, _) {
+                                    final isActive = activeP.id == persona.id;
+                                    if (isActive) {
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: context.statusOnline.withAlpha(25),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: context.statusOnline.withAlpha(80)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.check_circle,
+                                                size: 12, color: context.statusOnline),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'ACTIVE',
+                                              style: TextStyle(
+                                                color: context.statusOnline,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                    return OutlinedButton(
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 4),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        side: BorderSide(color: context.borderSubtle),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      onPressed: () => PersonaService.instance
+                                          .setActivePersona(persona.id),
+                                      child: Text(
+                                        'Set Active',
+                                        style: TextStyle(
+                                          color: context.accent,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                if (!persona.isCurated) ...[
+                                  const SizedBox(width: 4),
                                   IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
                                     icon: Icon(Icons.delete_outline,
                                         size: 18, color: context.statusDanger),
                                     onPressed: () => PersonaService.instance
                                         .deleteCustomPersona(persona.id),
                                   ),
+                                ],
                               ],
                             ),
                             const SizedBox(height: 10),
@@ -629,14 +562,30 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                   child: Row(
                                     children: [
                                       Icon(Icons.handshake_outlined,
-                                          size: 14, color: context.accent),
-                                      const SizedBox(width: 4),
-                                      Expanded(
+                                          size: 15, color: context.accent),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Trust: ${rel.trustLevel}/10',
+                                        style: TextStyle(
+                                          color: context.accent,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6),
+                                        child: Text('•',
+                                            style: TextStyle(
+                                                color: context.textMuted)),
+                                      ),
+                                      Flexible(
                                         child: Text(
-                                          'Trust: ${rel.trustLevel}/10 • Mood: ${rel.mood}',
+                                          'Mood: ${rel.mood}',
                                           style: TextStyle(
-                                            color: context.textMuted,
-                                            fontSize: 11,
+                                            color: context.textSecondary,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
                                           ),
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -644,35 +593,33 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                     ],
                                   ),
                                 ),
-                                Row(
-                                  children: [
-                                    TextButton(
-                                      onPressed: () => PersonaService.instance
-                                          .setActivePersona(persona.id),
-                                      child: const Text('Set Active'),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    ElevatedButton.icon(
-                                      icon: const Icon(Icons.chat_bubble_outline, size: 14),
-                                      label: const Text('Chat'),
-                                      onPressed: () async {
-                                        final conv = await ChatService.instance
-                                            .startPersonaConversation(persona);
-                                        if (context.mounted) {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => ConversationScreen(
-                                                conversationId: conv.id,
-                                                title: conv.title,
-                                                isAi: true,
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  ],
+                                const SizedBox(width: 8),
+                                IconButton.filled(
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: context.accent,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.all(10),
+                                    minimumSize: const Size(38, 38),
+                                  ),
+                                  icon: const Icon(Icons.chat_bubble_outline_rounded,
+                                      size: 18),
+                                  tooltip: 'Chat with ${persona.name}',
+                                  onPressed: () async {
+                                    final conv = await ChatService.instance
+                                        .startPersonaConversation(persona);
+                                    if (context.mounted) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ConversationScreen(
+                                            conversationId: conv.id,
+                                            title: conv.title,
+                                            isAi: true,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
                                 ),
                               ],
                             ),
