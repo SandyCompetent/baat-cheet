@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBud - The Multi-Agent AI Workspace</title>
+    <meta name="description" content="Stateful multi-agent messaging workspace built with Flutter and Firebase AI.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        },
+                        dark: '#0B101A'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-pattern {
+            background-color: #0B101A;
+            background-image: radial-gradient(circle at center, #1e293b 0%, #0B101A 100%);
+        }
+        .mockup-shadow {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(14, 165, 233, 0.3);
+        }
+        .fade-up {
+            animation: fadeUp 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <img src="assets/logo.png" alt="ChatBud Logo" class="h-8 w-8 rounded-lg shadow-sm">
+                    <span class="font-bold text-xl tracking-tight text-gray-900">ChatBud</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#features" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Features</a>
+                    <a href="#agents" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Persona Hub</a>
+                    <a href="#tech" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Tech Stack</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="https://chatbud-official.web.app" target="_blank" class="hidden sm:inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-500 shadow-sm transition hover:-translate-y-0.5">
+                        Launch Web App <i class="fas fa-external-link-alt ml-2 text-xs"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 lg:pt-40 lg:pb-28 hero-pattern text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] [mask-image:linear-gradient(to_bottom,white,transparent)]"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <div class="lg:w-1/2 text-center lg:text-left fade-up">
+                    <div class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold text-brand-100 bg-brand-500/20 border border-brand-500/30 mb-6">
+                        <span class="flex h-2 w-2 rounded-full bg-brand-500 mr-2"></span> v1.0.0+1 Now Live
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6">
+                        The Multi-Agent <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-cyan-300">AI Workspace</span>
+                    </h1>
+                    <p class="text-lg sm:text-xl text-gray-400 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                        A production-grade, stateful messaging platform powered by Gemini. Experience an on-device Two-Layer Memory Engine, Dynamic Mood States, and tailored AI Personas.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                        <a href="https://chatbud-official.web.app" target="_blank" class="px-8 py-3.5 text-base font-medium rounded-lg text-white bg-brand-600 hover:bg-brand-500 shadow-lg shadow-brand-500/30 transition transform hover:-translate-y-0.5 flex items-center justify-center">
+                            Try Live Demo Free <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                        <a href="#features" class="px-8 py-3.5 text-base font-medium rounded-lg text-white bg-white/10 hover:bg-white/20 border border-white/10 transition backdrop-blur-sm flex items-center justify-center">
+                            Explore Features
+                        </a>
+                    </div>
+                </div>
+                <div class="lg:w-1/2 relative fade-up delay-200 flex justify-center">
+                    <!-- Realistic Phone Mockup -->
+                    <div class="relative rounded-[2.5rem] overflow-hidden mockup-shadow border-[8px] border-gray-800 bg-gray-900 max-w-[280px] w-full group">
+                        <!-- Dynamic Island / Notch -->
+                        <div class="absolute top-0 inset-x-0 h-6 bg-gray-800 rounded-b-2xl w-32 mx-auto z-20 shadow-sm"></div>
+
+                        <!-- Screen Content -->
+                        <div class="relative overflow-hidden bg-white aspect-[9/19]">
+                            <img src="assets/screenshots/message-chatbud.png" alt="ChatBud App Interface" class="w-full h-full object-cover object-top transform transition duration-700 group-hover:scale-105">
+                        </div>
+                    </div>
+
+                    <!-- Floating UI elements -->
+                    <div class="absolute -left-10 top-1/4 bg-gray-800/90 border border-gray-700 p-4 rounded-xl shadow-2xl backdrop-blur-md hidden sm:block animate-bounce" style="animation-duration: 4s;">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold shadow-inner">H</div>
+                            <div>
+                                <p class="text-sm font-semibold text-white">Harper</p>
+                                <p class="text-xs text-brand-300">Recruiter Agent</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="absolute -right-4 bottom-1/4 bg-gray-800/90 border border-gray-700 p-3 rounded-xl shadow-2xl backdrop-blur-md hidden sm:block animate-bounce delay-300" style="animation-duration: 5s;">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white font-bold shadow-inner"><i class="fas fa-check text-xs"></i></div>
+                            <div>
+                                <p class="text-xs font-semibold text-white">Memory Synced</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Highlights/Screenshots -->
+    <section class="py-24 bg-white" id="features">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-20 fade-up">
+                <h2 class="text-brand-600 font-bold tracking-wider uppercase text-sm mb-3">Core Capabilities</h2>
+                <h3 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Beyond Simple LLM Wrappers</h3>
+                <p class="mt-4 text-xl text-gray-500">ChatBud brings complex state management, memory, and orchestration directly to your device.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <!-- Feature 1 -->
+                <div class="bg-gradient-to-b from-gray-50 to-white rounded-3xl p-8 border border-gray-200 hover:shadow-2xl transition duration-500 group flex flex-col h-full overflow-hidden relative">
+                    <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-brand-600 mb-6 text-2xl shadow-sm">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Two-Layer Memory</h4>
+                    <p class="text-gray-600 mb-10 flex-grow">Powered by vector cosine similarity. Agents extract facts automatically or add them manually to form a continuous context window.</p>
+
+                    <!-- Peeking Phone Mockup -->
+                    <div class="relative mx-auto w-full max-w-[220px] transform transition duration-500 group-hover:-translate-y-4">
+                        <div class="border-[6px] border-gray-200 bg-white rounded-t-[2rem] shadow-xl overflow-hidden pt-2 relative h-48">
+                            <div class="absolute top-0 inset-x-0 h-4 bg-gray-200 rounded-b-lg w-20 mx-auto z-20"></div>
+                            <img src="assets/screenshots/memory-chatbud.png" alt="Memory View" class="w-full object-cover object-top border-t border-gray-100">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="bg-gradient-to-b from-gray-50 to-white rounded-3xl p-8 border border-gray-200 hover:shadow-2xl transition duration-500 group flex flex-col h-full overflow-hidden relative">
+                    <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 mb-6 text-2xl shadow-sm">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Persona Hub</h4>
+                    <p class="text-gray-600 mb-10 flex-grow">Create tailored AI agents instantly with 1-tap presets (HR Recruiter, Resume Coach, Copywriter) without prompt engineering.</p>
+
+                    <!-- Peeking Phone Mockup -->
+                    <div class="relative mx-auto w-full max-w-[220px] transform transition duration-500 group-hover:-translate-y-4">
+                        <div class="border-[6px] border-gray-200 bg-white rounded-t-[2rem] shadow-xl overflow-hidden pt-2 relative h-48">
+                            <div class="absolute top-0 inset-x-0 h-4 bg-gray-200 rounded-b-lg w-20 mx-auto z-20"></div>
+                            <img src="assets/screenshots/contacts-chatbud-2.png" alt="Persona Hub" class="w-full object-cover object-top border-t border-gray-100">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="bg-gradient-to-b from-gray-50 to-white rounded-3xl p-8 border border-gray-200 hover:shadow-2xl transition duration-500 group flex flex-col h-full overflow-hidden relative">
+                    <div class="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 mb-6 text-2xl shadow-sm">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Context-Aware Conversations</h4>
+                    <p class="text-gray-600 mb-10 flex-grow">Engage in dynamic, flowing conversations. Agents evolve their tone and relationship parameters based on your interactions.</p>
+
+                    <!-- Peeking Phone Mockup -->
+                    <div class="relative mx-auto w-full max-w-[220px] transform transition duration-500 group-hover:-translate-y-4">
+                        <div class="border-[6px] border-gray-200 bg-white rounded-t-[2rem] shadow-xl overflow-hidden pt-2 relative h-48">
+                            <div class="absolute top-0 inset-x-0 h-4 bg-gray-200 rounded-b-lg w-20 mx-auto z-20"></div>
+                            <img src="assets/screenshots/conversation-chatbud-1.png" alt="Conversation View" class="w-full object-cover object-top border-t border-gray-100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Deep Dive Features -->
+    <section class="py-24 bg-gray-50 border-t border-gray-200" id="agents">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <!-- Staggered Phone Mockups -->
+                <div class="lg:w-1/2 order-2 lg:order-1 relative w-full h-[500px] flex justify-center items-center">
+                    <!-- Background Phone -->
+                    <div class="absolute left-1/4 sm:left-[15%] lg:left-0 transform -rotate-6 scale-90 opacity-80 hover:opacity-100 hover:z-30 transition duration-500">
+                        <div class="border-[6px] border-gray-300 bg-white rounded-[2rem] shadow-2xl overflow-hidden relative w-[220px]">
+                            <div class="absolute top-0 inset-x-0 h-4 bg-gray-300 rounded-b-md w-20 mx-auto z-20"></div>
+                            <img src="assets/screenshots/preferences-chatbud.png" alt="Preferences Screen" class="w-full object-cover aspect-[9/19]">
+                        </div>
+                    </div>
+
+                    <!-- Foreground Phone -->
+                    <div class="absolute right-1/4 sm:right-[15%] lg:right-[15%] z-20 transform translate-y-8 rotate-3 hover:-translate-y-2 transition duration-500">
+                        <div class="border-[8px] border-gray-800 bg-gray-900 rounded-[2.5rem] shadow-2xl overflow-hidden relative w-[240px]">
+                            <div class="absolute top-0 inset-x-0 h-5 bg-gray-800 rounded-b-xl w-24 mx-auto z-20"></div>
+                            <img src="assets/screenshots/welcome-chatbud.png" alt="Welcome Screen" class="w-full object-cover aspect-[9/19] bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:w-1/2 order-1 lg:order-2">
+                    <h2 class="text-3xl font-extrabold text-gray-900 mb-8 sm:text-4xl">Designed for Real-World Productivity</h2>
+
+                    <ul class="space-y-8">
+                        <li class="flex group">
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-brand-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition duration-300">
+                                    <i class="fas fa-bolt text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="ml-5">
+                                <h4 class="text-xl font-bold text-gray-900">Instant Guest Mode</h4>
+                                <p class="mt-2 text-base text-gray-600 leading-relaxed">Start chatting immediately with zero registration or login required. Your state is preserved locally until you decide to sync.</p>
+                            </div>
+                        </li>
+                        <li class="flex group">
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition duration-300">
+                                    <i class="fas fa-smile-beam text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="ml-5">
+                                <h4 class="text-xl font-bold text-gray-900">Dynamic Mood States</h4>
+                                <p class="mt-2 text-base text-gray-600 leading-relaxed">Agents evolve their tone and relationship parameters based on your interactions over time. It feels like chatting with a real colleague.</p>
+                            </div>
+                        </li>
+                        <li class="flex group">
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition duration-300">
+                                    <i class="fas fa-file-export text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="ml-5">
+                                <h4 class="text-xl font-bold text-gray-900">Export Deliverables</h4>
+                                <p class="mt-2 text-base text-gray-600 leading-relaxed">Copy transcripts as clean plain text or Markdown directly into Slack, Google Docs, or Notion with a single tap.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="py-24 bg-white" id="tech">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-brand-600 font-bold tracking-wider uppercase text-sm mb-3">Architecture</h2>
+            <h3 class="text-3xl font-extrabold text-gray-900 mb-16">100% Free Serverless Architecture</h3>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="p-8 rounded-3xl bg-gray-50 border border-gray-100 flex flex-col items-center hover:shadow-lg transition duration-300 hover:-translate-y-1">
+                    <div class="h-16 w-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa-brands fa-flutter text-4xl text-[#02569B]"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 text-lg">Flutter</h4>
+                    <p class="text-sm text-gray-500 mt-2">Cross-platform UI (iOS, Android, Web)</p>
+                </div>
+                <div class="p-8 rounded-3xl bg-gray-50 border border-gray-100 flex flex-col items-center hover:shadow-lg transition duration-300 hover:-translate-y-1">
+                    <div class="h-16 w-16 bg-orange-50 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-fire text-4xl text-[#FFA000]"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 text-lg">Firebase</h4>
+                    <p class="text-sm text-gray-500 mt-2">Auth & Firestore Database</p>
+                </div>
+                <div class="p-8 rounded-3xl bg-gray-50 border border-gray-100 flex flex-col items-center hover:shadow-lg transition duration-300 hover:-translate-y-1">
+                    <div class="h-16 w-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-robot text-4xl text-brand-500"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 text-lg">Gemini AI</h4>
+                    <p class="text-sm text-gray-500 mt-2">Powered by firebase_ai package</p>
+                </div>
+                <div class="p-8 rounded-3xl bg-gray-50 border border-gray-100 flex flex-col items-center hover:shadow-lg transition duration-300 hover:-translate-y-1">
+                    <div class="h-16 w-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-shield-alt text-4xl text-green-500"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 text-lg">Secure Storage</h4>
+                    <p class="text-sm text-gray-500 mt-2">flutter_secure_storage for keys</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="relative bg-brand-900 py-20 overflow-hidden">
+        <!-- Abstract shapes -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-24 -right-24 w-96 h-96 bg-brand-600 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
+            <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-brand-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+        </div>
+
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+            <h2 class="text-3xl font-extrabold text-white sm:text-4xl mb-6">Ready to elevate your productivity?</h2>
+            <p class="text-xl text-brand-100 mb-10 max-w-2xl mx-auto leading-relaxed">Access your multi-agent AI workspace directly from your browser, no installation required.</p>
+            <a href="https://chatbud-official.web.app" target="_blank" class="inline-flex items-center px-8 py-4 border border-transparent text-lg font-bold rounded-xl text-brand-900 bg-white hover:bg-gray-50 shadow-xl transition transform hover:-translate-y-1 hover:shadow-2xl">
+                Launch ChatBud Web <i class="fas fa-arrow-right ml-3"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 py-12 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-3 mb-4 md:mb-0 hover:text-white transition cursor-pointer">
+                <img src="assets/logo.png" alt="ChatBud Logo" class="h-8 w-8 rounded grayscale opacity-70">
+                <span class="font-bold text-xl tracking-tight text-white opacity-90">ChatBud</span>
+            </div>
+            <div class="text-sm flex flex-col items-center md:items-end">
+                <p>MIT Licensed • Built with Flutter & Firebase</p>
+                <div class="flex space-x-4 mt-4">
+                    <a href="https://github.com" class="text-gray-400 hover:text-white transition"><i class="fab fa-github text-xl"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-twitter text-xl"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple script to handle fade-up animation on scroll
+        document.addEventListener("DOMContentLoaded", function() {
+            const elements = document.querySelectorAll('.fade-up');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+
+            elements.forEach(el => observer.observe(el));
+        });
+    </script>
+</body>
+</html>
