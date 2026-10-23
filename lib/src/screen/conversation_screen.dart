@@ -513,10 +513,11 @@ class _ConversationScreenState extends State<ConversationScreen>
                         ),
                       ),
                       StreamBuilder<bool>(
-                        stream: service<ChatService>()
-                            .listenTypingStatus(widget.conversationId, currentUid),
+                        stream: service<ChatService>().listenTypingStatus(
+                            widget.conversationId, currentUid),
                         builder: (context, snapshot) {
-                          final typing = isGenerating || (snapshot.data == true);
+                          final typing =
+                              isGenerating || (snapshot.data == true);
                           if (typing) {
                             return _buildTypingIndicator();
                           }

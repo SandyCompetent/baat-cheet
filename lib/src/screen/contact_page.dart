@@ -831,135 +831,138 @@ class _ContactPageState extends State<ContactPage> {
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
-                    children: [
-                      if (!state.isLoggedIn) ...[
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: context.accentSubtle,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                                color: context.accent.withValues(alpha: 0.3)),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.shield_outlined,
-                                  color: context.accent, size: 28),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Unlock All Features',
-                                      style: TextStyle(
-                                        color: context.textPrimary,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'Sign in to sync your messages and custom personas.',
-                                      style: TextStyle(
-                                        color: context.textSecondary,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                        children: [
+                          if (!state.isLoggedIn) ...[
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: context.accentSubtle,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                    color:
+                                        context.accent.withValues(alpha: 0.3)),
                               ),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 8),
-                                  minimumSize: const Size(64, 34),
-                                ),
-                                onPressed: () {
-                                  Navigator.of(context).pushNamed(loginRoute);
+                              child: Row(
+                                children: [
+                                  Icon(Icons.shield_outlined,
+                                      color: context.accent, size: 28),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Unlock All Features',
+                                          style: TextStyle(
+                                            color: context.textPrimary,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Sign in to sync your messages and custom personas.',
+                                          style: TextStyle(
+                                            color: context.textSecondary,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 14, vertical: 8),
+                                      minimumSize: const Size(64, 34),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pushNamed(loginRoute);
+                                    },
+                                    child: const Text('Sign In',
+                                        style: TextStyle(fontSize: 12)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          _SettingsSection(
+                            items: [
+                              _SettingsItem(
+                                icon: Icons.person_outline_rounded,
+                                label: 'Display Name',
+                                trailingText: state.displayName,
+                                onTap: () => _showEditNameDialog(context),
+                              ),
+                              _SettingsItem(
+                                icon: Icons.palette_outlined,
+                                label: 'Theme Appearance',
+                                trailingText: switch (state.themeMode) {
+                                  ThemeMode.light => 'Light',
+                                  ThemeMode.dark => 'Dark',
+                                  ThemeMode.system => 'System',
                                 },
-                                child: const Text('Sign In',
-                                    style: TextStyle(fontSize: 12)),
+                                onTap: () => _showThemeDialog(context),
                               ),
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                      _SettingsSection(
-                        items: [
-                          _SettingsItem(
-                            icon: Icons.person_outline_rounded,
-                            label: 'Display Name',
-                            trailingText: state.displayName,
-                            onTap: () => _showEditNameDialog(context),
+                          const SizedBox(height: 12),
+                          _SettingsSection(
+                            items: [
+                              _SettingsItem(
+                                icon: Icons.description_outlined,
+                                label: 'Terms of Service & EULA',
+                                onTap: () => LegalDocs.showTerms(context),
+                              ),
+                              _SettingsItem(
+                                icon: Icons.privacy_tip_outlined,
+                                label: 'Privacy Policy',
+                                onTap: () => LegalDocs.showPrivacy(context),
+                              ),
+                              _SettingsItem(
+                                icon: Icons.feedback_outlined,
+                                label: 'Send Feedback',
+                                onTap: () => _showFeedbackDialog(context),
+                              ),
+                            ],
                           ),
-                          _SettingsItem(
-                            icon: Icons.palette_outlined,
-                            label: 'Theme Appearance',
-                            trailingText: switch (state.themeMode) {
-                              ThemeMode.light => 'Light',
-                              ThemeMode.dark => 'Dark',
-                              ThemeMode.system => 'System',
-                            },
-                            onTap: () => _showThemeDialog(context),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      _SettingsSection(
-                        items: [
-                          _SettingsItem(
-                            icon: Icons.description_outlined,
-                            label: 'Terms of Service & EULA',
-                            onTap: () => LegalDocs.showTerms(context),
-                          ),
-                          _SettingsItem(
-                            icon: Icons.privacy_tip_outlined,
-                            label: 'Privacy Policy',
-                            onTap: () => LegalDocs.showPrivacy(context),
-                          ),
-                          _SettingsItem(
-                            icon: Icons.feedback_outlined,
-                            label: 'Send Feedback',
-                            onTap: () => _showFeedbackDialog(context),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      _buildAiConfigCard(context, gemini),
-                      const SizedBox(height: 12),
-                      _buildAboutAndDownloadsCard(context),
-                      if (state.isLoggedIn) ...[
-                        const SizedBox(height: 12),
-                        _SettingsSection(
-                          items: [
-                            _SettingsItem(
-                              icon: Icons.logout_rounded,
-                              label: 'Sign Out',
-                              onTap: () => _confirmSignOut(context),
-                            ),
-                            _SettingsItem(
-                              icon: Icons.delete_forever_rounded,
-                              label: 'Delete Account',
-                              isDestructive: true,
-                              onTap: () => _confirmAccountDeletion(context),
+                          const SizedBox(height: 12),
+                          _buildAiConfigCard(context, gemini),
+                          const SizedBox(height: 12),
+                          _buildAboutAndDownloadsCard(context),
+                          if (state.isLoggedIn) ...[
+                            const SizedBox(height: 12),
+                            _SettingsSection(
+                              items: [
+                                _SettingsItem(
+                                  icon: Icons.logout_rounded,
+                                  label: 'Sign Out',
+                                  onTap: () => _confirmSignOut(context),
+                                ),
+                                _SettingsItem(
+                                  icon: Icons.delete_forever_rounded,
+                                  label: 'Delete Account',
+                                  isDestructive: true,
+                                  onTap: () => _confirmAccountDeletion(context),
+                                ),
+                              ],
                             ),
                           ],
-                        ),
-                      ],
-                      SizedBox(
-                        height: MediaQuery.of(context).padding.bottom + 84,
+                          SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 84,
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
-    );
+        );
       },
     );
   }

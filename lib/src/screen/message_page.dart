@@ -132,181 +132,187 @@ class _MessagePageState extends State<MessagePage> {
           child: ValueListenableBuilder<List<Conversation>>(
             valueListenable: ChatService.instance.conversationsNotifier,
             builder: (context, conversations, _) {
-          final hasConversations = conversations.isNotEmpty;
+              final hasConversations = conversations.isNotEmpty;
 
-          // Build dynamic list of filters from active chats: 'All' + distinct persona titles
-          final personaFilters = <String>['All'];
-          for (final c in conversations) {
-            final name = c.title.trim();
-            if (name.isNotEmpty && !personaFilters.contains(name)) {
-              personaFilters.add(name);
-            }
-          }
+              // Build dynamic list of filters from active chats: 'All' + distinct persona titles
+              final personaFilters = <String>['All'];
+              for (final c in conversations) {
+                final name = c.title.trim();
+                if (name.isNotEmpty && !personaFilters.contains(name)) {
+                  personaFilters.add(name);
+                }
+              }
 
-          final activeFilter = personaFilters.contains(_selectedFilter)
-              ? _selectedFilter
-              : 'All';
+              final activeFilter = personaFilters.contains(_selectedFilter)
+                  ? _selectedFilter
+                  : 'All';
 
-          final visible = _applyFilterAndSearch(conversations, activeFilter);
+              final visible =
+                  _applyFilterAndSearch(conversations, activeFilter);
 
-          return Column(
-            children: [
-              if (hasConversations) ...[
-                Container(
-                  color: context.bgSurface,
-                  width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: personaFilters.map((filterName) {
-                        final selected = filterName == activeFilter;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: GestureDetector(
-                            onTap: () =>
-                                setState(() => _selectedFilter = filterName),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 180),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: selected
-                                    ? context.accentSubtle
-                                    : context.bgElevated,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: selected
-                                      ? context.accent.withValues(alpha: 0.4)
-                                      : context.borderSubtle,
+              return Column(
+                children: [
+                  if (hasConversations) ...[
+                    Container(
+                      color: context.bgSurface,
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: personaFilters.map((filterName) {
+                            final selected = filterName == activeFilter;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: GestureDetector(
+                                onTap: () => setState(
+                                    () => _selectedFilter = filterName),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 180),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: selected
+                                        ? context.accentSubtle
+                                        : context.bgElevated,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: selected
+                                          ? context.accent
+                                              .withValues(alpha: 0.4)
+                                          : context.borderSubtle,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    filterName,
+                                    style: TextStyle(
+                                      color: selected
+                                          ? context.accent
+                                          : context.textSecondary,
+                                      fontSize: 13,
+                                      fontWeight: selected
+                                          ? FontWeight.w600
+                                          : FontWeight.w400,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              child: Text(
-                                filterName,
-                                style: TextStyle(
-                                  color: selected
-                                      ? context.accent
-                                      : context.textSecondary,
-                                  fontSize: 13,
-                                  fontWeight: selected
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                Divider(height: 1, color: context.borderSubtle),
-              ],
-              Expanded(
-                child: visible.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 64,
-                              height: 64,
-                              decoration: BoxDecoration(
-                                color: context.accentSubtle,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                _searchQuery.isNotEmpty
-                                    ? Icons.search_off_rounded
-                                    : Icons.chat_bubble_outline_rounded,
-                                color: context.accent,
-                                size: 28,
-                              ),
+                    Divider(height: 1, color: context.borderSubtle),
+                  ],
+                  Expanded(
+                    child: visible.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 64,
+                                  height: 64,
+                                  decoration: BoxDecoration(
+                                    color: context.accentSubtle,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    _searchQuery.isNotEmpty
+                                        ? Icons.search_off_rounded
+                                        : Icons.chat_bubble_outline_rounded,
+                                    color: context.accent,
+                                    size: 28,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _searchQuery.isNotEmpty
+                                      ? 'No chats match "$_searchQuery"'
+                                      : (activeFilter != 'All'
+                                          ? 'No chats found for "$activeFilter"'
+                                          : 'No conversations found'),
+                                  style: TextStyle(
+                                    color: context.textPrimary,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  _searchQuery.isNotEmpty
+                                      ? 'Try searching by a different name or keyword'
+                                      : 'Start a new conversation or chat with AI',
+                                  style: TextStyle(
+                                    color: context.textSecondary,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                if (_searchQuery.isEmpty &&
+                                    !hasConversations) ...[
+                                  const SizedBox(height: 20),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const ConversationScreen(
+                                            conversationId:
+                                                AppConstants.aiAssistantId,
+                                            title: 'ChatBud AI Assistant',
+                                            isAi: true,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.smart_toy_rounded,
+                                        size: 18),
+                                    label: const Text('Chat with AI Assistant'),
+                                  ),
+                                ],
+                              ],
                             ),
-                            const SizedBox(height: 16),
-                            Text(
-                              _searchQuery.isNotEmpty
-                                  ? 'No chats match "$_searchQuery"'
-                                  : (activeFilter != 'All'
-                                      ? 'No chats found for "$activeFilter"'
-                                      : 'No conversations found'),
-                              style: TextStyle(
-                                color: context.textPrimary,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              _searchQuery.isNotEmpty
-                                  ? 'Try searching by a different name or keyword'
-                                  : 'Start a new conversation or chat with AI',
-                              style: TextStyle(
-                                color: context.textSecondary,
-                                fontSize: 13,
-                              ),
-                            ),
-                            if (_searchQuery.isEmpty && !hasConversations) ...[
-                              const SizedBox(height: 20),
-                              ElevatedButton.icon(
-                                onPressed: () {
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.only(bottom: 84),
+                            itemCount: visible.length,
+                            separatorBuilder: (_, __) => Divider(
+                                height: 1,
+                                indent: 74,
+                                color: context.borderSubtle),
+                            itemBuilder: (context, index) {
+                              final item = visible[index];
+                              return MessageItem(
+                                imgRef: appLogo,
+                                txtPersonName: item.title,
+                                txtMessage: item.lastMessage,
+                                txtTime: item.lastTime,
+                                isAi: item.isAi,
+                                unreadCount: item.unreadCount,
+                                onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (_) => const ConversationScreen(
-                                        conversationId:
-                                            AppConstants.aiAssistantId,
-                                        title: 'ChatBud AI Assistant',
-                                        isAi: true,
+                                      builder: (_) => ConversationScreen(
+                                        conversationId: item.id,
+                                        title: item.title,
+                                        isAi: item.isAi,
                                       ),
                                     ),
                                   );
                                 },
-                                icon: const Icon(Icons.smart_toy_rounded,
-                                    size: 18),
-                                label: const Text('Chat with AI Assistant'),
-                              ),
-                            ],
-                          ],
-                        ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.only(bottom: 84),
-                        itemCount: visible.length,
-                        separatorBuilder: (_, __) => Divider(
-                            height: 1, indent: 74, color: context.borderSubtle),
-                        itemBuilder: (context, index) {
-                          final item = visible[index];
-                          return MessageItem(
-                            imgRef: appLogo,
-                            txtPersonName: item.title,
-                            txtMessage: item.lastMessage,
-                            txtTime: item.lastTime,
-                            isAi: item.isAi,
-                            unreadCount: item.unreadCount,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => ConversationScreen(
-                                    conversationId: item.id,
-                                    title: item.title,
-                                    isAi: item.isAi,
-                                  ),
-                                ),
                               );
                             },
-                          );
-                        },
-                      ),
-              ),
-            ],
-          );
-        },
+                          ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
-    ),
-  ),
-);
+    );
   }
 }

@@ -437,7 +437,8 @@ class _DesktopSidebar extends StatelessWidget {
             builder: (context, _) {
               return Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                 decoration: BoxDecoration(
                   color: context.bgElevated,
                   borderRadius: BorderRadius.circular(10),
@@ -503,7 +504,8 @@ class _DesktopSidebar extends StatelessWidget {
                     color: context.textSecondary,
                   ),
                   onPressed: () {
-                    final next = context.isDark ? ThemeMode.light : ThemeMode.dark;
+                    final next =
+                        context.isDark ? ThemeMode.light : ThemeMode.dark;
                     AppState.instance.setThemeMode(next);
                   },
                 ),
