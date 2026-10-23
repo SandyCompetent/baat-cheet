@@ -1,0 +1,29 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Dart and Flutter specific rules
+*.dart text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+
+# iOS specific rules
+*.pbxproj text eol=lf
+*.xcworkspace text eol=lf
+*.xcscheme text eol=lf
+
+# Android specific rules
+*.xml text eol=lf
+*.gradle text eol=lf
+*.gradle.kts text eol=lf
+*.properties text eol=lf
+
+# Exclude generated directories from GitHub language statistics
+ios/Runner/Assets.xcassets/* linguist-generated=true
+android/app/src/main/res/**/* linguist-generated=true
+build/* linguist-generated=true
+.dart_tool/* linguist-generated=true
+coverage/* linguist-generated=true
+web/index.html linguist-generated=false
+web/manifest.json linguist-generated=false
