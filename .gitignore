@@ -11,6 +11,7 @@ coverage/
 flutter_*.png
 linked_*.ds
 unlinked*.ds
+.metadata
 
 # Keep pubspec.lock tracked for this application. Do not ignore all *.lock files.
 
@@ -61,17 +62,25 @@ macos/Flutter/GeneratedPluginRegistrant.swift
 .idx/
 .vscode/
 .DS_Store
+**/.DS_Store
 *.iml
+**/*.iml
+.directory
 *.log
 *.swp
 *.swo
 *.class
 *.pyc
+__pycache__/
 
-# Local configuration and secrets
+# Backup and scratch files
+*.bak
+*.original.*
+IMPROVEMENT_PLAN.md
+
+# Local configuration, credentials, and secrets
 .env
 .env.*
 !.env.example
-
+*.local.dart
 upwork/
-portfolio/

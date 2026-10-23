@@ -379,7 +379,7 @@ class _ContactPageState extends State<ContactPage> {
             style: TextStyle(color: context.textPrimary, fontSize: 14),
             decoration: InputDecoration(
               labelText: 'Gemini API Key',
-              hintText: 'AIzaSy... (Leave empty for live default)',
+              hintText: 'Enter API Key (Leave empty for live default)',
               prefixIcon: Icon(Icons.key_rounded, color: context.accent),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
