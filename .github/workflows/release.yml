@@ -47,7 +47,7 @@ jobs:
         run: tar -czf chatbud-web-build.tar.gz -C build/web .
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: Release ${{ github.ref_name }}
           draft: false

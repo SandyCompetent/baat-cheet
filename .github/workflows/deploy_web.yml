@@ -42,7 +42,7 @@ jobs:
         run: flutter build apk --debug --dart-define=API_KEY=${{ secrets.GEMINI_API_KEY }}
 
       - name: Upload APK to Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: latest
           files: build/app/outputs/flutter-apk/app-debug.apk
