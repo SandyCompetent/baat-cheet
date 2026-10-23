@@ -49,6 +49,8 @@ jobs:
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHATBUD_OFFICIAL != '' }}
+        continue-on-error: true
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHATBUD_OFFICIAL }}'

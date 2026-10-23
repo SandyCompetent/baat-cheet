@@ -346,10 +346,11 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
               child: ValueListenableBuilder<Persona>(
                 valueListenable: PersonaService.instance.activePersonaNotifier,
                 builder: (context, activePersona, _) {
-                  final rel =
-                      MemoryService.instance.getRelationshipState(activePersona.id);
+                  final rel = MemoryService.instance
+                      .getRelationshipState(activePersona.id);
                   return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: context.bgSurface,
@@ -532,7 +533,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
               constraints: const BoxConstraints(maxWidth: 1140),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: Row(
                   children: _categories.map((cat) {
                     final isSelected = _selectedCategory == cat;
@@ -547,8 +549,9 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                         selectedColor: context.accentSubtle,
                         checkmarkColor: context.accent,
                         labelStyle: TextStyle(
-                          color:
-                              isSelected ? context.accent : context.textSecondary,
+                          color: isSelected
+                              ? context.accent
+                              : context.textSecondary,
                           fontSize: 12,
                           fontWeight:
                               isSelected ? FontWeight.w600 : FontWeight.w400,
@@ -744,8 +747,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      onPressed: () => PersonaService.instance
-                          .setActivePersona(persona.id),
+                      onPressed: () =>
+                          PersonaService.instance.setActivePersona(persona.id),
                       child: Text(
                         'Set Active',
                         style: TextStyle(
@@ -764,8 +767,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                     constraints: const BoxConstraints(),
                     icon: Icon(Icons.delete_outline,
                         size: 18, color: context.statusDanger),
-                    onPressed: () => PersonaService.instance
-                        .deleteCustomPersona(persona.id),
+                    onPressed: () =>
+                        PersonaService.instance.deleteCustomPersona(persona.id),
                   ),
                 ],
               ],
@@ -828,8 +831,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
               runSpacing: 4,
               children: persona.tags.map((tag) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: context.bgElevated,
                     borderRadius: BorderRadius.circular(6),
@@ -883,8 +886,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                 'Trust: ${rel.trustLevel}/10',
                                 style: TextStyle(
                                   color: rel.trustLevel >= 8
-                                  ? Colors.amber.shade400
-                                  : context.accent,
+                                      ? Colors.amber.shade400
+                                      : context.accent,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -944,8 +947,8 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                 ],
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     minimumSize: const Size(0, 36),
                     side: BorderSide(color: context.accent.withAlpha(80)),
                     shape: RoundedRectangleBorder(
@@ -990,8 +993,7 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                     padding: const EdgeInsets.all(10),
                     minimumSize: const Size(38, 38),
                   ),
-                  icon: const Icon(Icons.chat_bubble_outline_rounded,
-                      size: 18),
+                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
                   tooltip: 'Chat with ${persona.name}',
                   onPressed: () async {
                     final conv = await ChatService.instance
