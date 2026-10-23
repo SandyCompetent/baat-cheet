@@ -27,6 +27,9 @@ class StorageService {
   static const String _userMemoriesKey = 'user_memories_json';
   static const String _relationshipStatesKey = 'relationship_states_json';
   static const String _activePersonaKey = 'active_persona_id';
+  static const String _customApiKeyKey = 'custom_gemini_api_key';
+  static const String _selectedModelKey = 'selected_gemini_model';
+  static const String _availableModelsKey = 'available_gemini_models';
 
   static Future<void> init() async {
     _prefs ??= await SharedPreferences.getInstance();
@@ -221,5 +224,35 @@ class StorageService {
   ) async {
     final map = states.map((k, v) => MapEntry(k, v.toMap()));
     await _prefs?.setString(_relationshipStatesKey, jsonEncode(map));
+  }
+
+  // ── Gemini BYOK API Key & Model Persistence ───────────────────────────────
+  static String? getCustomApiKey() {
+    return _prefs?.getString(_customApiKeyKey);
+  }
+
+  static Future<void> setCustomApiKey(String? key) async {
+    final trimmed = key?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      await _prefs?.remove(_customApiKeyKey);
+    } else {
+      await _prefs?.setString(_customApiKeyKey, trimmed);
+    }
+  }
+
+  static String? getSelectedModel() {
+    return _prefs?.getString(_selectedModelKey);
+  }
+
+  static Future<void> setSelectedModel(String model) async {
+    await _prefs?.setString(_selectedModelKey, model.trim());
+  }
+
+  static List<String> getAvailableModels() {
+    return _prefs?.getStringList(_availableModelsKey) ?? [];
+  }
+
+  static Future<void> setAvailableModels(List<String> models) async {
+    await _prefs?.setStringList(_availableModelsKey, models);
   }
 }

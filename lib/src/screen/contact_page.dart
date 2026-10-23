@@ -3,13 +3,54 @@ import 'package:chatbud/src/auth/auth_service.dart';
 import 'package:chatbud/src/core/app_state.dart';
 import 'package:chatbud/src/core/avatar_helper.dart';
 import 'package:chatbud/src/services/chat_service.dart';
+import 'package:chatbud/src/services/gemini_service.dart';
 import 'package:chatbud/src/widgets/legal_dialog.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class ContactPage extends StatelessWidget {
+class ContactPage extends StatefulWidget {
   const ContactPage({super.key});
+
+  @override
+  State<ContactPage> createState() => _ContactPageState();
+}
+
+class _ContactPageState extends State<ContactPage> {
+  late final TextEditingController _apiKeyCtrl;
+  bool _obscureApiKey = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _apiKeyCtrl = TextEditingController(text: GeminiService.instance.apiKey);
+  }
+
+  @override
+  void dispose() {
+    _apiKeyCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _launchExternalUrl(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    try {
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not open $urlString')),
+          );
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open $urlString')),
+        );
+      }
+    }
+  }
 
   void _showEditNameDialog(BuildContext context) {
     final ctrl = TextEditingController(text: AppState.instance.displayName);
@@ -250,12 +291,323 @@ class ContactPage extends StatelessWidget {
     );
   }
 
+  Widget _buildAiConfigCard(BuildContext context, GeminiService gemini) {
+    final models = gemini.availableModels;
+    final selectedModel = models.contains(gemini.currentModel)
+        ? gemini.currentModel
+        : models.first;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.bgSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: context.accentSubtle,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.auto_awesome_rounded,
+                  color: context.accent,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'AI Configuration',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: context.textPrimary,
+                  ),
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: gemini.hasCustomApiKey
+                      ? context.accentSubtle
+                      : context.statusOnline.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  gemini.hasCustomApiKey
+                      ? 'Custom Key (BYOK)'
+                      : 'Live Default (Firebase AI)',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: gemini.hasCustomApiKey
+                        ? context.accent
+                        : context.statusOnline,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'ChatBud works live out-of-the-box. Optionally enter your own Gemini API key to use custom quotas and fetch all available Gemini models.',
+            style: TextStyle(
+              fontSize: 12,
+              color: context.textSecondary,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _apiKeyCtrl,
+            obscureText: _obscureApiKey,
+            style: TextStyle(color: context.textPrimary, fontSize: 14),
+            decoration: InputDecoration(
+              labelText: 'Gemini API Key',
+              hintText: 'AIzaSy... (Leave empty for live default)',
+              prefixIcon: Icon(Icons.key_rounded, color: context.accent),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: _obscureApiKey ? 'Show API Key' : 'Hide API Key',
+                    icon: Icon(
+                      _obscureApiKey
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 18,
+                      color: context.textMuted,
+                    ),
+                    onPressed: () {
+                      setState(() => _obscureApiKey = !_obscureApiKey);
+                    },
+                  ),
+                  if (gemini.hasCustomApiKey)
+                    IconButton(
+                      tooltip: 'Clear API Key (Revert to Default)',
+                      icon: Icon(
+                        Icons.clear_rounded,
+                        size: 18,
+                        color: context.textMuted,
+                      ),
+                      onPressed: () {
+                        _apiKeyCtrl.clear();
+                        gemini.setApiKey('');
+                      },
+                    ),
+                ],
+              ),
+            ),
+            onChanged: (val) => gemini.setApiKey(val),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: gemini.isLoadingModels
+                  ? null
+                  : () => gemini.fetchAvailableModels(),
+              icon: gemini.isLoadingModels
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Icon(Icons.cloud_download_outlined, size: 18),
+              label: const Text('Fetch Available Models'),
+            ),
+          ),
+          if (gemini.modelError != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              gemini.modelError!,
+              style: TextStyle(
+                color: context.statusDanger,
+                fontSize: 12,
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          Text(
+            'Select Model',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: context.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            initialValue: selectedModel,
+            isExpanded: true,
+            dropdownColor: context.bgSurface,
+            style: TextStyle(color: context.textPrimary, fontSize: 14),
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              prefixIcon: Icon(Icons.smart_toy_outlined, color: context.accent),
+            ),
+            items: models.map((model) {
+              return DropdownMenuItem<String>(
+                value: model,
+                child: Text(model, overflow: TextOverflow.ellipsis),
+              );
+            }).toList(),
+            onChanged: (val) {
+              if (val != null) {
+                gemini.setModel(val);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAboutAndDownloadsCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.bgSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'About & Downloads',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: context.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: context.accentSubtle,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.person_pin_rounded,
+                color: context.accent,
+                size: 22,
+              ),
+            ),
+            title: Text(
+              'Developed by Sandeep Malviya',
+              style: TextStyle(
+                color: context.textPrimary,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+            subtitle: Text(
+              'Software Engineer & AI Enthusiast',
+              style: TextStyle(
+                color: context.textSecondary,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              TextButton.icon(
+                onPressed: () => _launchExternalUrl(
+                  'https://www.linkedin.com/in/sandy-competent/',
+                ),
+                icon: const Icon(Icons.link_rounded, size: 18),
+                label: const Text('LinkedIn'),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                onPressed: () => _launchExternalUrl(
+                  'https://github.com/SandyCompetent',
+                ),
+                icon: const Icon(Icons.code_rounded, size: 18),
+                label: const Text('GitHub'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: context.accentSubtle,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: context.accent.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.android_rounded, size: 36, color: context.accent),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Download Android APK',
+                        style: TextStyle(
+                          color: context.textPrimary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Get the latest mobile version directly to your device.',
+                        style: TextStyle(
+                          color: context.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                FilledButton.icon(
+                  onPressed: () => _launchExternalUrl(
+                    'https://github.com/SandyCompetent/chatbud/releases/latest/download/app-debug.apk',
+                  ),
+                  icon: const Icon(Icons.download_rounded, size: 16),
+                  label: const Text('APK'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: AppState.instance,
+      listenable: Listenable.merge([AppState.instance, GeminiService.instance]),
       builder: (context, _) {
         final state = AppState.instance;
+        final gemini = GeminiService.instance;
 
         return Scaffold(
           backgroundColor: context.bgCanvas,
@@ -462,6 +814,10 @@ class ContactPage extends StatelessWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      _buildAiConfigCard(context, gemini),
+                      const SizedBox(height: 12),
+                      _buildAboutAndDownloadsCard(context),
                       if (state.isLoggedIn) ...[
                         const SizedBox(height: 12),
                         _SettingsSection(

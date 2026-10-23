@@ -67,7 +67,8 @@ You do **not** need to install Flutter, Android Studio, or any developer tools t
   - **Cipher** (Cybersecurity & AppSec Specialist): Threat modeling, vulnerability auditing, OWASP/App Check guardian.
   - **Marcus** (Stoic Philosopher & Executive Coach): Perspective shifting, resilience, decision-making under high pressure.
   - **Nova** (Creative Brand Strategist & Storyteller): Compelling hooks, copywriting, brand identity.
-- **1-Tap Preset Persona Authoring**: Tap any role template (HR Recruiter, Executive Assistant, Copywriter, Customer Support) to instantly generate personas without writing prompt code.
+  - **Exeter Academic** (University of Exeter Study Assistant): Academic paper summaries, study plans, step-by-step explanations, and live Exeter Campus Data (Open-Meteo weather, Stagecoach 4/4A bus schedule insights, and Forum / St Luke's library occupancy).
+- **1-Tap Preset Persona Authoring**: Tap any role template (HR Recruiter, Executive Assistant, Copywriter, Customer Support, Academic Tutor) to instantly generate personas without writing prompt code.
 - **Dynamic Starter Chips**: Context-aware suggested prompts displayed above the composer and in empty chat states to eliminate "blank page" syndrome.
 - **Transcript Export**: Export any conversation transcript to the clipboard as formatted plain text or Markdown for immediate workplace use.
 
@@ -88,10 +89,11 @@ You do **not** need to install Flutter, Android Studio, or any developer tools t
 - Group channels support multi-persona collaboration.
 - Mentioning `@Athena`, `@Cipher`, `@Marcus`, or `@Nova` orchestrates autonomous turns, allowing different personas to debate and advise on complex topics.
 
-### 5. Production Firebase AI SDK (`firebase_ai`)
-- Integrates Google's modern Gemini 3.x developer stack (`gemini-3.1-flash-lite` and `gemini-3.8-flash`).
-- Dynamic model resolution protects against breaking `404 Not Found` errors caused by upstream model retirements.
-- Completely free serverless tier without mandatory Blaze Cloud Functions or external vector DB subscriptions.
+### 5. Hybrid AI Engine: Default Firebase AI (`firebase_ai`) + Bring Your Own Key (BYOK)
+- **Live Out-of-the-Box (Default)**: Connects via Google's modern Gemini 3.x developer stack (`gemini-3.1-flash-lite` and `gemini-3.8-flash`) with a 100% free serverless tier — no configuration required.
+- **Bring Your Own API Key (BYOK)**: Optionally configure your own Gemini API key in **Profile → AI Configuration** (or via `--dart-define=API_KEY=...` at build time) to route through `google_generative_ai` using your own quota.
+- **Dynamic Gemini Model Discovery & Selector**: Switch between built-in models (`gemini-3.1-flash-lite`, `gemini-3.8-flash`, `gemini-2.5-flash`, `gemini-2.5-pro`) or click **Fetch Available Models** with your API key to load all text-capable Gemini models directly from Google's API.
+- **Automated Android APK Releases**: GitHub Actions builds and publishes `app-debug.apk` to the `latest` GitHub Release on every push to `main`, with a 1-tap download card inside **Profile → About & Downloads**.
 
 ### 6. Production Security & Offline Resilience
 - Hardened `firestore.rules` for authenticated users.

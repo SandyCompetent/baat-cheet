@@ -6,7 +6,7 @@ void main() {
     test('Curated personas are preloaded with expected IDs and starter prompts',
         () {
       final curated = Persona.curatedPersonas;
-      expect(curated.length, 7);
+      expect(curated.length, 8);
       final ids = curated.map((p) => p.id).toSet();
       expect(ids.contains('harper'), true);
       expect(ids.contains('aria'), true);
@@ -15,6 +15,7 @@ void main() {
       expect(ids.contains('cipher'), true);
       expect(ids.contains('marcus'), true);
       expect(ids.contains('nova'), true);
+      expect(ids.contains('exeter'), true);
 
       for (final p in curated) {
         expect(p.isCurated, true);

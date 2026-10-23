@@ -12,6 +12,7 @@ import '../services/chat_service.dart';
 import '../services/persona_service.dart';
 import '../widgets/chat_composer.dart';
 import '../widgets/chat_glass_header.dart';
+import '../widgets/exeter_campus_sheet.dart';
 import '../widgets/message_action_sheet.dart';
 import 'conversation/conversation_suggestions.dart';
 import 'conversation/transcript_exporter.dart';
@@ -534,6 +535,10 @@ class _ConversationScreenState extends State<ConversationScreen>
         isTyping: _isTyping,
         onInfoPressed: _showInfoDialog,
         onExportPressed: _showExportDialog,
+        onCampusLivePressed:
+            widget.isAi && _resolveActivePersona()?.id == 'exeter'
+                ? () => ExeterCampusSheet.show(context)
+                : null,
       ),
       body: Stack(
         children: [

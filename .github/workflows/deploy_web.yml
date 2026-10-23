@@ -1,10 +1,13 @@
-name: Deploy Flutter Web to Firebase Hosting
+name: Deploy Flutter Web and Android APK
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-and-deploy:
@@ -29,7 +32,20 @@ jobs:
         run: flutter pub get
 
       - name: Build Flutter Web
-        run: flutter build web --release
+        run: flutter build web --release --dart-define=API_KEY=${{ secrets.GEMINI_API_KEY }}
+
+      - name: Build Android APK
+        run: flutter build apk --debug --dart-define=API_KEY=${{ secrets.GEMINI_API_KEY }}
+
+      - name: Upload APK to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          files: build/app/outputs/flutter-apk/app-debug.apk
+          name: Latest Build
+          body: "Automatic build from the latest commit."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0

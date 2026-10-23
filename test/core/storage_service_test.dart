@@ -133,5 +133,23 @@ void main() {
       expect(list.first['messageText'], 'Loving ChatBud so far!');
       expect(list.first['reporterId'], 'anonymous');
     });
+
+    test('BYOK API key and Gemini model preferences persist and clear',
+        () async {
+      expect(StorageService.getCustomApiKey(), isNull);
+      await StorageService.setCustomApiKey('AIzaSyExampleKey');
+      expect(StorageService.getCustomApiKey(), 'AIzaSyExampleKey');
+
+      await StorageService.setCustomApiKey('');
+      expect(StorageService.getCustomApiKey(), isNull);
+
+      await StorageService.setSelectedModel('gemini-2.5-pro');
+      expect(StorageService.getSelectedModel(), 'gemini-2.5-pro');
+
+      await StorageService.setAvailableModels(
+          ['gemini-2.5-flash', 'gemini-2.5-pro']);
+      expect(StorageService.getAvailableModels(),
+          ['gemini-2.5-flash', 'gemini-2.5-pro']);
+    });
   });
 }

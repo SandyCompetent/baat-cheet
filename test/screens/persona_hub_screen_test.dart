@@ -80,5 +80,19 @@ void main() {
 
       expect(find.text('ACTIVE'), findsWidgets);
     });
+
+    testWidgets(
+        'Filtering by Academic category shows Exeter Academic persona and Campus Live button',
+        (tester) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Academic'), findsOneWidget);
+      await tester.tap(find.text('Academic'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Exeter Academic'), findsOneWidget);
+      expect(find.text('Campus Live'), findsOneWidget);
+    });
   });
 }

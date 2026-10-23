@@ -9,6 +9,7 @@ class ChatGlassHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool isTyping;
   final VoidCallback onInfoPressed;
   final VoidCallback? onExportPressed;
+  final VoidCallback? onCampusLivePressed;
 
   const ChatGlassHeader({
     super.key,
@@ -17,6 +18,7 @@ class ChatGlassHeader extends StatelessWidget implements PreferredSizeWidget {
     required this.isTyping,
     required this.onInfoPressed,
     this.onExportPressed,
+    this.onCampusLivePressed,
   });
 
   @override
@@ -109,6 +111,16 @@ class ChatGlassHeader extends StatelessWidget implements PreferredSizeWidget {
                       ],
                     ),
                   ),
+                  if (onCampusLivePressed != null)
+                    IconButton(
+                      tooltip: 'Exeter Campus Live Data',
+                      icon: Icon(
+                        Icons.school_outlined,
+                        color: context.accent,
+                        size: 20,
+                      ),
+                      onPressed: onCampusLivePressed,
+                    ),
                   if (onExportPressed != null)
                     IconButton(
                       tooltip: 'Export Transcript',

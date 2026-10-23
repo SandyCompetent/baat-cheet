@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../services/gemini_service.dart';
 import 'storage_service.dart';
 
 /// Central reactive application state for ChatBud.
@@ -45,6 +46,7 @@ class AppState extends ChangeNotifier {
   Future<void> initialize() async {
     // 1. Initialize persistent storage
     await StorageService.init();
+    GeminiService.instance.loadFromStorage();
 
     // 2. Load stored theme mode
     final storedMode = StorageService.getThemeMode();

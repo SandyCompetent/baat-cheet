@@ -104,5 +104,23 @@ void main() {
 
       expect(find.byIcon(Icons.close_rounded), findsOneWidget);
     });
+
+    testWidgets(
+        'Renders AI Configuration (BYOK & Model Selector) and About & Downloads (APK)',
+        (tester) async {
+      await tester.pumpWidget(buildApp());
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
+      await tester.pumpAndSettle();
+
+      expect(find.text('AI Configuration'), findsOneWidget);
+      expect(find.text('Live Default (Firebase AI)'), findsOneWidget);
+      expect(find.text('Fetch Available Models'), findsOneWidget);
+      expect(find.text('Select Model'), findsOneWidget);
+      expect(find.text('About & Downloads'), findsOneWidget);
+      expect(find.text('Developed by Sandeep Malviya'), findsOneWidget);
+      expect(find.text('Download Android APK'), findsOneWidget);
+      expect(find.text('APK'), findsOneWidget);
+    });
   });
 }

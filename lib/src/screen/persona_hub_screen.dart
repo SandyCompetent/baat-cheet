@@ -4,6 +4,7 @@ import '../models/persona.dart';
 import '../services/chat_service.dart';
 import '../services/memory_service.dart';
 import '../services/persona_service.dart';
+import '../widgets/exeter_campus_sheet.dart';
 import 'conversation_screen.dart';
 
 class PersonaHubScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
 
   final List<String> _categories = [
     'All',
+    'Academic',
     'HR & Talent',
     'Productivity',
     'Career',
@@ -97,6 +99,15 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
         'tags': 'Language, Conversation, Grammar, Vocabulary',
         'prompt':
             'You are Sofia, an encouraging conversational language tutor. You help practice everyday dialog, gently correct grammar, suggest natural vocabulary, and build speaking confidence.',
+      },
+      {
+        'label': '🎓 Academic Tutor',
+        'name': 'Exeter Study Mentor',
+        'tagline': 'University Study & Research Assistant',
+        'category': 'Academic',
+        'tags': 'Study Plans, Paper Summaries, Academic, Research',
+        'prompt':
+            'You are an Expert Agentic Study Assistant representing the University of Exeter. Your goal is to help students understand complex topics, generate study plans, summarize academic papers, and provide clear, step-by-step explanations.',
       },
     ];
 
@@ -215,6 +226,7 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                             color: context.accent),
                       ),
                       items: [
+                        'Academic',
                         'HR & Talent',
                         'Productivity',
                         'Career',
@@ -817,6 +829,33 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
+                                if (persona.id == 'exeter') ...[
+                                  OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 6),
+                                      minimumSize: const Size(0, 36),
+                                      side: BorderSide(
+                                          color: context.accent.withAlpha(80)),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    icon: Icon(Icons.school_outlined,
+                                        size: 15, color: context.accent),
+                                    label: Text(
+                                      'Campus Live',
+                                      style: TextStyle(
+                                        color: context.accent,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    onPressed: () =>
+                                        ExeterCampusSheet.show(context),
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
                                 IconButton.filled(
                                   style: IconButton.styleFrom(
                                     backgroundColor: context.accent,

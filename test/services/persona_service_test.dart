@@ -20,6 +20,7 @@ void main() {
       expect(personas.any((p) => p.id == 'cipher'), true);
       expect(personas.any((p) => p.id == 'marcus'), true);
       expect(personas.any((p) => p.id == 'nova'), true);
+      expect(personas.any((p) => p.id == 'exeter'), true);
     });
 
     test('getPersonaById returns matching persona or fallback', () {
