@@ -4,6 +4,7 @@ import '../services/gemini_service.dart';
 import '../services/group_service.dart';
 import '../services/memory_service.dart';
 import '../services/persona_service.dart';
+import '../services/public_api_rag_service.dart';
 import 'app_state.dart';
 
 /// Service locator / dependency-injection composition root for ChatBud.
@@ -36,6 +37,9 @@ void setupLocator() {
   locator.registerLazySingleton<PersonaService>(() => PersonaService.instance);
   locator.registerLazySingleton<GeminiService>(() => GeminiService.instance);
   locator.registerLazySingleton<GroupService>(() => GroupService.instance);
+  locator.registerLazySingleton<PublicApiRagService>(
+    () => PublicApiRagService.instance,
+  );
 }
 
 /// Resolve a registered service.

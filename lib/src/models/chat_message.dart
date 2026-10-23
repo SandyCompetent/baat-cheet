@@ -12,6 +12,7 @@ class ChatMessage {
   bool isBookmarked;
   final AttachmentType attachmentType;
   final String? attachmentName;
+  final List<Map<String, String>>? ragSources;
 
   ChatMessage({
     required this.id,
@@ -23,6 +24,7 @@ class ChatMessage {
     this.isBookmarked = false,
     this.attachmentType = AttachmentType.none,
     this.attachmentName,
+    this.ragSources,
   });
 
   String get formattedTime {
@@ -42,10 +44,18 @@ class ChatMessage {
       'isBookmarked': isBookmarked,
       'attachmentType': attachmentType.name,
       'attachmentName': attachmentName,
+      if (ragSources != null && ragSources!.isNotEmpty)
+        'ragSources': ragSources,
     };
   }
 
   factory ChatMessage.fromMap(Map<String, dynamic> map) {
+    final rawSources = map['ragSources'] as List<dynamic>?;
+    final parsedSources = rawSources
+        ?.whereType<Map>()
+        .map((m) => m.map((k, v) => MapEntry(k.toString(), v.toString())))
+        .toList();
+
     return ChatMessage(
       id: map['id'] as String? ?? MessageIdGenerator().toString(),
       text: map['text'] as String? ?? '',
@@ -62,6 +72,7 @@ class ChatMessage {
         orElse: () => AttachmentType.none,
       ),
       attachmentName: map['attachmentName'] as String?,
+      ragSources: parsedSources,
     );
   }
 

@@ -11,6 +11,7 @@ import '../models/persona.dart';
 import 'gemini_service.dart';
 import 'memory_service.dart';
 import 'persona_service.dart';
+import 'public_api_rag_service.dart';
 
 /// Production-ready ChatService backed by Cloud Firestore.
 /// Features:
@@ -73,6 +74,14 @@ class ChatService {
   final Map<String, int> _messageLimits = {};
   final ValueNotifier<List<ChatMessage>> savedMessagesNotifier =
       ValueNotifier<List<ChatMessage>>([]);
+
+  /// Tracks conversation IDs that are currently generating an AI response.
+  final ValueNotifier<Set<String>> generatingConversationsNotifier =
+      ValueNotifier<Set<String>>({});
+
+  /// Returns true if [conversationId] currently has an AI response in-flight.
+  bool isGenerating(String conversationId) =>
+      generatingConversationsNotifier.value.contains(conversationId);
 
   final Set<String> _blockedUsers = {};
 
@@ -393,6 +402,11 @@ class ChatService {
     required String query,
     required List<ChatMessage> history,
   }) async {
+    generatingConversationsNotifier.value = {
+      ...generatingConversationsNotifier.value,
+      conversationId,
+    };
+
     final aiMsgId =
         'msg_${persona.id}_${DateTime.now().millisecondsSinceEpoch}';
     final aiMessage = ChatMessage(
@@ -407,53 +421,89 @@ class ChatService {
     final notifier = getMessagesNotifier(conversationId);
     notifier.value = [...notifier.value, aiMessage];
 
-    // Dynamic prompt injection with long-term memory & relationship state
-    final systemPrompt = MemoryService.instance.buildSystemPrompt(
-      basePrompt: persona.systemPrompt,
-      personaId: persona.id,
-      currentQuery: query,
-    );
-
-    final stream = GeminiService.instance.streamResponse(
-      prompt: query,
-      history: history,
-      systemInstruction: systemPrompt,
-      // Honor the user's currently selected model instead of hard-pinning the
-      // default, so GeminiService.setModel() actually drives conversations.
-      modelOverride: GeminiService.instance.currentModel,
-    );
-
     final buffer = StringBuffer();
-    await for (final token in stream) {
-      buffer.write(token);
-      final updatedList = List<ChatMessage>.from(notifier.value);
-      final idx = updatedList.indexWhere((m) => m.id == aiMsgId);
-      final streamingMsg = ChatMessage(
-        id: aiMsgId,
-        text: buffer.toString(),
-        isUser: false,
-        senderName: persona.name,
-        timestamp: aiMessage.timestamp,
-        status: MessageStatus.delivered,
+    List<Map<String, String>>? ragSources;
+
+    try {
+      // Live Grounded RAG Retrieval from Public APIs (OpenAlex, EndOfLife.date,
+      // Google OSV, Arbeitnow, RemoteOK, Nager.Date, Datamuse, Wikipedia, etc.)
+      final ragResult =
+          await PublicApiRagService.instance.retrieveGroundingContext(
+        personaId: persona.id,
+        query: query,
+        personaCategory: persona.category,
       );
-      if (idx != -1) {
-        updatedList[idx] = streamingMsg;
-      } else {
-        updatedList.add(streamingMsg);
+      ragSources = ragResult.hasContext ? ragResult.toSourceMaps() : null;
+
+      // Dynamic prompt injection with long-term memory, relationship state & live RAG
+      final systemPrompt = MemoryService.instance.buildSystemPrompt(
+        basePrompt: persona.systemPrompt,
+        personaId: persona.id,
+        currentQuery: query,
+        ragContextBlock: ragResult.toSystemPromptBlock(),
+      );
+
+      final stream = GeminiService.instance.streamResponse(
+        prompt: query,
+        history: history,
+        systemInstruction: systemPrompt,
+        // Honor the user's currently selected model instead of hard-pinning the
+        // default, so GeminiService.setModel() actually drives conversations.
+        modelOverride: GeminiService.instance.currentModel,
+      );
+
+      await for (final token in stream) {
+        buffer.write(token);
+        final updatedList = List<ChatMessage>.from(notifier.value);
+        final idx = updatedList.indexWhere((m) => m.id == aiMsgId);
+        final streamingMsg = ChatMessage(
+          id: aiMsgId,
+          text: buffer.toString(),
+          isUser: false,
+          senderName: persona.name,
+          timestamp: aiMessage.timestamp,
+          status: MessageStatus.sending,
+          ragSources: ragSources,
+        );
+        if (idx != -1) {
+          updatedList[idx] = streamingMsg;
+        } else {
+          updatedList.add(streamingMsg);
+        }
+        notifier.value = updatedList;
       }
-      notifier.value = updatedList;
+
+      // Mark final message as delivered once streaming finishes
+      final finalList = List<ChatMessage>.from(notifier.value);
+      final finalIdx = finalList.indexWhere((m) => m.id == aiMsgId);
+      if (finalIdx != -1) {
+        finalList[finalIdx] = ChatMessage(
+          id: aiMsgId,
+          text: buffer.toString(),
+          isUser: false,
+          senderName: persona.name,
+          timestamp: aiMessage.timestamp,
+          status: MessageStatus.delivered,
+          ragSources: ragSources,
+        );
+        notifier.value = finalList;
+      }
+
+      final fullReply = buffer.toString();
+      final now = DateTime.now();
+      final timeStr =
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+      _updateLocalConversationPreview(conversationId, fullReply, timeStr,
+          senderName: persona.name);
+      StorageService.saveConversationMessages(conversationId, notifier.value);
+
+      // Evolve relationship state
+      await MemoryService.instance.recordInteraction(persona.id);
+    } finally {
+      final remaining = Set<String>.from(generatingConversationsNotifier.value)
+        ..remove(conversationId);
+      generatingConversationsNotifier.value = remaining;
     }
-
-    final fullReply = buffer.toString();
-    final now = DateTime.now();
-    final timeStr =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    _updateLocalConversationPreview(conversationId, fullReply, timeStr,
-        senderName: persona.name);
-    StorageService.saveConversationMessages(conversationId, notifier.value);
-
-    // Evolve relationship state
-    await MemoryService.instance.recordInteraction(persona.id);
   }
 
   // ── 5. Real-Time Presence & Typing Indicators ────────────────────────────

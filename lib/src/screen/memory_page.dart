@@ -78,8 +78,12 @@ class _MemoryPageState extends State<MemoryPage> {
           child: Divider(height: 1, color: context.borderSubtle),
         ),
       ),
-      body: Column(
-        children: [
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 960),
+          child: Column(
+            children: [
           // Informational Architecture Banner
           Container(
             margin: const EdgeInsets.all(16),
@@ -394,6 +398,8 @@ class _MemoryPageState extends State<MemoryPage> {
           ),
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 }

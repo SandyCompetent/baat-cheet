@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../services/gemini_service.dart';
+import '../services/public_api_rag_service.dart';
 import 'storage_service.dart';
 
 /// Central reactive application state for ChatBud.
@@ -47,6 +48,7 @@ class AppState extends ChangeNotifier {
     // 1. Initialize persistent storage
     await StorageService.init();
     GeminiService.instance.loadFromStorage();
+    PublicApiRagService.instance.loadFromStorage();
 
     // 2. Load stored theme mode
     final storedMode = StorageService.getThemeMode();
@@ -66,7 +68,15 @@ class AppState extends ChangeNotifier {
       if (initialUser != null && !initialUser.isAnonymous) {
         _firebaseUser = initialUser;
         _isGuest = false;
-        await _syncAuthenticatedUserProfile(initialUser);
+        _displayName = (initialUser.displayName != null &&
+                initialUser.displayName!.trim().isNotEmpty)
+            ? initialUser.displayName!.trim()
+            : (initialUser.email?.split('@').first ?? 'User');
+        unawaited(
+          _syncAuthenticatedUserProfile(initialUser).then((_) {
+            notifyListeners();
+          }),
+        );
       } else {
         _isGuest = true;
         _displayName = 'Guest User';
@@ -98,7 +108,11 @@ class AppState extends ChangeNotifier {
       final fs = _firestore;
       if (fs != null) {
         try {
-          final doc = await fs.collection('users').doc(user.uid).get();
+          final doc = await fs
+              .collection('users')
+              .doc(user.uid)
+              .get()
+              .timeout(const Duration(seconds: 3));
           if (doc.exists) {
             final data = doc.data();
             final fsName = data?['displayName'] as String?;

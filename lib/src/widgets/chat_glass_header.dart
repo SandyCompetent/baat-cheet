@@ -10,6 +10,7 @@ class ChatGlassHeader extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onInfoPressed;
   final VoidCallback? onExportPressed;
   final VoidCallback? onCampusLivePressed;
+  final VoidCallback? onRagLivePressed;
 
   const ChatGlassHeader({
     super.key,
@@ -19,6 +20,7 @@ class ChatGlassHeader extends StatelessWidget implements PreferredSizeWidget {
     required this.onInfoPressed,
     this.onExportPressed,
     this.onCampusLivePressed,
+    this.onRagLivePressed,
   });
 
   @override
@@ -120,6 +122,16 @@ class ChatGlassHeader extends StatelessWidget implements PreferredSizeWidget {
                         size: 20,
                       ),
                       onPressed: onCampusLivePressed,
+                    ),
+                  if (onRagLivePressed != null)
+                    IconButton(
+                      tooltip: 'Grounded RAG Live Data',
+                      icon: Icon(
+                        Icons.public_rounded,
+                        color: context.accent,
+                        size: 20,
+                      ),
+                      onPressed: onRagLivePressed,
                     ),
                   if (onExportPressed != null)
                     IconButton(

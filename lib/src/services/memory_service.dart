@@ -327,6 +327,7 @@ class MemoryService {
     required String personaId,
     required String currentQuery,
     List<double>? queryEmbedding,
+    String? ragContextBlock,
   }) {
     final memories = retrieveRelevantMemories(
       query: currentQuery,
@@ -356,6 +357,11 @@ class MemoryService {
       }
     }
     buffer.writeln('===================================');
+
+    if (ragContextBlock != null && ragContextBlock.trim().isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln(ragContextBlock.trim());
+    }
 
     return buffer.toString();
   }

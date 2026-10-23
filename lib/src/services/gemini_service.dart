@@ -324,7 +324,10 @@ class GeminiService extends ChangeNotifier {
         'The LLM is NOT being called. Check Firebase AI provisioning / model id.',
         tag: 'GeminiService',
       );
-      yield* _streamFallbackResponse(prompt);
+      yield* _streamFallbackResponse(
+        prompt,
+        systemInstruction: systemInstruction,
+      );
       return;
     }
 
@@ -363,7 +366,10 @@ class GeminiService extends ChangeNotifier {
           error: e,
         );
         // Graceful fallback if Firebase AI is not yet provisioned in Firebase console or offline
-        yield* _streamFallbackResponse(prompt);
+        yield* _streamFallbackResponse(
+          prompt,
+          systemInstruction: systemInstruction,
+        );
       } else {
         AppLogger.w(
           'Firebase AI stream interrupted after partial output.',
@@ -467,7 +473,10 @@ Do not include any markdown formatting like ```json or any other text. Just the 
     }
   }
 
-  Stream<String> _streamFallbackResponse(String prompt) async* {
+  Stream<String> _streamFallbackResponse(
+    String prompt, {
+    String? systemInstruction,
+  }) async* {
     final lower = prompt.toLowerCase();
     String reply;
 
@@ -486,6 +495,15 @@ Do not include any markdown formatting like ```json or any other text. Just the 
     } else {
       reply =
           'I am ChatBud AI Assistant. I received your message: "$prompt". What would you like to explore or discuss next?';
+    }
+
+    if (systemInstruction != null &&
+        systemInstruction.contains(
+            '=== LIVE GROUNDED RAG DATA (VERIFIED PUBLIC APIs) ===')) {
+      final ragStart = systemInstruction
+          .indexOf('=== LIVE GROUNDED RAG DATA (VERIFIED PUBLIC APIs) ===');
+      final ragSection = systemInstruction.substring(ragStart).trim();
+      reply = '$reply\n\n$ragSection';
     }
 
     // Simulate token streaming

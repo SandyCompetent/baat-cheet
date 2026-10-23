@@ -30,6 +30,7 @@ class StorageService {
   static const String _customApiKeyKey = 'custom_gemini_api_key';
   static const String _selectedModelKey = 'selected_gemini_model';
   static const String _availableModelsKey = 'available_gemini_models';
+  static const String _publicApiKeyKey = 'public_rag_api_key';
 
   static Future<void> init() async {
     _prefs ??= await SharedPreferences.getInstance();
@@ -254,5 +255,19 @@ class StorageService {
 
   static Future<void> setAvailableModels(List<String> models) async {
     await _prefs?.setStringList(_availableModelsKey, models);
+  }
+
+  // ── Public APIs / APILayer Key Persistence (Grounded RAG) ─────────────────
+  static String? getPublicApiKey() {
+    return _prefs?.getString(_publicApiKeyKey);
+  }
+
+  static Future<void> setPublicApiKey(String? key) async {
+    final trimmed = key?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      await _prefs?.remove(_publicApiKeyKey);
+    } else {
+      await _prefs?.setString(_publicApiKeyKey, trimmed);
+    }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme_data.dart';
 import '../core/app_state.dart';
@@ -14,7 +15,7 @@ import '../widgets/chat_composer.dart';
 import '../widgets/chat_glass_header.dart';
 import '../widgets/exeter_campus_sheet.dart';
 import '../widgets/message_action_sheet.dart';
-import 'conversation/conversation_suggestions.dart';
+import '../widgets/rag_live_sheet.dart';
 import 'conversation/transcript_exporter.dart';
 
 class ConversationScreen extends StatefulWidget {
@@ -39,7 +40,6 @@ class _ConversationScreenState extends State<ConversationScreen>
   final ScrollController _scrollCtrl = ScrollController();
   late final ValueNotifier<List<ChatMessage>> _messagesNotifier;
 
-  bool _isTyping = false;
   bool _hasText = false;
   bool _showScrollDown = false;
   static const double _scrollThreshold = 120;
@@ -90,6 +90,7 @@ class _ConversationScreenState extends State<ConversationScreen>
   }
 
   void _handleSend() {
+    if (service<ChatService>().isGenerating(widget.conversationId)) return;
     final text = _textCtrl.text.trim();
     if (text.isEmpty) return;
     _textCtrl.clear();
@@ -107,14 +108,6 @@ class _ConversationScreenState extends State<ConversationScreen>
 
     HapticFeedback.lightImpact();
     _scrollToBottom(force: true);
-
-    if (widget.isAi) {
-      setState(() => _isTyping = true);
-      Future.delayed(const Duration(milliseconds: 900), () {
-        if (mounted) setState(() => _isTyping = false);
-        _scrollToBottom();
-      });
-    }
   }
 
   void _sendStarter(String text) {
@@ -436,54 +429,6 @@ class _ConversationScreenState extends State<ConversationScreen>
     }
   }
 
-  void _onSuggestionTap(String text) {
-    _textCtrl.text = text;
-    _textCtrl.selection = TextSelection.fromPosition(
-      TextPosition(offset: text.length),
-    );
-  }
-
-  List<String> get _suggestedReplies => ConversationSuggestions.forHistory(
-        messages: _messagesNotifier.value,
-        starterPrompts: _starterPrompts,
-      );
-
-  Widget _buildSuggestionsBar(List<ChatMessage> messages) {
-    if (messages.isEmpty) return const SizedBox.shrink();
-
-    final suggestions = _suggestedReplies;
-    if (suggestions.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      height: 38,
-      margin: const EdgeInsets.only(bottom: 6),
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: suggestions.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (ctx, i) {
-          final prompt = suggestions[i];
-          return ActionChip(
-            backgroundColor: context.bgElevated,
-            side: BorderSide(color: context.borderSubtle),
-            avatar: Icon(Icons.auto_awesome_rounded,
-                size: 14, color: context.accent),
-            label: Text(
-              prompt,
-              style: TextStyle(
-                color: context.accent,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            onPressed: () => _onSuggestionTap(prompt),
-          );
-        },
-      ),
-    );
-  }
-
   _BubblePosition _bubblePosition(List<ChatMessage> messages, int index) {
     final msg = messages[index];
     final prev = index > 0 ? messages[index - 1] : null;
@@ -526,65 +471,79 @@ class _ConversationScreenState extends State<ConversationScreen>
   Widget build(BuildContext context) {
     final currentUid = AppState.instance.firebaseUser?.uid ?? 'guest';
 
-    return Scaffold(
-      backgroundColor: context.bgCanvas,
-      extendBodyBehindAppBar: true,
-      appBar: ChatGlassHeader(
-        title: widget.title,
-        isAi: widget.isAi,
-        isTyping: _isTyping,
-        onInfoPressed: _showInfoDialog,
-        onExportPressed: _showExportDialog,
-        onCampusLivePressed:
-            widget.isAi && _resolveActivePersona()?.id == 'exeter'
-                ? () => ExeterCampusSheet.show(context)
+    return ValueListenableBuilder<Set<String>>(
+      valueListenable: service<ChatService>().generatingConversationsNotifier,
+      builder: (context, generatingSet, _) {
+        final isGenerating = generatingSet.contains(widget.conversationId);
+
+        return Scaffold(
+          backgroundColor: context.bgCanvas,
+          extendBodyBehindAppBar: true,
+          appBar: ChatGlassHeader(
+            title: widget.title,
+            isAi: widget.isAi,
+            isTyping: isGenerating,
+            onInfoPressed: _showInfoDialog,
+            onExportPressed: _showExportDialog,
+            onCampusLivePressed:
+                widget.isAi && _resolveActivePersona()?.id == 'exeter'
+                    ? () => ExeterCampusSheet.show(context)
+                    : null,
+            onRagLivePressed: widget.isAi && _resolveActivePersona() != null
+                ? () => RagLiveSheet.show(
+                      context,
+                      persona: _resolveActivePersona()!,
+                    )
                 : null,
-      ),
-      body: Stack(
-        children: [
-          Column(
+          ),
+          body: Stack(
             children: [
-              Expanded(
-                child: ValueListenableBuilder<List<ChatMessage>>(
-                  valueListenable: _messagesNotifier,
-                  builder: (context, messages, _) {
-                    return Column(
-                      children: [
-                        Expanded(child: _buildMessageFeed(messages)),
-                        if (widget.isAi && messages.isNotEmpty)
-                          _buildSuggestionsBar(messages),
-                      ],
-                    );
-                  },
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 960),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ValueListenableBuilder<List<ChatMessage>>(
+                          valueListenable: _messagesNotifier,
+                          builder: (context, messages, _) {
+                            return _buildMessageFeed(messages);
+                          },
+                        ),
+                      ),
+                      StreamBuilder<bool>(
+                        stream: service<ChatService>()
+                            .listenTypingStatus(widget.conversationId, currentUid),
+                        builder: (context, snapshot) {
+                          final typing = isGenerating || (snapshot.data == true);
+                          if (typing) {
+                            return _buildTypingIndicator();
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                      ChatComposer(
+                        textCtrl: _textCtrl,
+                        hasText: _hasText,
+                        isGenerating: isGenerating,
+                        onSend: _handleSend,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              StreamBuilder<bool>(
-                stream: service<ChatService>()
-                    .listenTypingStatus(widget.conversationId, currentUid),
-                builder: (context, snapshot) {
-                  final typing = _isTyping || (snapshot.data == true);
-                  if (typing) {
-                    return _buildTypingIndicator();
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-              ChatComposer(
-                textCtrl: _textCtrl,
-                hasText: _hasText,
-                onSend: _handleSend,
-              ),
+              if (_showScrollDown)
+                Positioned(
+                  bottom: 100,
+                  left: 0,
+                  right: 0,
+                  child: Center(child: _buildScrollDownPill()),
+                ),
             ],
           ),
-          if (_showScrollDown)
-            Positioned(
-              bottom: 100,
-              left: 0,
-              right: 0,
-              child: Center(child: _buildScrollDownPill()),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -706,7 +665,9 @@ class _ConversationScreenState extends State<ConversationScreen>
           if (!isUser) const SizedBox(width: 6),
           ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.78,
+              maxWidth: MediaQuery.of(context).size.width >= 840
+                  ? 680
+                  : MediaQuery.of(context).size.width * 0.78,
             ),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -733,6 +694,16 @@ class _ConversationScreenState extends State<ConversationScreen>
                     data: msg.text,
                     selectable: false,
                     shrinkWrap: true,
+                    onTapLink: (text, href, title) async {
+                      if (href == null || href.isEmpty) return;
+                      final uri = Uri.tryParse(href);
+                      if (uri != null) {
+                        await launchUrl(
+                          uri,
+                          mode: LaunchMode.externalApplication,
+                        );
+                      }
+                    },
                     styleSheet: MarkdownStyleSheet(
                       p: TextStyle(
                         color: isUser
@@ -797,6 +768,12 @@ class _ConversationScreenState extends State<ConversationScreen>
                       ),
                     ),
                   ),
+                  if (!isUser &&
+                      msg.ragSources != null &&
+                      msg.ragSources!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    _buildRagSourcesRow(msg.ragSources!),
+                  ],
                   if (isLastInGroup) ...[
                     const SizedBox(height: 4),
                     Row(
@@ -838,6 +815,177 @@ class _ConversationScreenState extends State<ConversationScreen>
           ),
           if (isUser) const SizedBox(width: 2),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRagSourcesRow(List<Map<String, String>> sources) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.verified_outlined,
+              size: 12,
+              color: context.accent,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Grounded via Public APIs (${sources.length})',
+              style: TextStyle(
+                color: context.textSecondary,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: sources.map((source) {
+            final sourceName = source['sourceName'] ?? 'Public API';
+            final title = source['title'] ?? sourceName;
+            final shortTitle =
+                title.length > 28 ? '${title.substring(0, 25)}...' : title;
+            return InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () => _showRagSourceDetailsSheet(source),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: context.accentSubtle,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: context.accent.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.public_rounded,
+                      size: 11,
+                      color: context.accent,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        '$sourceName · $shortTitle',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: context.accent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  void _showRagSourceDetailsSheet(Map<String, String> source) {
+    final sourceName = source['sourceName'] ?? 'Public API';
+    final title = source['title'] ?? '';
+    final snippet = source['snippet'] ?? '';
+    final url = source['url'] ?? '';
+    final category = source['category'] ?? 'Grounded Data';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.bgSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: context.accentSubtle,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$sourceName · $category',
+                      style: TextStyle(
+                        color: context.accent,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  color: context.textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (snippet.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  snippet,
+                  style: TextStyle(
+                    color: context.textSecondary,
+                    fontSize: 13.5,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+              if (url.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final uri = Uri.tryParse(url);
+                      if (uri != null) {
+                        await launchUrl(
+                          uri,
+                          mode: LaunchMode.externalApplication,
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                    label: Text(
+                      'Open Verified Source ($sourceName)',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

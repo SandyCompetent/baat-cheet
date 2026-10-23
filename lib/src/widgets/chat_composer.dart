@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import '../../theme_data.dart';
@@ -7,12 +8,14 @@ class ChatComposer extends StatefulWidget {
   final TextEditingController textCtrl;
   final bool hasText;
   final VoidCallback onSend;
+  final bool isGenerating;
 
   const ChatComposer({
     super.key,
     required this.textCtrl,
     required this.hasText,
     required this.onSend,
+    this.isGenerating = false,
   });
 
   @override
@@ -132,32 +135,47 @@ class _ChatComposerState extends State<ChatComposer> {
             children: [
               const SizedBox(width: 16),
               Expanded(
-                child: TextField(
-                  controller: widget.textCtrl,
-                  maxLines: null,
-                  minLines: 1,
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                  style: TextStyle(
-                    color: context.textPrimary,
-                    fontSize: 15,
-                    height: 1.4,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: _isListening ? 'Listening...' : 'Type a message…',
-                    hintStyle: TextStyle(
-                      color: _isListening
-                          ? context.statusDanger
-                          : context.textMuted,
+                child: Focus(
+                  onKeyEvent: (node, event) {
+                    if (event is KeyDownEvent &&
+                        event.logicalKey == LogicalKeyboardKey.enter &&
+                        !HardwareKeyboard.instance.isShiftPressed) {
+                      if (!widget.isGenerating &&
+                          widget.textCtrl.text.trim().isNotEmpty) {
+                        widget.onSend();
+                        return KeyEventResult.handled;
+                      }
+                    }
+                    return KeyEventResult.ignored;
+                  },
+                  child: TextField(
+                    controller: widget.textCtrl,
+                    maxLines: null,
+                    minLines: 1,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    style: TextStyle(
+                      color: context.textPrimary,
                       fontSize: 15,
-                      fontWeight:
-                          _isListening ? FontWeight.w600 : FontWeight.w400,
+                      height: 1.4,
                     ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                    isDense: true,
+                    decoration: InputDecoration(
+                      hintText:
+                          _isListening ? 'Listening...' : 'Type a message…',
+                      hintStyle: TextStyle(
+                        color: _isListening
+                            ? context.statusDanger
+                            : context.textMuted,
+                        fontSize: 15,
+                        fontWeight:
+                            _isListening ? FontWeight.w600 : FontWeight.w400,
+                      ),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      isDense: true,
+                    ),
                   ),
                 ),
               ),
@@ -171,10 +189,13 @@ class _ChatComposerState extends State<ChatComposer> {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: _SendButton(
-                  onTap: widget.onSend,
-                  color: widget.hasText
-                      ? context.accent
-                      : context.accent.withValues(alpha: 0.4),
+                  onTap: widget.isGenerating ? null : widget.onSend,
+                  isLoading: widget.isGenerating,
+                  color: widget.isGenerating
+                      ? context.borderSubtle
+                      : (widget.hasText
+                          ? context.accent
+                          : context.accent.withValues(alpha: 0.4)),
                 ),
               ),
             ],
@@ -215,21 +236,41 @@ class _VoiceButton extends StatelessWidget {
 }
 
 class _SendButton extends StatelessWidget {
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final Color color;
+  final bool isLoading;
 
-  const _SendButton({required this.onTap, required this.color});
+  const _SendButton({
+    required this.onTap,
+    required this.color,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
+      onTap: isLoading ? null : onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         width: 36,
         height: 36,
         decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        child: const Icon(Icons.arrow_upward_rounded,
-            color: Colors.white, size: 18),
+        alignment: Alignment.center,
+        child: isLoading
+            ? SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  key: const ValueKey('send_loading_indicator'),
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(context.textMuted),
+                ),
+              )
+            : const Icon(
+                Icons.arrow_upward_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
       ),
     );
   }

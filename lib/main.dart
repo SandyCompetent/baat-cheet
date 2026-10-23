@@ -1,4 +1,5 @@
 import 'package:chatbud/firebase_options.dart';
+import 'package:chatbud/project_meta_data.dart';
 import 'package:chatbud/src/core/app_state.dart';
 import 'package:chatbud/src/core/app_logger.dart';
 import 'package:chatbud/src/core/service_locator.dart';
@@ -7,6 +8,7 @@ import 'package:chatbud/src/screen/conversation_screen.dart';
 import 'package:chatbud/src/screen/memory_page.dart';
 import 'package:chatbud/src/screen/message_page.dart';
 import 'package:chatbud/src/screen/persona_hub_screen.dart';
+import 'package:chatbud/src/services/gemini_service.dart';
 import 'package:chatbud/src/core/constants.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -22,7 +24,7 @@ void main() async {
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
-    );
+    ).timeout(const Duration(seconds: 5));
     // Route AppLogger warnings/errors to Crashlytics once Firebase is up.
     // Guarded: Crashlytics is unsupported on web and absent in test/offline
     // environments, so failures here must never block app startup.
@@ -48,7 +50,12 @@ void main() async {
   // Register the service composition root before building the app.
   setupLocator();
 
-  await AppState.instance.initialize();
+  try {
+    await AppState.instance.initialize().timeout(const Duration(seconds: 3));
+  } catch (e) {
+    AppLogger.w('AppState initialization timed out; continuing startup',
+        error: e);
+  }
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -73,7 +80,6 @@ class EntryPoint extends StatelessWidget {
           theme: lightTheme,
           darkTheme: darkTheme,
           themeMode: AppState.instance.themeMode,
-          initialRoute: splashRoute,
           onGenerateRoute: RouteGenerator.generateRoute,
           home: const MyHomePage(),
           debugShowCheckedModeBanner: false,
@@ -82,6 +88,8 @@ class EntryPoint extends StatelessWidget {
     );
   }
 }
+
+const double kDesktopBreakpoint = 840.0;
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -200,6 +208,34 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= kDesktopBreakpoint;
+
+    if (isDesktop) {
+      return Scaffold(
+        backgroundColor: context.bgCanvas,
+        body: Row(
+          children: [
+            _DesktopSidebar(
+              currentIndex: _currentIndex,
+              onSelectTab: _onTappedBar,
+              onNewChat: _onFabPressed,
+            ),
+            VerticalDivider(
+              width: 1,
+              thickness: 1,
+              color: context.borderSubtle,
+            ),
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _children,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       body: IndexedStack(
@@ -257,6 +293,279 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopSidebar extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onSelectTab;
+  final VoidCallback onNewChat;
+
+  const _DesktopSidebar({
+    required this.currentIndex,
+    required this.onSelectTab,
+    required this.onNewChat,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 250,
+      color: context.bgSurface,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Brand Header
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: context.accentSubtle,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: context.accent.withValues(alpha: 0.25),
+                  ),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Image.asset(appLogo, fit: BoxFit.contain),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'ChatBud',
+                    style: TextStyle(
+                      color: context.textPrimary,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  Text(
+                    'AI Workspace · Multi-Agent',
+                    style: TextStyle(
+                      color: context.textSecondary,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Primary New Chat Button
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: context.accent,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              onPressed: onNewChat,
+              icon: const Icon(Icons.add_rounded, size: 20),
+              label: const Text(
+                'New Chat',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Divider(height: 1, color: context.borderSubtle),
+          const SizedBox(height: 14),
+
+          // Nav Items
+          _DesktopSidebarItem(
+            icon: Icons.chat_bubble_outline_rounded,
+            activeIcon: Icons.chat_bubble_rounded,
+            label: 'Chats',
+            index: 0,
+            currentIndex: currentIndex,
+            onTap: () => onSelectTab(0),
+          ),
+          const SizedBox(height: 6),
+          _DesktopSidebarItem(
+            icon: Icons.smart_toy_outlined,
+            activeIcon: Icons.smart_toy_rounded,
+            label: 'Persona Hub',
+            index: 1,
+            currentIndex: currentIndex,
+            onTap: () => onSelectTab(1),
+          ),
+          const SizedBox(height: 6),
+          _DesktopSidebarItem(
+            icon: Icons.psychology_outlined,
+            activeIcon: Icons.psychology_rounded,
+            label: 'Memory Vault',
+            index: 2,
+            currentIndex: currentIndex,
+            onTap: () => onSelectTab(2),
+          ),
+          const SizedBox(height: 6),
+          _DesktopSidebarItem(
+            icon: Icons.person_outline_rounded,
+            activeIcon: Icons.person_rounded,
+            label: 'Profile & Settings',
+            index: 3,
+            currentIndex: currentIndex,
+            onTap: () => onSelectTab(3),
+          ),
+
+          const Spacer(),
+
+          // Footer info & quick toggles
+          Divider(height: 1, color: context.borderSubtle),
+          const SizedBox(height: 12),
+
+          // Model Pill
+          ListenableBuilder(
+            listenable: GeminiService.instance,
+            builder: (context, _) {
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                decoration: BoxDecoration(
+                  color: context.bgElevated,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: context.borderSubtle),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 14,
+                      color: context.accent,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        GeminiService.instance.currentModel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: context.textPrimary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+
+          // Theme switcher & connection status
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: context.statusOnline,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Ready',
+                style: TextStyle(
+                  color: context.textSecondary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Tooltip(
+                message: 'Toggle Theme',
+                child: IconButton(
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(
+                    context.isDark
+                        ? Icons.light_mode_outlined
+                        : Icons.dark_mode_outlined,
+                    size: 18,
+                    color: context.textSecondary,
+                  ),
+                  onPressed: () {
+                    final next = context.isDark ? ThemeMode.light : ThemeMode.dark;
+                    AppState.instance.setThemeMode(next);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DesktopSidebarItem extends StatelessWidget {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final int index;
+  final int currentIndex;
+  final VoidCallback onTap;
+
+  const _DesktopSidebarItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.index,
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = index == currentIndex;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? context.accentSubtle : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isSelected ? activeIcon : icon,
+              size: 19,
+              color: isSelected ? context.accent : context.textSecondary,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? context.accent : context.textPrimary,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

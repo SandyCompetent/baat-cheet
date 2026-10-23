@@ -5,6 +5,7 @@ import '../services/chat_service.dart';
 import '../services/memory_service.dart';
 import '../services/persona_service.dart';
 import '../widgets/exeter_campus_sheet.dart';
+import '../widgets/rag_live_sheet.dart';
 import 'conversation_screen.dart';
 
 class PersonaHubScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
 
   final List<String> _categories = [
     'All',
+    'Grounded RAG',
     'Academic',
     'HR & Talent',
     'Productivity',
@@ -108,6 +110,15 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
         'tags': 'Study Plans, Paper Summaries, Academic, Research',
         'prompt':
             'You are an Expert Agentic Study Assistant representing the University of Exeter. Your goal is to help students understand complex topics, generate study plans, summarize academic papers, and provide clear, step-by-step explanations.',
+      },
+      {
+        'label': '🔗 Grounded RAG Agent',
+        'name': 'Nexus RAG Researcher',
+        'tagline': 'Live Public APIs & Citation Specialist',
+        'category': 'Grounded RAG',
+        'tags': 'Public APIs, OpenAlex, Wikipedia, Grounded RAG',
+        'prompt':
+            'You are Nexus, a Grounded RAG Research Agent. Always prioritize and cite the real-time facts, papers, version lifecycles, and URLs provided in your LIVE GROUNDED RAG DATA block.',
       },
     ];
 
@@ -226,6 +237,7 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                             color: context.accent),
                       ),
                       items: [
+                        'Grounded RAG',
                         'Academic',
                         'HR & Talent',
                         'Productivity',
@@ -327,217 +339,229 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
       body: Column(
         children: [
           // Active Persona Showcase Banner
-          ValueListenableBuilder<Persona>(
-            valueListenable: PersonaService.instance.activePersonaNotifier,
-            builder: (context, activePersona, _) {
-              final rel =
-                  MemoryService.instance.getRelationshipState(activePersona.id);
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: context.bgSurface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                      color: context.accent.withAlpha(80), width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.accent.withAlpha(20),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 26,
-                      backgroundColor: context.accentSubtle,
-                      child: Text(
-                        activePersona.name[0].toUpperCase(),
-                        style: TextStyle(
-                          color: context.accent,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1140),
+              child: ValueListenableBuilder<Persona>(
+                valueListenable: PersonaService.instance.activePersonaNotifier,
+                builder: (context, activePersona, _) {
+                  final rel =
+                      MemoryService.instance.getRelationshipState(activePersona.id);
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: context.bgSurface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: context.accent.withAlpha(80), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: context.accent.withAlpha(20),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                activePersona.name,
-                                style: TextStyle(
-                                  color: context.textPrimary,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: context.statusOnline.withAlpha(30),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  'ACTIVE',
-                                  style: TextStyle(
-                                    color: context.statusOnline,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            activePersona.tagline,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 26,
+                          backgroundColor: context.accentSubtle,
+                          child: Text(
+                            activePersona.name[0].toUpperCase(),
                             style: TextStyle(
-                              color: context.textSecondary,
-                              fontSize: 12,
+                              color: context.accent,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          Row(
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Tooltip(
-                                message:
-                                    'Trust increases as you chat. Higher trust unlocks more personalized responses.',
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: rel.trustLevel >= 8
-                                        ? Colors.amber.withAlpha(30)
-                                        : context.accentSubtle,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: rel.trustLevel >= 8
-                                          ? Colors.amber.withAlpha(80)
-                                          : context.accent.withAlpha(50),
+                              Row(
+                                children: [
+                                  Text(
+                                    activePersona.name,
+                                    style: TextStyle(
+                                      color: context.textPrimary,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.handshake_outlined,
-                                        size: 14,
-                                        color: rel.trustLevel >= 8
-                                            ? Colors.amber.shade400
-                                            : context.accent,
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: context.statusOnline.withAlpha(30),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      'ACTIVE',
+                                      style: TextStyle(
+                                        color: context.statusOnline,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.5,
                                       ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Trust: ${rel.trustLevel}/10',
-                                        style: TextStyle(
-                                          color: rel.trustLevel >= 8
-                                              ? Colors.amber.shade400
-                                              : context.accent,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                activePersona.tagline,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: context.textSecondary,
+                                  fontSize: 12,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: context.bgElevated,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  'Mood: ${rel.mood}',
-                                  style: TextStyle(
-                                    color: context.textSecondary,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Tooltip(
+                                    message:
+                                        'Trust increases as you chat. Higher trust unlocks more personalized responses.',
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: rel.trustLevel >= 8
+                                            ? Colors.amber.withAlpha(30)
+                                            : context.accentSubtle,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: rel.trustLevel >= 8
+                                              ? Colors.amber.withAlpha(80)
+                                              : context.accent.withAlpha(50),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.handshake_outlined,
+                                            size: 14,
+                                            color: rel.trustLevel >= 8
+                                                ? Colors.amber.shade400
+                                                : context.accent,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Trust: ${rel.trustLevel}/10',
+                                            style: TextStyle(
+                                              color: rel.trustLevel >= 8
+                                                  ? Colors.amber.shade400
+                                                  : context.accent,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: context.bgElevated,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      'Mood: ${rel.mood}',
+                                      style: TextStyle(
+                                        color: context.textSecondary,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton.filledTonal(
+                          tooltip: 'Chat with ${activePersona.name}',
+                          style: IconButton.styleFrom(
+                            padding: const EdgeInsets.all(10),
+                            minimumSize: const Size(38, 38),
+                          ),
+                          icon: const Icon(Icons.chat_bubble_outline_rounded,
+                              size: 18),
+                          onPressed: () async {
+                            final conv = await ChatService.instance
+                                .startPersonaConversation(activePersona);
+                            if (context.mounted) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ConversationScreen(
+                                    conversationId: conv.id,
+                                    title: conv.title,
+                                    isAi: true,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    IconButton.filledTonal(
-                      tooltip: 'Chat with ${activePersona.name}',
-                      style: IconButton.styleFrom(
-                        padding: const EdgeInsets.all(10),
-                        minimumSize: const Size(38, 38),
-                      ),
-                      icon: const Icon(Icons.chat_bubble_outline_rounded,
-                          size: 18),
-                      onPressed: () async {
-                        final conv = await ChatService.instance
-                            .startPersonaConversation(activePersona);
-                        if (context.mounted) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ConversationScreen(
-                                conversationId: conv.id,
-                                title: conv.title,
-                                isAi: true,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-
-          // Category Chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
-              children: _categories.map((cat) {
-                final isSelected = _selectedCategory == cat;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(cat),
-                    selected: isSelected,
-                    onSelected: (val) {
-                      setState(() => _selectedCategory = cat);
-                    },
-                    selectedColor: context.accentSubtle,
-                    checkmarkColor: context.accent,
-                    labelStyle: TextStyle(
-                      color:
-                          isSelected ? context.accent : context.textSecondary,
-                      fontSize: 12,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
-                );
-              }).toList(),
+                  );
+                },
+              ),
             ),
           ),
 
-          // Personas List
+          // Category Chips
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1140),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                child: Row(
+                  children: _categories.map((cat) {
+                    final isSelected = _selectedCategory == cat;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(cat),
+                        selected: isSelected,
+                        onSelected: (val) {
+                          setState(() => _selectedCategory = cat);
+                        },
+                        selectedColor: context.accentSubtle,
+                        checkmarkColor: context.accent,
+                        labelStyle: TextStyle(
+                          color:
+                              isSelected ? context.accent : context.textSecondary,
+                          fontSize: 12,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w400,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ),
+
+          // Personas List (Desktop Grid / Mobile List)
           Expanded(
             child: ValueListenableBuilder<List<Persona>>(
               valueListenable: PersonaService.instance.personasNotifier,
@@ -558,344 +582,437 @@ class _PersonaHubScreenState extends State<PersonaHubScreen> {
                   );
                 }
 
+                final isDesktop = MediaQuery.of(context).size.width >= 840;
+
+                if (isDesktop) {
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1140),
+                      child: GridView.builder(
+                        padding: const EdgeInsets.only(
+                            left: 16, right: 16, top: 8, bottom: 84),
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 540,
+                          mainAxisExtent: 268,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, idx) =>
+                            _buildPersonaCard(filtered[idx]),
+                      ),
+                    ),
+                  );
+                }
+
                 return ListView.builder(
                   padding: const EdgeInsets.only(
                       left: 16, right: 16, top: 8, bottom: 84),
                   itemCount: filtered.length,
-                  itemBuilder: (context, idx) {
-                    final persona = filtered[idx];
-                    final rel =
-                        MemoryService.instance.getRelationshipState(persona.id);
-
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      color: context.bgSurface,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: context.borderSubtle),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  radius: 20,
-                                  backgroundColor: context.bgElevated,
-                                  child: Text(
-                                    persona.name[0].toUpperCase(),
-                                    style: TextStyle(
-                                      color: context.textPrimary,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            persona.name,
-                                            style: TextStyle(
-                                              color: context.textPrimary,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: persona.isCurated
-                                                  ? context.accentSubtle
-                                                  : context.bgElevated,
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              persona.isCurated
-                                                  ? 'BUILT-IN'
-                                                  : 'CUSTOM',
-                                              style: TextStyle(
-                                                color: persona.isCurated
-                                                    ? context.accent
-                                                    : context.textMuted,
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        persona.tagline,
-                                        style: TextStyle(
-                                          color: context.textSecondary,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                ValueListenableBuilder<Persona>(
-                                  valueListenable: PersonaService
-                                      .instance.activePersonaNotifier,
-                                  builder: (context, activeP, _) {
-                                    final isActive = activeP.id == persona.id;
-                                    if (isActive) {
-                                      return Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: context.statusOnline
-                                              .withAlpha(25),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          border: Border.all(
-                                              color: context.statusOnline
-                                                  .withAlpha(80)),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(Icons.check_circle,
-                                                size: 12,
-                                                color: context.statusOnline),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              'ACTIVE',
-                                              style: TextStyle(
-                                                color: context.statusOnline,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }
-                                    return OutlinedButton(
-                                      style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 4),
-                                        minimumSize: Size.zero,
-                                        tapTargetSize:
-                                            MaterialTapTargetSize.shrinkWrap,
-                                        side: BorderSide(
-                                            color: context.borderSubtle),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      onPressed: () => PersonaService.instance
-                                          .setActivePersona(persona.id),
-                                      child: Text(
-                                        'Set Active',
-                                        style: TextStyle(
-                                          color: context.accent,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                if (!persona.isCurated) ...[
-                                  const SizedBox(width: 4),
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                    icon: Icon(Icons.delete_outline,
-                                        size: 18, color: context.statusDanger),
-                                    onPressed: () => PersonaService.instance
-                                        .deleteCustomPersona(persona.id),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              persona.description,
-                              style: TextStyle(
-                                color: context.textPrimary,
-                                fontSize: 13,
-                                height: 1.4,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 4,
-                              children: persona.tags.map((tag) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: context.bgElevated,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    '#$tag',
-                                    style: TextStyle(
-                                      color: context.textMuted,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                            const SizedBox(height: 14),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      Tooltip(
-                                        message:
-                                            'Trust increases as you chat. Higher trust unlocks more personalized responses.',
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: rel.trustLevel >= 8
-                                                ? Colors.amber.withAlpha(30)
-                                                : context.accentSubtle,
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            border: Border.all(
-                                              color: rel.trustLevel >= 8
-                                                  ? Colors.amber.withAlpha(80)
-                                                  : context.accent
-                                                      .withAlpha(50),
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                Icons.handshake_outlined,
-                                                size: 14,
-                                                color: rel.trustLevel >= 8
-                                                    ? Colors.amber.shade400
-                                                    : context.accent,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                'Trust: ${rel.trustLevel}/10',
-                                                style: TextStyle(
-                                                  color: rel.trustLevel >= 8
-                                                      ? Colors.amber.shade400
-                                                      : context.accent,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: context.bgElevated,
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                        child: Text(
-                                          'Mood: ${rel.mood}',
-                                          style: TextStyle(
-                                            color: context.textSecondary,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                if (persona.id == 'exeter') ...[
-                                  OutlinedButton.icon(
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 6),
-                                      minimumSize: const Size(0, 36),
-                                      side: BorderSide(
-                                          color: context.accent.withAlpha(80)),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    icon: Icon(Icons.school_outlined,
-                                        size: 15, color: context.accent),
-                                    label: Text(
-                                      'Campus Live',
-                                      style: TextStyle(
-                                        color: context.accent,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    onPressed: () =>
-                                        ExeterCampusSheet.show(context),
-                                  ),
-                                  const SizedBox(width: 6),
-                                ],
-                                IconButton.filled(
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: context.accent,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.all(10),
-                                    minimumSize: const Size(38, 38),
-                                  ),
-                                  icon: const Icon(
-                                      Icons.chat_bubble_outline_rounded,
-                                      size: 18),
-                                  tooltip: 'Chat with ${persona.name}',
-                                  onPressed: () async {
-                                    final conv = await ChatService.instance
-                                        .startPersonaConversation(persona);
-                                    if (context.mounted) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => ConversationScreen(
-                                            conversationId: conv.id,
-                                            title: conv.title,
-                                            isAi: true,
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                  itemBuilder: (context, idx) =>
+                      _buildPersonaCard(filtered[idx]),
                 );
               },
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPersonaCard(Persona persona) {
+    final rel = MemoryService.instance.getRelationshipState(persona.id);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: context.bgSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: context.borderSubtle),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: context.bgElevated,
+                  child: Text(
+                    persona.name[0].toUpperCase(),
+                    style: TextStyle(
+                      color: context.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            persona.name,
+                            style: TextStyle(
+                              color: context.textPrimary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: persona.isCurated
+                                  ? context.accentSubtle
+                                  : context.bgElevated,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              persona.isCurated ? 'BUILT-IN' : 'CUSTOM',
+                              style: TextStyle(
+                                color: persona.isCurated
+                                    ? context.accent
+                                    : context.textMuted,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        persona.tagline,
+                        style: TextStyle(
+                          color: context.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ValueListenableBuilder<Persona>(
+                  valueListenable:
+                      PersonaService.instance.activePersonaNotifier,
+                  builder: (context, activeP, _) {
+                    final isActive = activeP.id == persona.id;
+                    if (isActive) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: context.statusOnline.withAlpha(25),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: context.statusOnline.withAlpha(80)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.check_circle,
+                                size: 12, color: context.statusOnline),
+                            const SizedBox(width: 4),
+                            Text(
+                              'ACTIVE',
+                              style: TextStyle(
+                                color: context.statusOnline,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        side: BorderSide(color: context.borderSubtle),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () => PersonaService.instance
+                          .setActivePersona(persona.id),
+                      child: Text(
+                        'Set Active',
+                        style: TextStyle(
+                          color: context.accent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                if (!persona.isCurated) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: Icon(Icons.delete_outline,
+                        size: 18, color: context.statusDanger),
+                    onPressed: () => PersonaService.instance
+                        .deleteCustomPersona(persona.id),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              persona.description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: context.textPrimary,
+                fontSize: 13,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 10),
+            if (persona.ragApis.isNotEmpty) ...[
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: persona.ragApis.map((api) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: context.accentSubtle,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: context.accent.withAlpha(60),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.verified_rounded,
+                          size: 11,
+                          color: context.accent,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'RAG: $api',
+                          style: TextStyle(
+                            color: context.accent,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 8),
+            ],
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: persona.tags.map((tag) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: context.bgElevated,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '#$tag',
+                    style: TextStyle(
+                      color: context.textMuted,
+                      fontSize: 11,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Tooltip(
+                        message:
+                            'Trust increases as you chat. Higher trust unlocks more personalized responses.',
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: rel.trustLevel >= 8
+                                ? Colors.amber.withAlpha(30)
+                                : context.accentSubtle,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: rel.trustLevel >= 8
+                                  ? Colors.amber.withAlpha(80)
+                                  : context.accent.withAlpha(50),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.handshake_outlined,
+                                size: 14,
+                                color: rel.trustLevel >= 8
+                                    ? Colors.amber.shade400
+                                    : context.accent,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Trust: ${rel.trustLevel}/10',
+                                style: TextStyle(
+                                  color: rel.trustLevel >= 8
+                                  ? Colors.amber.shade400
+                                  : context.accent,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: context.bgElevated,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Mood: ${rel.mood}',
+                            style: TextStyle(
+                              color: context.textSecondary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (persona.id == 'exeter') ...[
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      minimumSize: const Size(0, 36),
+                      side: BorderSide(color: context.accent.withAlpha(80)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    icon: Icon(Icons.school_outlined,
+                        size: 15, color: context.accent),
+                    label: Text(
+                      'Campus Live',
+                      style: TextStyle(
+                        color: context.accent,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    onPressed: () => ExeterCampusSheet.show(context),
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 6),
+                    minimumSize: const Size(0, 36),
+                    side: BorderSide(color: context.accent.withAlpha(80)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: Icon(Icons.public_rounded,
+                      size: 15, color: context.accent),
+                  label: Text(
+                    'Live RAG',
+                    style: TextStyle(
+                      color: context.accent,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  onPressed: () => RagLiveSheet.show(
+                    context,
+                    persona: persona,
+                    onStartChat: () async {
+                      final conv = await ChatService.instance
+                          .startPersonaConversation(persona);
+                      if (!mounted) return;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ConversationScreen(
+                            conversationId: conv.id,
+                            title: conv.title,
+                            isAi: true,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 6),
+                IconButton.filled(
+                  style: IconButton.styleFrom(
+                    backgroundColor: context.accent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.all(10),
+                    minimumSize: const Size(38, 38),
+                  ),
+                  icon: const Icon(Icons.chat_bubble_outline_rounded,
+                      size: 18),
+                  tooltip: 'Chat with ${persona.name}',
+                  onPressed: () async {
+                    final conv = await ChatService.instance
+                        .startPersonaConversation(persona);
+                    if (!mounted) return;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ConversationScreen(
+                          conversationId: conv.id,
+                          title: conv.title,
+                          isAi: true,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

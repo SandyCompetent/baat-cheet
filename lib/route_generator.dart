@@ -13,25 +13,50 @@ const String personaHubRoute = '/PersonaHub';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
-    switch (settings.name) {
+    final rawName = settings.name ?? '/';
+    final normalizedPath = Uri.tryParse(rawName)?.path ?? rawName;
+
+    switch (normalizedPath) {
+      case '/':
+      case '':
+      case '/index.html':
+      case homeRoute:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const MyHomePage(),
+        );
+
       case splashRoute:
-        return MaterialPageRoute(builder: (_) => const SplashScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const SplashScreen(),
+        );
 
       case loginRoute:
-        return MaterialPageRoute(builder: (_) => const UnifiedAuthScreen());
-
-      case homeRoute:
-        return MaterialPageRoute(builder: (_) => const MyHomePage());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const UnifiedAuthScreen(),
+        );
 
       case converRoute:
-        return MaterialPageRoute(builder: (_) => const ConversationScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const ConversationScreen(),
+        );
 
       case personaHubRoute:
-        return MaterialPageRoute(builder: (_) => const PersonaHubScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const PersonaHubScreen(),
+        );
 
       default:
+        // Never return an empty SizedBox.shrink() screen on Web when a browser
+        // URL includes an unexpected path or subpath; fall back to MyHomePage.
         return MaterialPageRoute(
-            builder: (_) => const Scaffold(body: SizedBox.shrink()));
+          settings: settings,
+          builder: (_) => const MyHomePage(),
+        );
     }
   }
 }

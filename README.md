@@ -1,29 +1,37 @@
-# ChatBud — Stateful Multi-Agent Workspace & Persona Hub
+# ChatBud — Stateful Multi-Agent Workspace & Grounded RAG Platform
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.33+-02569B?logo=flutter)](https://flutter.dev)
-[![Firebase AI](https://img.shields.io/badge/Firebase%20AI-Gemini%203.x-FFA000?logo=firebase)](https://firebase.google.com/docs)
-[![Tests](https://img.shields.io/badge/Tests-101%20Passed-10B981)](#testing)
+[![Firebase AI](https://img.shields.io/badge/Firebase%20AI-Gemini%202.5%20%2F%202.0-FFA000?logo=firebase)](https://firebase.google.com/docs)
+[![Grounded RAG](https://img.shields.io/badge/RAG-Public%20APIs%20%2B%20Citations-10B981)](#grounded-rag-engine)
+[![Tests](https://img.shields.io/badge/Tests-159%20Passed-10B981)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F46E5.svg)](LICENSE)
 
 **ChatBud** is a production-grade, stateful multi-agent messaging workspace built with **Flutter**, **Firebase AI (`firebase_ai`)**, and a **100% free serverless architecture**.
 
-Going beyond standard single-turn LLM wrappers, ChatBud features an **Open-Source Persona Hub**, an **on-device Two-Layer Memory Engine** powered by vector cosine similarity, **Dynamic Relationship & Mood States**, and **Multi-Agent Group Channels**.
+Going beyond standard single-turn LLM wrappers, ChatBud features an **on-device Grounded RAG Engine** powered by live public APIs with verified inline citations, an **Open-Source Persona Hub (16 curated agents)**, **Exeter Academic Agent with Campus Live Hub**, **Bring Your Own Key (BYOK) Gemini Model Selection**, **Two-Layer Vector Memory**, and **Desktop & Mobile Web responsive layouts**.
+
+![ChatBud Multi-Agent Showcase](portfolio/portfolio.png)
 
 ---
 
-## 👥 Quick-Start for Non-Technical Users (HR, Recruiters, Managers)
+## 🌐 Instant Live Demos & Downloads
 
-You do **not** need to install Flutter, Android Studio, or any developer tools to experience ChatBud:
+1. **🌐 Web Application**: Open **[https://chatbud-official.web.app](https://chatbud-official.web.app)** in any desktop or mobile browser.
+2. **📱 Android APK**: Download the latest release from [GitHub Releases](https://github.com/Sandip-Zanzrukia/chatbud/releases).
+3. **💻 Portfolio Showcase**: View the interactive showcase website in `portfolio/index.html` (light mode) and `portfolio/index.dark.html` (dark mode).
+4. **🚀 Zero-Login Guest Mode**: Start chatting immediately with zero registration or credentials required.
 
-1. **🌐 Instant Live Web Demo**: Open **[https://chatbud-official.web.app](https://chatbud-official.web.app)** in your browser (Safari, Chrome, Edge).
-2. **🚀 Instant Guest Mode**: Start chatting immediately with zero registration or login required.
-3. **🎯 Real-World Scenarios to Try Right Now**:
-   - **Mock Interview Practice**: Select **Harper**, tap *"Conduct a behavioral mock interview for a Product Manager"*, and practice answering with the STAR method.
-   - **Drafting Job Descriptions**: Ask Harper to *"Draft an inclusive job description for a Senior Talent Partner"*.
-   - **Executive Communication**: Select **Aria**, tap *"Polish this draft email to leadership requesting budget"*.
-   - **Resume Enhancement**: Select **Leo**, tap *"Rewrite this resume bullet point to highlight measurable impact"*.
-   - **1-Tap Templates**: Open the **Persona Hub**, tap **+**, and tap any 1-tap preset (`[🎯 HR Recruiter]`, `[⚡ Executive Assistant]`, `[📄 Resume Coach]`, `[✍️ Copywriter]`) to instantly create a tailored AI agent without prompt engineering.
-   - **Export Deliverables**: Tap the **Export icon** (`Share`) in the top right of any chat to copy your conversation transcript as clean plain text or Markdown directly into Slack, Google Docs, or Notion.
+---
+
+## 📸 Desktop & Mobile Experience
+
+| Desktop Navigation Rail & Grounded Chat | Mobile Grounded Chat & Citations |
+| :---: | :---: |
+| ![Desktop Chat](screenshots/desktop-chatbud.png) | ![Mobile Chat](screenshots/message-chatbud.png) |
+
+| Responsive Persona Hub Grid | Local Vector Memory Vault |
+| :---: | :---: |
+| ![Desktop Persona Hub](screenshots/desktop-personas.png) | ![Memory Vault](screenshots/memory-chatbud.png) |
 
 ---
 
@@ -32,25 +40,27 @@ You do **not** need to install Flutter, Android Studio, or any developer tools t
 ```
                       ┌──────────────────────────────────────┐
                       │          ChatBud Flutter App         │
-                      │     (Soft Minimalist Slate UI)       │
+                      │   (Desktop Rail & Mobile App Bar)    │
                       └──────────────────┬───────────────────┘
                                          │
              ┌───────────────────────────┼───────────────────────────┐
              ▼                           ▼                           ▼
   ┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
-  │   PersonaService    │     │    MemoryService    │     │   GeminiService     │
-  │ • Curated Personas  │     │ • Working Context   │     │ • Firebase AI SDK   │
-  │ • 1-Tap Presets     │     │ • Pure Dart Cosine  │     │ • gemini-3.1-lite   │
-  │ • Category Filtering│     │ • Episodic Retrieval│     │ • gemini-3.8-flash  │
+  │   PersonaService    │     │ PublicApiRagService │     │    MemoryService    │
+  │ • 16 Curated Agents │     │ • Frankfurter FX    │     │ • Working Context   │
+  │ • Exeter Academic   │     │ • Open-Meteo Weather│     │ • Pure Dart Cosine  │
+  │ • 1-Tap Presets     │     │ • APILayer Keys     │     │ • Episodic Vault    │
   └──────────┬──────────┘     └──────────┬──────────┘     └──────────┬──────────┘
              │                           │                           │
              └───────────────────────────┼───────────────────────────┘
                                          ▼
                       ┌──────────────────────────────────────┐
                       │             ChatService              │
-                      │ • Dynamic Prompt Injection           │
+                      │ • Live RAG Prompt Grounding          │
+                      │ • Dynamic Citation Source Badges     │
+                      │ • BYOK Gemini 2.5 / 2.0 / 1.5 Switch │
                       │ • Group @Persona Mentions            │
-                      │ • Firestore + Offline Fallback       │
+                      │ • Firestore + Local Offline Cache    │
                       └──────────────────────────────────────┘
 ```
 
@@ -58,48 +68,55 @@ You do **not** need to install Flutter, Android Studio, or any developer tools t
 
 ## Standout Features
 
-### 1. Open-Source Persona Hub
-- **Curated Multi-Agent Roster**:
-  - **Harper** (HR & Talent Coach): Behavioral STAR mock interviews, candidate scorecards, competitive job descriptions.
-  - **Aria** (Workplace Productivity Assistant): Executive email polish, meeting agendas, action items, executive summaries.
-  - **Leo** (Career & Resume Advisor): High-impact resume rewriting, promotion strategy, salary negotiation.
-  - **Athena** (Senior System Architect): Scalable distributed systems, design patterns, clean architecture.
-  - **Cipher** (Cybersecurity & AppSec Specialist): Threat modeling, vulnerability auditing, OWASP/App Check guardian.
-  - **Marcus** (Stoic Philosopher & Executive Coach): Perspective shifting, resilience, decision-making under high pressure.
-  - **Nova** (Creative Brand Strategist & Storyteller): Compelling hooks, copywriting, brand identity.
-  - **Exeter Academic** (University of Exeter Study Assistant): Academic paper summaries, study plans, step-by-step explanations, and live Exeter Campus Data (Open-Meteo weather, Stagecoach 4/4A bus schedule insights, and Forum / St Luke's library occupancy).
-- **1-Tap Preset Persona Authoring**: Tap any role template (HR Recruiter, Executive Assistant, Copywriter, Customer Support, Academic Tutor) to instantly generate personas without writing prompt code.
-- **Dynamic Starter Chips**: Context-aware suggested prompts displayed above the composer and in empty chat states to eliminate "blank page" syndrome.
-- **Transcript Export**: Export any conversation transcript to the clipboard as formatted plain text or Markdown for immediate workplace use.
+### 1. Grounded RAG Engine with Live Public APIs & Citations
+- **Zero-Hallucination External Grounding**: Connects directly to verified public APIs before response synthesis.
+- **Supported Live Data Sources**:
+  - **Foreign Exchange & Currency**: Real-time European Central Bank rates via Frankfurter and high-volume APILayer conversion.
+  - **Global Weather**: Live temperatures, humidity, wind conditions, and forecasts via Open-Meteo.
+  - **Reference & Knowledge**: Verified word origins and definitions, nutritional facts via Open Food Facts, and web search summaries.
+- **Visual Citation Badges**: Messages grounded with external API data display clear source badges with timestamp verification directly in the message bubble.
 
-### 2. Two-Layer Memory Engine (100% Free Tier)
+### 2. Exeter Academic Agent & Campus Live Sheet
+- **University of Exeter Study Companion**: Designed specifically for Exeter students and academic staff.
+- **Interactive Campus Live Sheet**: Access real-time Streatham & St Luke's campus navigation, Forum Library 24/7 hours and book catalogue, Guild society directories, and exam study schedules.
+
+### 3. Open-Source Persona Hub (16 Curated Agents)
+- **Comprehensive Persona Roster**:
+  - **Grounded RAG Expert**: Live external data lookups with citations.
+  - **Exeter Academic**: Campus live sheet, research papers, and study schedules.
+  - **Harper**: HR & Talent Coach for behavioral mock interviews and job specs.
+  - **Aria**: Workplace Executive Assistant for email drafting and agenda synthesis.
+  - **Leo**: Career & Resume Coach for high-impact metric rewrites.
+  - **Athena**: Senior System Architect for clean software architectures.
+  - **Cipher**: Application Security & threat modeling specialist.
+  - **Marcus**: Stoic Philosopher for leadership resilience.
+  - **Nova**: Creative Brand Strategist & Storyteller.
+  - Plus 7 additional tailored agents across Finance, Translation, Nutrition, Health, and Coding.
+- **1-Tap Preset Persona Authoring**: Tap any role template to instantly create custom agents without prompt engineering.
+- **Dynamic Starter Prompts**: Suggested quick-prompts displayed initially, automatically hidden once chat begins.
+- **Safe Message Generation**: Send button disables with a loading spinner while AI tokens stream to prevent race conditions.
+
+### 4. Desktop & Mobile Responsive Workspace
+- **Desktop (Viewport >= 840px)**:
+  - Persistent left **Navigation Rail** featuring Brand Logo, "New Chat" primary action, section items, active Gemini model pill, theme toggle, and connection status.
+  - **Centered distraction-free canvas** with `maxWidth` constraints (680px bubbles, 960px feed, 1140px Persona Grid).
+  - **Physical keyboard shortcuts**: <kbd>Enter</kbd> sends messages instantly, <kbd>Shift+Enter</kbd> creates a newline.
+  - **Multi-column GridView** for Persona cards on large screens.
+- **Mobile (Viewport < 840px)**:
+  - Touch-optimized bottom app bar with docked FAB, bottom sheets, and single-column feed.
+
+### 5. Two-Layer Memory Engine (100% Free Tier)
 - **Layer 1 (Working Context)**: Sliding multi-turn conversation history cached in memory and `StorageService` (`SharedPreferences`).
 - **Layer 2 (Episodic Long-Term Memory)**:
-  - **Client-Side Vector Search**: Every memory and query is embedded on-device with a deterministic, pure-Dart **feature-hashing term embedder** (unigrams + bigrams, L2-normalized), then ranked by cosine similarity — <1ms latency, \$0.00 cloud cost, no API keys, fully offline. This is a *lexical* embedding (robust term/phrase overlap), not a neural semantic embedding; retrieval also blends a keyword-overlap signal and a confidence/recency boost.
-  - **Fact Extraction & Hygiene**: Preferences, projects, and goals are captured automatically from conversation flows, de-duplicated on ingest, and capped (least-confident / least-recently-recalled evicted first) so the vault stays bounded and fast.
+  - **Pure-Dart Vector Search**: Lexical term embedder with L2-normalized cosine similarity (<1ms latency, $0.00 cloud cost, no API keys, fully offline).
+  - **Fact Extraction & Hygiene**: User preferences, projects, and goals are captured automatically and stored with confidence scores.
   - **Memory Vault UI**: Full user control to view, add, or delete recalled memories transparently.
 
-### 3. Dynamic Mood & Relationship State
-- Personas evolve based on interaction history:
-  - **Trust Level (1 to 10)**: Progresses with conversation depth.
-  - **Persona Mood**: Adapts dynamically (e.g. *Analytical*, *Supportive*, *Direct*, *Inspiring*).
-  - **Context-Injected Prompting**: System instructions seamlessly combine base behavior, recalled user facts, and relationship metrics.
-
-### 4. Multi-Agent Group Dynamics
-- Group channels support multi-persona collaboration.
-- Mentioning `@Athena`, `@Cipher`, `@Marcus`, or `@Nova` orchestrates autonomous turns, allowing different personas to debate and advise on complex topics.
-
-### 5. Hybrid AI Engine: Default Firebase AI (`firebase_ai`) + Bring Your Own Key (BYOK)
-- **Live Out-of-the-Box (Default)**: Connects via Google's modern Gemini 3.x developer stack (`gemini-3.1-flash-lite` and `gemini-3.8-flash`) with a 100% free serverless tier — no configuration required.
-- **Bring Your Own API Key (BYOK)**: Optionally configure your own Gemini API key in **Profile → AI Configuration** (or via `--dart-define=API_KEY=...` at build time) to route through `google_generative_ai` using your own quota.
-- **Dynamic Gemini Model Discovery & Selector**: Switch between built-in models (`gemini-3.1-flash-lite`, `gemini-3.8-flash`, `gemini-2.5-flash`, `gemini-2.5-pro`) or click **Fetch Available Models** with your API key to load all text-capable Gemini models directly from Google's API.
-- **Automated Android APK Releases**: GitHub Actions builds and publishes `app-debug.apk` to the `latest` GitHub Release on every push to `main`, with a 1-tap download card inside **Profile → About & Downloads**.
-
-### 6. Production Security & Offline Resilience
-- Hardened `firestore.rules` for authenticated users.
-- Guest and unauthenticated chat operates completely offline with zero `PERMISSION_DENIED` errors.
-- App Store & Google Play UGC compliance: user blocking and abuse reporting workflows.
-- Soft Minimalist Slate theme with accessible color tokens (`SlateTokens`).
+### 6. Hybrid AI Engine: Firebase AI + Bring Your Own Key (BYOK)
+- **Live Out-of-the-Box**: Powered by Google's Gemini 2.5 / 2.0 developer stack with a 100% free serverless tier.
+- **Bring Your Own Gemini Key**: Configure your own Google AI Studio API key in **Profile → AI Configuration** to route with custom quotas.
+- **Model Selector**: Switch dynamically between `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-pro`, or `gemini-1.5-flash`.
+- **APILayer Key Integration**: Input your APILayer key in settings to unlock high-volume currency conversion and financial tools.
 
 ---
 
@@ -107,22 +124,21 @@ You do **not** need to install Flutter, Android Studio, or any developer tools t
 
 ```text
 lib/
-├── main.dart                      # App entry point, theme mode, and tabs
+├── main.dart                      # App entry point, desktop navigation rail, and tabs
 ├── route_generator.dart           # Declarative named routes
 ├── theme_data.dart                # Soft Minimalist Slate design system
 ├── project_meta_data.dart         # App metadata and branding constants
 └── src/
     ├── models/
-    │   ├── chat_message.dart      # Chat messages with status and bookmarks
+    │   ├── chat_message.dart      # Chat messages with status and RAG citations
     │   ├── conversation.dart      # Conversation metadata with personaId support
-    │   ├── group_chat.dart        # Group channels with membership counts
-    │   ├── persona.dart           # Persona schema with curated presets
+    │   ├── persona.dart           # Persona schema with 16 curated presets
     │   ├── relationship_state.dart# Trust levels, mood, and interaction counters
     │   └── user_memory.dart       # Episodic facts with vector embeddings
     ├── services/
-    │   ├── chat_service.dart      # Real-time message streaming & @mention router
-    │   ├── gemini_service.dart    # Firebase AI SDK integration
-    │   ├── group_service.dart     # Firestore-backed group management
+    │   ├── chat_service.dart      # Real-time message streaming & RAG grounding router
+    │   ├── public_api_rag_service.dart # Real-time public API integrations & APILayer
+    │   ├── gemini_service.dart    # Firebase AI & BYOK Gemini generative engine
     │   ├── memory_service.dart    # On-device cosine similarity & memory retrieval
     │   └── persona_service.dart   # Persona hub repository & active agent state
     ├── core/
@@ -130,26 +146,25 @@ lib/
     │   └── storage_service.dart   # Offline persistence with SharedPreferences
     └── screen/
         ├── message_page.dart      # Primary chat feed with search and filter chips
-        ├── persona_hub_screen.dart# Persona catalog, creation modal & memory vault
+        ├── persona_hub_screen.dart# Persona catalog, responsive GridView, creation modal
         ├── conversation_screen.dart# Real-time token streaming chat interface
-        ├── group_page.dart        # Group discovery and creation
-        ├── list_page.dart         # Saved / bookmarked messages
-        ├── contact_page.dart      # Profile, theme toggles, and legal dialogs
-        └── splash_screen.dart     # Brand intro
-test/                              # 101 unit and widget tests
+        ├── memory_page.dart       # Local Vector Memory Vault
+        └── contact_page.dart      # Profile, BYOK Gemini settings, APILayer key, theme
+test/                              # 159 automated unit and widget tests
+portfolio/                         # Responsive portfolio website (light & dark)
 ```
 
 ---
 
 ## Testing
 
-ChatBud includes a comprehensive test suite with **101 automated tests**:
+ChatBud includes a comprehensive test suite with **159 automated tests**:
 
 ```bash
-# Run all tests
+# Run all unit and widget tests
 flutter test
 
-# Run code analysis
+# Run code static analysis
 flutter analyze
 ```
 
@@ -159,7 +174,7 @@ flutter analyze
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/SandyCompetent/chatbud.git
+   git clone https://github.com/Sandip-Zanzrukia/chatbud.git
    cd chatbud
    ```
 
@@ -170,11 +185,16 @@ flutter analyze
 
 3. **Run on your device or browser**:
    ```bash
-   # Run on Chrome
+   # Run on Chrome Web
    flutter run -d chrome
 
-   # Run on Android / iOS
+   # Run on Android or iOS
    flutter run
+   ```
+
+4. **Build for Web Release**:
+   ```bash
+   flutter build web --release
    ```
 
 ---

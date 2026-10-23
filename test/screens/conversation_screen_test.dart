@@ -1,6 +1,7 @@
 import 'package:chatbud/route_generator.dart';
 import 'package:chatbud/src/core/storage_service.dart';
 import 'package:chatbud/src/screen/conversation_screen.dart';
+import 'package:chatbud/src/services/chat_service.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -162,17 +163,24 @@ void main() {
     });
 
     testWidgets(
-        'Suggested reply chips fill the text input on tap when messages exist',
+        'Suggested prompts are hidden once the chat has started (no bottom suggestion chips)',
         (tester) async {
       await tester.pumpWidget(
         buildApp(
           const ConversationScreen(
-            conversationId: 'ai_assistant_test_suggestions',
-            title: 'AI Assistant',
+            conversationId: 'ai_persona_aria',
+            title: 'Aria',
             isAi: true,
           ),
         ),
       );
+      await tester.pumpAndSettle();
+
+      const starterPrompt =
+          '✉️ Polish this draft email to leadership requesting budget';
+
+      // Before sending a message, starter prompt is visible in empty state
+      expect(find.text(starterPrompt), findsOneWidget);
 
       // Send initial message
       await tester.enterText(find.byType(TextField), 'Hello AI');
@@ -181,19 +189,54 @@ void main() {
           warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      // Check for contextual suggestion chip
-      final suggestionFinder = find.byType(ActionChip);
-      if (suggestionFinder.evaluate().isNotEmpty) {
-        final chipText =
-            (tester.widget(suggestionFinder.first) as ActionChip).label;
-        if (chipText is Text && chipText.data != null) {
-          final prompt = chipText.data!;
-          await tester.tap(suggestionFinder.first);
-          await tester.pumpAndSettle();
+      // After chat starts, starter prompts and bottom suggestion chips are hidden
+      expect(find.text(starterPrompt), findsNothing);
+      expect(find.byType(ActionChip), findsNothing);
+    });
 
-          expect(find.widgetWithText(TextField, prompt), findsOneWidget);
-        }
-      }
+    testWidgets(
+        'Disables send button and shows loading indicator while AI message is generating',
+        (tester) async {
+      const convId = 'ai_assistant_test_generating';
+      await tester.pumpWidget(
+        buildApp(
+          const ConversationScreen(
+            conversationId: convId,
+            title: 'AI Assistant',
+            isAi: true,
+          ),
+        ),
+      );
+
+      // Simulate active AI generation for this conversation
+      ChatService.instance.generatingConversationsNotifier.value = {convId};
+      await tester.pump();
+
+      // Send arrow icon is replaced with loading indicator
+      expect(find.byIcon(Icons.arrow_upward_rounded), findsNothing);
+      expect(
+        find.byKey(const ValueKey('send_loading_indicator')),
+        findsOneWidget,
+      );
+
+      // Attempting to type and tap the loading send button does not send a message
+      await tester.enterText(find.byType(TextField), 'Blocked while loading');
+      await tester.pump();
+      await tester.tap(
+        find.byKey(const ValueKey('send_loading_indicator')),
+        warnIfMissed: false,
+      );
+      await tester.pump();
+
+      expect(
+        ChatService.instance.getMessagesNotifier(convId).value,
+        isEmpty,
+      );
+
+      // Once generation completes, send arrow icon is restored
+      ChatService.instance.generatingConversationsNotifier.value = {};
+      await tester.pump();
+      expect(find.byIcon(Icons.arrow_upward_rounded), findsOneWidget);
     });
   });
 }

@@ -6,7 +6,7 @@ void main() {
     test('Curated personas are preloaded with expected IDs and starter prompts',
         () {
       final curated = Persona.curatedPersonas;
-      expect(curated.length, 8);
+      expect(curated.length, 16);
       final ids = curated.map((p) => p.id).toSet();
       expect(ids.contains('harper'), true);
       expect(ids.contains('aria'), true);
@@ -16,6 +16,14 @@ void main() {
       expect(ids.contains('marcus'), true);
       expect(ids.contains('nova'), true);
       expect(ids.contains('exeter'), true);
+      expect(ids.contains('openalex_rag'), true);
+      expect(ids.contains('osv_rag'), true);
+      expect(ids.contains('eol_rag'), true);
+      expect(ids.contains('jobs_rag'), true);
+      expect(ids.contains('weather_rag'), true);
+      expect(ids.contains('wiki_rag'), true);
+      expect(ids.contains('lexicon_rag'), true);
+      expect(ids.contains('holiday_rag'), true);
 
       for (final p in curated) {
         expect(p.isCurated, true);
@@ -24,6 +32,7 @@ void main() {
         expect(p.systemPrompt.isNotEmpty, true);
         expect(p.tags.isNotEmpty, true);
         expect(p.starterPrompts.isNotEmpty, true);
+        expect(p.ragApis.isNotEmpty, true);
       }
     });
 

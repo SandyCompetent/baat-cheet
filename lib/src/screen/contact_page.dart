@@ -4,6 +4,7 @@ import 'package:chatbud/src/core/app_state.dart';
 import 'package:chatbud/src/core/avatar_helper.dart';
 import 'package:chatbud/src/services/chat_service.dart';
 import 'package:chatbud/src/services/gemini_service.dart';
+import 'package:chatbud/src/services/public_api_rag_service.dart';
 import 'package:chatbud/src/widgets/legal_dialog.dart';
 import 'package:chatbud/theme_data.dart';
 import 'package:flutter/material.dart';
@@ -19,17 +20,22 @@ class ContactPage extends StatefulWidget {
 
 class _ContactPageState extends State<ContactPage> {
   late final TextEditingController _apiKeyCtrl;
+  late final TextEditingController _publicApiKeyCtrl;
   bool _obscureApiKey = true;
+  bool _obscurePublicApiKey = true;
 
   @override
   void initState() {
     super.initState();
     _apiKeyCtrl = TextEditingController(text: GeminiService.instance.apiKey);
+    _publicApiKeyCtrl =
+        TextEditingController(text: PublicApiRagService.instance.apiKey);
   }
 
   @override
   void dispose() {
     _apiKeyCtrl.dispose();
+    _publicApiKeyCtrl.dispose();
     super.dispose();
   }
 
@@ -475,6 +481,104 @@ class _ContactPageState extends State<ContactPage> {
               }
             },
           ),
+          const SizedBox(height: 18),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Icon(Icons.hub_rounded, color: context.accent, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Public APIs / APILayer Key (Grounded RAG)',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimary,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: PublicApiRagService.instance.hasCustomApiKey
+                      ? context.accentSubtle
+                      : context.statusOnline.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  PublicApiRagService.instance.hasCustomApiKey
+                      ? 'APILayer Key Active'
+                      : 'Zero-Auth Active',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: PublicApiRagService.instance.hasCustomApiKey
+                        ? context.accent
+                        : context.statusOnline,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Grounded RAG agents work out-of-the-box with zero-auth public APIs (OpenAlex, OSV, EndOfLife, Open-Meteo). Paste your APILayer key here to authenticate APILayer endpoints.',
+            style: TextStyle(
+              fontSize: 12,
+              color: context.textSecondary,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _publicApiKeyCtrl,
+            obscureText: _obscurePublicApiKey,
+            style: TextStyle(color: context.textPrimary, fontSize: 14),
+            decoration: InputDecoration(
+              labelText: 'APILayer / Public API Key',
+              hintText: 'Enter APILayer key (optional)...',
+              prefixIcon: Icon(Icons.vpn_key_outlined, color: context.accent),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: _obscurePublicApiKey
+                        ? 'Show APILayer Key'
+                        : 'Hide APILayer Key',
+                    icon: Icon(
+                      _obscurePublicApiKey
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 18,
+                      color: context.textMuted,
+                    ),
+                    onPressed: () {
+                      setState(
+                          () => _obscurePublicApiKey = !_obscurePublicApiKey);
+                    },
+                  ),
+                  if (PublicApiRagService.instance.hasCustomApiKey)
+                    IconButton(
+                      tooltip: 'Clear APILayer Key',
+                      icon: Icon(
+                        Icons.clear_rounded,
+                        size: 18,
+                        color: context.textMuted,
+                      ),
+                      onPressed: () {
+                        _publicApiKeyCtrl.clear();
+                        PublicApiRagService.instance.setApiKey('');
+                      },
+                    ),
+                ],
+              ),
+            ),
+            onChanged: (val) => PublicApiRagService.instance.setApiKey(val),
+          ),
         ],
       ),
     );
@@ -604,7 +708,11 @@ class _ContactPageState extends State<ContactPage> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([AppState.instance, GeminiService.instance]),
+      listenable: Listenable.merge([
+        AppState.instance,
+        GeminiService.instance,
+        PublicApiRagService.instance,
+      ]),
       builder: (context, _) {
         final state = AppState.instance;
         final gemini = GeminiService.instance;
@@ -716,9 +824,13 @@ class _ContactPageState extends State<ContactPage> {
                 ),
               ),
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 820),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
                     children: [
                       if (!state.isLoggedIn) ...[
                         Container(
@@ -843,9 +955,11 @@ class _ContactPageState extends State<ContactPage> {
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-        );
+        ],
+      ),
+    );
       },
     );
   }

@@ -125,9 +125,13 @@ class _MessagePageState extends State<MessagePage> {
           child: Divider(height: 1, color: context.borderSubtle),
         ),
       ),
-      body: ValueListenableBuilder<List<Conversation>>(
-        valueListenable: ChatService.instance.conversationsNotifier,
-        builder: (context, conversations, _) {
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 960),
+          child: ValueListenableBuilder<List<Conversation>>(
+            valueListenable: ChatService.instance.conversationsNotifier,
+            builder: (context, conversations, _) {
           final hasConversations = conversations.isNotEmpty;
 
           // Build dynamic list of filters from active chats: 'All' + distinct persona titles
@@ -301,6 +305,8 @@ class _MessagePageState extends State<MessagePage> {
           );
         },
       ),
-    );
+    ),
+  ),
+);
   }
 }

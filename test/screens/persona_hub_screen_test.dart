@@ -93,6 +93,31 @@ void main() {
 
       expect(find.text('Exeter Academic'), findsOneWidget);
       expect(find.text('Campus Live'), findsOneWidget);
+      expect(find.text('Live RAG'), findsWidgets);
+    });
+
+    testWidgets(
+        'Filtering by Grounded RAG category shows dedicated Grounded RAG Engine personas',
+        (tester) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Grounded RAG'), findsOneWidget);
+      await tester.tap(find.text('Grounded RAG'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dr. Alexia (OpenAlex RAG)'), findsOneWidget);
+      expect(find.text('Sentinel (Google OSV RAG)'), findsOneWidget);
+      expect(find.text('Live RAG'), findsWidgets);
+
+      // Tap Live RAG button to open the Grounded RAG Engine inspector sheet
+      await tester.tap(find.text('Live RAG').first);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Dr. Alexia (OpenAlex RAG) · Grounded RAG Engine'),
+        findsOneWidget,
+      );
     });
   });
 }
