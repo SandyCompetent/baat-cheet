@@ -7,6 +7,11 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+
+concurrency:
+  group: "ci-${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
   analyze-and-test:
@@ -43,9 +48,10 @@ jobs:
           if-no-files-found: ignore
 
   dart-analyzer:
+    name: Dart SARIF Security Scan
     runs-on: ubuntu-latest
     permissions:
-      security-events: write  # Required to upload SARIF results
+      security-events: write # Required to upload SARIF results
     steps:
       - name: Checkout
         uses: actions/checkout@v4

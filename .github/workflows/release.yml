@@ -4,22 +4,28 @@ on:
   push:
     tags:
       - 'v*' # Triggers when a tag like v1.0.0 is pushed
+  workflow_dispatch:
+
+permissions:
+  contents: write # Needed to create the release
+
+concurrency:
+  group: "release-${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
   build-and-release:
     name: Build and Release
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # Needed to create the release
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Set up Flutter
@@ -32,10 +38,10 @@ jobs:
         run: flutter pub get
 
       - name: Build Android APK
-        run: flutter build apk --release
+        run: flutter build apk --release --dart-define=API_KEY=${{ secrets.GEMINI_API_KEY }}
 
       - name: Build Web
-        run: flutter build web --release
+        run: flutter build web --release --dart-define=API_KEY=${{ secrets.GEMINI_API_KEY }}
 
       - name: Archive Web Build
         run: tar -czf chatbud-web-build.tar.gz -C build/web .
@@ -50,3 +56,5 @@ jobs:
           files: |
             build/app/outputs/flutter-apk/app-release.apk
             chatbud-web-build.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
