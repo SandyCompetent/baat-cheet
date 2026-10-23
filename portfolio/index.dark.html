@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBud — The Multi-Agent AI Workspace &amp; Grounded RAG Platform</title>
+    <meta name="description" content="Stateful multi-agent messaging workspace with Grounded RAG, 16 tailored personas, Exeter Academic Agent, BYOK Gemini models, on-device vector memory, and responsive desktop/mobile layouts.">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="ChatBud — The Multi-Agent AI Workspace & Grounded RAG Platform">
+    <meta property="og:description" content="Production-grade, stateful multi-agent messaging platform powered by Gemini, live public API grounding, Exeter campus hub, and vector memory.">
+    <meta property="og:image" content="portfolio.png">
+    <meta property="og:type" content="website">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Modern type: Space Grotesk for display, Inter for body -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe',
+                            300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6',
+                            600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a',
+                        },
+                        accent: { 400: '#22d3ee', 500: '#06b6d4' },
+                        violet: { 400: '#a78bfa', 500: '#8b5cf6' },
+                        ink: '#05070d',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root { color-scheme: dark; }
+        html, body { background: #05070d; }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            color: #cbd5e1;
+            overflow-x: hidden;
+        }
+        .font-display { font-family: 'Space Grotesk', 'Inter', sans-serif; letter-spacing: -0.02em; }
+
+        /* Aurora / mesh background */
+        .aurora { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .aurora::before, .aurora::after {
+            content: ''; position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.45;
+        }
+        .aurora::before {
+            width: 55vw; height: 55vw; top: -18vw; left: -10vw;
+            background: radial-gradient(circle at center, #3b82f6, transparent 65%);
+            animation: drift1 22s ease-in-out infinite alternate;
+        }
+        .aurora::after {
+            width: 48vw; height: 48vw; top: 8vw; right: -14vw;
+            background: radial-gradient(circle at center, #8b5cf6, transparent 65%);
+            animation: drift2 26s ease-in-out infinite alternate;
+        }
+        .aurora-cyan {
+            position: absolute; width: 40vw; height: 40vw; left: 25vw; top: 28vw;
+            background: radial-gradient(circle at center, #06b6d4, transparent 65%);
+            filter: blur(120px); opacity: 0.28; border-radius: 50%;
+            animation: drift3 30s ease-in-out infinite alternate;
+        }
+        @keyframes drift1 { to { transform: translate(8vw, 6vw) scale(1.1); } }
+        @keyframes drift2 { to { transform: translate(-6vw, 8vw) scale(1.08); } }
+        @keyframes drift3 { to { transform: translate(-10vw, -6vw) scale(1.12); } }
+
+        /* Fine grain noise overlay */
+        .grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.035; mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+        /* Grid texture inside hero */
+        .grid-lines {
+            background-image: linear-gradient(rgba(148,163,184,0.06) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(148,163,184,0.06) 1px, transparent 1px);
+            background-size: 56px 56px;
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 35%, #000 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 35%, #000 40%, transparent 100%);
+        }
+
+        /* Glass surfaces */
+        .glass {
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+        .glass-strong {
+            background: rgba(255,255,255,0.065);
+            border: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        .glass-hover { transition: transform .4s cubic-bezier(.2,.8,.2,1), border-color .4s, background .4s; }
+        .glass-hover:hover { transform: translateY(-5px); border-color: rgba(96,165,250,0.4); background: rgba(255,255,255,0.06); }
+
+        /* Gradient text */
+        .grad-text { background: linear-gradient(100deg,#60a5fa 0%,#22d3ee 45%,#a78bfa 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+        /* Glow ring behind phone */
+        .phone-glow::after {
+            content:''; position:absolute; inset:-12%; z-index:-1; border-radius:50%;
+            background: radial-gradient(circle, rgba(59,130,246,0.4), rgba(139,92,246,0.2) 45%, transparent 70%);
+            filter: blur(40px);
+        }
+
+        /* Device frame */
+        .device {
+            border: 8px solid #0f1526; border-radius: 2.75rem; background: #0b0f1a;
+            box-shadow: 0 40px 80px -20px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05), inset 0 0 0 1px rgba(255,255,255,0.04);
+        }
+        .notch { position:absolute; top:0; left:50%; transform:translateX(-50%); height:1.35rem; width:7rem; background:#0f1526; border-radius:0 0 1rem 1rem; z-index:20; }
+
+        /* Desktop browser frame */
+        .browser-frame {
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 1.25rem;
+            background: #0b0f1a;
+            box-shadow: 0 35px 80px -25px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+        .browser-topbar {
+            background: #0f1526;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 0.65rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .browser-dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; }
+
+        /* Button shimmer */
+        .btn-primary { position: relative; overflow: hidden; }
+        .btn-primary::before {
+            content:''; position:absolute; top:0; left:-120%; width:60%; height:100%;
+            background: linear-gradient(100deg, transparent, rgba(255,255,255,0.35), transparent);
+            transition: left .6s ease;
+        }
+        .btn-primary:hover::before { left: 140%; }
+
+        /* Marquee */
+        .marquee { display:flex; gap:3.5rem; width:max-content; animation: scrollx 28s linear infinite; }
+        @keyframes scrollx { to { transform: translateX(-50%); } }
+
+        /* Reveal on scroll */
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1); }
+        .reveal.in { opacity: 1; transform: none; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .aurora::before, .aurora::after, .aurora-cyan, .marquee { animation: none; }
+            .reveal { opacity: 1; transform: none; transition: none; }
+        }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #05070d; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 6px; border: 2px solid #05070d; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        ::selection { background: rgba(96,165,250,0.35); }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="aurora"><div class="aurora-cyan"></div></div>
+    <div class="grain"></div>
+
+    <!-- Navigation -->
+    <nav id="nav" class="fixed inset-x-0 top-0 z-50 transition-all duration-300">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+            <div id="navInner" class="flex items-center justify-between h-16 mt-3 rounded-2xl px-4 glass transition-all duration-300">
+                <a href="#top" class="flex items-center gap-3 group">
+                    <img src="assets/logo.png" alt="ChatBud" class="h-8 w-8 rounded-lg ring-1 ring-white/10 group-hover:ring-brand-400/50 transition">
+                    <div class="flex items-baseline gap-1.5">
+                        <span class="font-display font-bold text-lg tracking-tight text-white">ChatBud</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 border border-brand-500/30">RAG 2.0</span>
+                    </div>
+                </a>
+                <div class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-400">
+                    <a href="#features" class="hover:text-white transition">Features</a>
+                    <a href="#grounding" class="hover:text-white transition">Grounded RAG</a>
+                    <a href="#showcase" class="hover:text-white transition">Desktop &amp; Mobile</a>
+                    <a href="#tech" class="hover:text-white transition">Tech Stack</a>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="index.html" title="Switch to Light Mode" class="h-9 w-9 rounded-xl glass-strong grid place-items-center text-slate-300 hover:text-white transition">
+                        <i class="fas fa-sun text-xs text-amber-400"></i>
+                    </a>
+                    <a href="https://chatbud-official.web.app" target="_blank" rel="noopener"
+                       class="btn-primary inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-ink hover:bg-slate-100 transition shadow-lg shadow-brand-500/10">
+                        Launch App <i class="fas fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section id="top" class="relative z-10 pt-36 pb-24 lg:pt-44 lg:pb-28">
+        <div class="absolute inset-0 grid-lines"></div>
+        <div class="relative max-w-6xl mx-auto px-5 sm:px-8">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="text-center lg:text-left reveal">
+                    <div class="inline-flex items-center gap-2 rounded-full glass px-3.5 py-1.5 text-xs font-semibold text-brand-200 mb-7">
+                        <span class="relative flex h-2 w-2">
+                            <span class="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping"></span>
+                            <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+                        </span>
+                        v2.0 &middot; Grounded RAG &bull; Exeter Academic &bull; Desktop Navigation Rail
+                    </div>
+
+                    <h1 class="font-display text-5xl sm:text-6xl lg:text-[4.3rem] leading-[1.03] font-bold text-white mb-6">
+                        The multi-agent<br>
+                        <span class="grad-text">Grounded AI workspace.</span>
+                    </h1>
+
+                    <p class="text-lg text-slate-400 leading-relaxed mb-9 max-w-xl mx-auto lg:mx-0">
+                        A production-grade, stateful messaging platform powered by Gemini. Real-time RAG grounding with public APIs, 16 tailored personas, Exeter Academic campus hub, on-device vector memory, and responsive desktop/mobile workflows.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-3.5 justify-center lg:justify-start">
+                        <a href="https://chatbud-official.web.app" target="_blank" rel="noopener"
+                           class="btn-primary inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 px-7 py-3.5 text-base font-semibold text-white shadow-xl shadow-brand-500/30 hover:shadow-brand-500/50 transition">
+                            Launch live web app <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <a href="#grounding"
+                           class="inline-flex items-center justify-center gap-2 rounded-xl glass glass-hover px-7 py-3.5 text-base font-semibold text-white">
+                            See Grounded RAG
+                        </a>
+                    </div>
+
+                    <div class="mt-10 flex flex-wrap items-center gap-5 justify-center lg:justify-start text-xs font-medium text-slate-400">
+                        <div class="flex items-center gap-2"><i class="fas fa-bolt text-brand-400"></i> Zero-login guest mode</div>
+                        <div class="flex items-center gap-2"><i class="fas fa-network-wired text-emerald-400"></i> Live Public APIs &amp; Citations</div>
+                        <div class="flex items-center gap-2"><i class="fas fa-lock text-violet-400"></i> Local Vector Memory</div>
+                        <div class="flex items-center gap-2"><i class="fas fa-key text-accent-400"></i> BYOK Gemini 2.5 / 2.0</div>
+                    </div>
+                </div>
+
+                <!-- Hero phone -->
+                <div class="relative flex justify-center reveal" style="transition-delay:.15s">
+                    <div class="phone-glow relative device overflow-hidden max-w-[290px] w-full group">
+                        <div class="notch"></div>
+                        <div class="relative overflow-hidden bg-slate-900 aspect-[9/19] rounded-[2.1rem]">
+                            <img src="assets/screenshots/message-chatbud.png" alt="ChatBud chat interface with Grounded RAG citations"
+                                 class="w-full h-full object-cover object-top transition duration-700 group-hover:scale-[1.04]">
+                        </div>
+                    </div>
+
+                    <!-- Floating glass badge: Exeter Academic -->
+                    <div class="hidden sm:flex items-center gap-3 absolute -left-8 top-20 glass rounded-2xl p-3 pr-4 shadow-2xl">
+                        <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 grid place-items-center text-white font-bold">
+                            <i class="fas fa-graduation-cap text-base"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-white leading-tight">Exeter Academic</p>
+                            <p class="text-xs text-teal-300 font-medium">Campus RAG &bull; Verified</p>
+                        </div>
+                    </div>
+
+                    <!-- Floating glass badge: Live RAG Citation -->
+                    <div class="hidden sm:flex items-center gap-2.5 absolute -right-6 bottom-20 glass rounded-2xl p-3 pr-4 shadow-2xl">
+                        <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 grid place-items-center text-white">
+                            <i class="fas fa-link text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-white">APILayer &bull; Live Rate</p>
+                            <p class="text-[10px] text-brand-300">Source citation attached</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust / tech marquee -->
+    <section class="relative z-10 py-7 border-y border-white/5 overflow-hidden">
+        <div class="marquee text-slate-500 font-display font-medium text-base items-center">
+            <span><i class="fa-brands fa-flutter mr-2 text-brand-400"></i>Flutter 3.x Desktop &amp; Mobile</span>
+            <span><i class="fas fa-robot mr-2 text-accent-400"></i>Gemini 2.5 Flash / 2.0</span>
+            <span><i class="fas fa-network-wired mr-2 text-emerald-400"></i>Grounded RAG Engine</span>
+            <span><i class="fas fa-graduation-cap mr-2 text-teal-400"></i>Exeter Academic Campus Hub</span>
+            <span><i class="fas fa-users-gear mr-2 text-violet-400"></i>16 Curated Personas</span>
+            <span><i class="fas fa-layer-group mr-2 text-brand-300"></i>Two-Layer Vector Memory</span>
+            <span><i class="fas fa-key mr-2 text-amber-400"></i>BYOK &amp; APILayer Integration</span>
+            <span><i class="fas fa-fire mr-2 text-violet-400"></i>Firebase AI</span>
+            <!-- duplicate for seamless loop -->
+            <span><i class="fa-brands fa-flutter mr-2 text-brand-400"></i>Flutter 3.x Desktop &amp; Mobile</span>
+            <span><i class="fas fa-robot mr-2 text-accent-400"></i>Gemini 2.5 Flash / 2.0</span>
+            <span><i class="fas fa-network-wired mr-2 text-emerald-400"></i>Grounded RAG Engine</span>
+            <span><i class="fas fa-graduation-cap mr-2 text-teal-400"></i>Exeter Academic Campus Hub</span>
+            <span><i class="fas fa-users-gear mr-2 text-violet-400"></i>16 Curated Personas</span>
+            <span><i class="fas fa-layer-group mr-2 text-brand-300"></i>Two-Layer Vector Memory</span>
+            <span><i class="fas fa-key mr-2 text-amber-400"></i>BYOK &amp; APILayer Integration</span>
+            <span><i class="fas fa-fire mr-2 text-violet-400"></i>Firebase AI</span>
+        </div>
+    </section>
+
+    <!-- Features — bento grid -->
+    <section id="features" class="relative z-10 py-28">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+            <div class="max-w-2xl mb-16 reveal">
+                <p class="font-display text-sm font-semibold uppercase tracking-[0.2em] text-brand-400 mb-3">Core capabilities</p>
+                <h2 class="font-display text-4xl sm:text-5xl font-bold text-white mb-4">Beyond simple LLM wrappers</h2>
+                <p class="text-lg text-slate-400">ChatBud combines real-time RAG ground truth, multi-agent persona switching, and on-device memory orchestration.</p>
+            </div>
+
+            <div class="grid md:grid-cols-6 gap-5">
+                <!-- Large feature: Grounded RAG Engine -->
+                <div id="grounding" class="md:col-span-4 glass glass-hover rounded-3xl p-8 reveal overflow-hidden relative">
+                    <div class="flex items-start justify-between gap-6 flex-col sm:flex-row">
+                        <div class="max-w-md">
+                            <div class="h-12 w-12 rounded-2xl bg-emerald-500/15 text-emerald-300 grid place-items-center text-xl mb-5">
+                                <i class="fas fa-network-wired"></i>
+                            </div>
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mb-3">
+                                Grounded RAG &bull; Live Public APIs
+                            </div>
+                            <h3 class="font-display text-2xl font-bold text-white mb-2">Real-time Grounding Engine</h3>
+                            <p class="text-slate-400 leading-relaxed mb-4 text-sm">
+                                Eliminates hallucinations by querying live public APIs before generation. Connects directly to real-time currency exchange (Frankfurter &amp; APILayer), global weather (Open-Meteo), verified dictionaries, nutritional databases, and web search with inline citation badges.
+                            </p>
+                            <div class="flex flex-wrap gap-2 text-xs font-medium text-slate-300">
+                                <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">Frankfurter FX</span>
+                                <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">Open-Meteo</span>
+                                <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">DuckDuckGo</span>
+                                <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">APILayer Keys</span>
+                            </div>
+                        </div>
+                        <div class="relative shrink-0 w-44">
+                            <div class="device !border-4 rounded-[1.6rem] overflow-hidden">
+                                <img src="assets/screenshots/message-chatbud.png" alt="RAG Citations view" class="w-full object-cover object-top">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exeter Academic Agent -->
+                <div class="md:col-span-2 glass glass-hover rounded-3xl p-8 reveal" style="transition-delay:.1s">
+                    <div class="h-12 w-12 rounded-2xl bg-teal-500/15 text-teal-300 grid place-items-center text-xl mb-5">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-500/20 text-teal-300 border border-teal-500/30 mb-3">
+                        Campus Intelligence
+                    </div>
+                    <h3 class="font-display text-2xl font-bold text-white mb-2">Exeter Academic Agent</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">
+                        Purpose-built agent for University of Exeter students and faculty. Features an interactive <strong>Campus Live Sheet</strong> with live timetables, library book catalogue, Guild societies, and campus navigation.
+                    </p>
+                </div>
+
+                <!-- Desktop & Mobile Responsive -->
+                <div class="md:col-span-2 glass glass-hover rounded-3xl p-8 reveal">
+                    <div class="h-12 w-12 rounded-2xl bg-brand-500/15 text-brand-300 grid place-items-center text-xl mb-5">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-500/20 text-brand-300 border border-brand-500/30 mb-3">
+                        Responsive UX
+                    </div>
+                    <h3 class="font-display text-2xl font-bold text-white mb-2">Adaptive Desktop Rail</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">
+                        Seamlessly scales from phone screens to wide 4K displays. Features a dedicated Desktop Navigation Rail, centered distraction-free canvas, physical keyboard shortcuts (<kbd class="px-1.5 py-0.5 rounded bg-white/10 text-xs font-mono">Enter</kbd> to send, <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-xs font-mono">Shift+Enter</kbd> for newline), and multi-column grid layouts.
+                    </p>
+                </div>
+
+                <!-- Two-layer memory engine -->
+                <div class="md:col-span-4 glass glass-hover rounded-3xl p-8 reveal overflow-hidden relative" style="transition-delay:.1s">
+                    <div class="flex items-start justify-between gap-6 flex-col sm:flex-row">
+                        <div class="max-w-md">
+                            <div class="h-12 w-12 rounded-2xl bg-violet-500/15 text-violet-300 grid place-items-center text-xl mb-5">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-500/20 text-violet-300 border border-violet-500/30 mb-3">
+                                On-Device Memory
+                            </div>
+                            <h3 class="font-display text-2xl font-bold text-white mb-2">Two-Layer Vector Memory</h3>
+                            <p class="text-slate-400 leading-relaxed text-sm mb-3">
+                                Powered by vector cosine similarity. Agents automatically extract personal facts and preferences, or you can add them manually, to form a continuous on-device context window across chat sessions.
+                            </p>
+                            <p class="text-xs text-slate-400">
+                                <i class="fas fa-shield-halved text-emerald-400 mr-1"></i> Stored privately on your device via Flutter Secure Storage &amp; Hive.
+                            </p>
+                        </div>
+                        <div class="relative shrink-0 w-44">
+                            <div class="device !border-4 rounded-[1.6rem] overflow-hidden">
+                                <img src="assets/screenshots/memory-chatbud.png" alt="Memory view" class="w-full object-cover object-top">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 16 Persona Hub -->
+                <div class="md:col-span-3 glass glass-hover rounded-3xl p-8 reveal">
+                    <div class="h-12 w-12 rounded-2xl bg-pink-500/15 text-pink-300 grid place-items-center text-xl mb-5">
+                        <i class="fas fa-users-gear"></i>
+                    </div>
+                    <h3 class="font-display text-2xl font-bold text-white mb-2">16 Curated Persona Agents</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm mb-3">
+                        Switch personalities on the fly: HR Recruiter, Resume Coach, Technical Copywriter, Grounded RAG Expert, Exeter Academic, and more. Each agent carries tailored system prompts, suggested starter queries, and distinct tone guidelines.
+                    </p>
+                    <div class="flex flex-wrap gap-1.5 text-[11px] font-semibold text-slate-300">
+                        <span class="px-2 py-0.5 rounded bg-brand-500/20 text-brand-300 border border-brand-500/30">Recruiter</span>
+                        <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">Exeter Academic</span>
+                        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">RAG Engine</span>
+                        <span class="px-2 py-0.5 rounded bg-violet-500/20 text-violet-300 border border-violet-500/30">Writing Coach</span>
+                    </div>
+                </div>
+
+                <!-- BYOK & Gemini Model Selector -->
+                <div class="md:col-span-3 glass glass-hover rounded-3xl p-8 reveal" style="transition-delay:.1s">
+                    <div class="h-12 w-12 rounded-2xl bg-amber-500/15 text-amber-300 grid place-items-center text-xl mb-5">
+                        <i class="fas fa-sliders"></i>
+                    </div>
+                    <h3 class="font-display text-2xl font-bold text-white mb-2">BYOK &amp; Gemini Model Selector</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm mb-3">
+                        Bring your own Google AI Studio API key and choose from Gemini 2.5 Flash, 2.0 Flash, 1.5 Pro, or 1.5 Flash. Optional APILayer key support unlocks high-volume exchange rate and currency conversions.
+                    </p>
+                    <div class="flex items-center gap-2 text-xs font-semibold text-slate-400">
+                        <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">gemini-2.5-flash</span>
+                        <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">gemini-2.0-flash</span>
+                        <span class="px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10">gemini-1.5-pro</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Desktop & Mobile Showcase Section -->
+    <section id="showcase" class="relative z-10 py-24 border-t border-white/5">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <p class="font-display text-sm font-semibold uppercase tracking-[0.2em] text-brand-400 mb-3">Responsive Workspace</p>
+                <h2 class="font-display text-4xl sm:text-5xl font-bold text-white mb-4">Engineered for Desktop &amp; Mobile</h2>
+                <p class="text-lg text-slate-400">Enjoy full desktop productivity with a dedicated navigation rail and keyboard shortcuts, or pick up seamlessly on mobile with touch-optimized sheets.</p>
+            </div>
+
+            <!-- Side-by-side desktop frame and mobile device -->
+            <div class="grid lg:grid-cols-12 gap-8 items-center reveal">
+                <!-- Desktop view (8 cols) -->
+                <div class="lg:col-span-8">
+                    <div class="browser-frame">
+                        <div class="browser-topbar">
+                            <div class="browser-dot bg-rose-500/80"></div>
+                            <div class="browser-dot bg-amber-500/80"></div>
+                            <div class="browser-dot bg-emerald-500/80"></div>
+                            <div class="ml-4 flex-1 max-w-sm rounded-md bg-slate-900 border border-white/10 px-3 py-1 text-xs text-slate-400 font-mono truncate">
+                                https://chatbud-official.web.app
+                            </div>
+                        </div>
+                        <div class="relative bg-slate-950 aspect-[16/10] overflow-hidden group">
+                            <img src="assets/screenshots/desktop-chatbud.png" onerror="this.src='assets/screenshots/message-chatbud.png'" alt="ChatBud Desktop Interface" class="w-full h-full object-cover object-top transition duration-700 group-hover:scale-[1.02]">
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between text-xs text-slate-400 px-2">
+                        <span class="font-semibold text-slate-300"><i class="fas fa-bars-staggered mr-1.5 text-brand-400"></i>Desktop Navigation Rail &amp; Centered Canvas</span>
+                        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 font-mono">Enter</kbd> sends &bull; <kbd class="px-1.5 py-0.5 rounded bg-white/10 font-mono">Shift+Enter</kbd> new line</span>
+                    </div>
+                </div>
+
+                <!-- Mobile view (4 cols) -->
+                <div class="lg:col-span-4 flex flex-col items-center">
+                    <div class="device rounded-[2.5rem] overflow-hidden w-[240px] phone-glow group">
+                        <div class="notch !w-20 !h-4"></div>
+                        <div class="relative bg-slate-900 aspect-[9/19] overflow-hidden">
+                            <img src="assets/screenshots/welcome-chatbud.png" alt="Persona Hub on Mobile" class="w-full h-full object-cover object-top transition duration-700 group-hover:scale-[1.03]">
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center text-xs text-slate-400">
+                        <span class="font-semibold text-slate-300"><i class="fas fa-mobile-screen mr-1.5 text-violet-400"></i>Touch-Optimized Mobile View</span>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Bottom sheet menus, swipe actions &amp; docked FAB</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workflow / deep dive -->
+    <section id="workflow" class="relative z-10 py-28 border-t border-white/5">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <!-- Staggered mockups -->
+                <div class="relative h-[520px] flex justify-center items-center order-2 lg:order-1 reveal">
+                    <div class="absolute left-2 sm:left-10 -rotate-6 scale-90 opacity-80 hover:opacity-100 transition duration-500 z-10">
+                        <div class="device !border-4 rounded-[1.8rem] overflow-hidden w-[220px] phone-glow">
+                            <img src="assets/screenshots/preferences-chatbud.png" alt="Preferences" class="w-full object-cover aspect-[9/19]">
+                        </div>
+                    </div>
+                    <div class="absolute right-2 sm:right-10 translate-y-10 rotate-3 hover:-translate-y-2 transition duration-500 z-20">
+                        <div class="device rounded-[2.4rem] overflow-hidden w-[244px] phone-glow">
+                            <div class="notch !w-20 !h-4"></div>
+                            <img src="assets/screenshots/welcome-chatbud.png" alt="Welcome" class="w-full object-cover aspect-[9/19]">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-1 lg:order-2 reveal">
+                    <p class="font-display text-sm font-semibold uppercase tracking-[0.2em] text-brand-400 mb-3">Built for real work</p>
+                    <h2 class="font-display text-4xl sm:text-5xl font-bold text-white mb-10">Real-World AI Productivity</h2>
+
+                    <ul class="space-y-7">
+                        <li class="flex gap-5 group">
+                            <div class="shrink-0 h-12 w-12 rounded-2xl glass grid place-items-center text-emerald-300 group-hover:text-white group-hover:bg-emerald-500/30 transition"><i class="fas fa-circle-check"></i></div>
+                            <div>
+                                <h4 class="font-display text-lg font-bold text-white mb-1">Live Source Verification</h4>
+                                <p class="text-slate-400 leading-relaxed">Responses backed by external RAG engines clearly display citation source pills, timestamps, and confidence metrics directly in the message bubble.</p>
+                            </div>
+                        </li>
+                        <li class="flex gap-5 group">
+                            <div class="shrink-0 h-12 w-12 rounded-2xl glass grid place-items-center text-brand-300 group-hover:text-white group-hover:bg-brand-500/30 transition"><i class="fas fa-bolt"></i></div>
+                            <div>
+                                <h4 class="font-display text-lg font-bold text-white mb-1">Instant Guest Mode &amp; Offline Cache</h4>
+                                <p class="text-slate-400 leading-relaxed">Start chatting immediately without sign-up friction. All session threads, memory entities, and settings are cached on-device.</p>
+                            </div>
+                        </li>
+                        <li class="flex gap-5 group">
+                            <div class="shrink-0 h-12 w-12 rounded-2xl glass grid place-items-center text-violet-300 group-hover:text-white group-hover:bg-violet-500/30 transition"><i class="fas fa-file-export"></i></div>
+                            <div>
+                                <h4 class="font-display text-lg font-bold text-white mb-1">Clean Export Deliverables</h4>
+                                <p class="text-slate-400 leading-relaxed">Export full conversations formatted in clean Markdown or plain text directly into Slack, Notion, Obsidian, or Google Docs with one click.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech stack -->
+    <section id="tech" class="relative z-10 py-24 border-t border-white/5">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8 text-center">
+            <p class="font-display text-sm font-semibold uppercase tracking-[0.2em] text-brand-400 mb-3">Modern Architecture</p>
+            <h2 class="font-display text-4xl sm:text-5xl font-bold text-white mb-4">Modern Full-Stack AI Ecosystem</h2>
+            <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-14">Multi-platform, privacy-respecting, and built with industry-standard frameworks.</p>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="glass glass-hover rounded-3xl p-8 reveal flex flex-col items-center">
+                    <div class="h-16 w-16 rounded-2xl bg-brand-500/10 grid place-items-center mb-5"><i class="fa-brands fa-flutter text-3xl text-brand-400"></i></div>
+                    <h4 class="font-display font-bold text-white text-lg">Flutter 3.x</h4>
+                    <p class="text-sm text-slate-400 mt-1.5">Universal UI for Web, Android &amp; iOS with Adaptive Navigation</p>
+                </div>
+                <div class="glass glass-hover rounded-3xl p-8 reveal flex flex-col items-center" style="transition-delay:.05s">
+                    <div class="h-16 w-16 rounded-2xl bg-accent-500/10 grid place-items-center mb-5"><i class="fas fa-robot text-3xl text-accent-400"></i></div>
+                    <h4 class="font-display font-bold text-white text-lg">Gemini 2.5 / 2.0</h4>
+                    <p class="text-sm text-slate-400 mt-1.5">Multimodal LLMs with dynamic model selection and BYOK</p>
+                </div>
+                <div class="glass glass-hover rounded-3xl p-8 reveal flex flex-col items-center" style="transition-delay:.1s">
+                    <div class="h-16 w-16 rounded-2xl bg-emerald-500/10 grid place-items-center mb-5"><i class="fas fa-network-wired text-3xl text-emerald-400"></i></div>
+                    <h4 class="font-display font-bold text-white text-lg">Grounded RAG APIs</h4>
+                    <p class="text-sm text-slate-400 mt-1.5">Live Public APIs, Frankenfurter FX &amp; APILayer integrations</p>
+                </div>
+                <div class="glass glass-hover rounded-3xl p-8 reveal flex flex-col items-center" style="transition-delay:.15s">
+                    <div class="h-16 w-16 rounded-2xl bg-violet-500/10 grid place-items-center mb-5"><i class="fas fa-shield-halved text-3xl text-violet-400"></i></div>
+                    <h4 class="font-display font-bold text-white text-lg">Secure On-Device Vault</h4>
+                    <p class="text-sm text-slate-400 mt-1.5">Vector cosine memory cache &amp; flutter_secure_storage keys</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="relative z-10 py-24">
+        <div class="max-w-5xl mx-auto px-5 sm:px-8">
+            <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-600 via-brand-700 to-violet-700 p-12 sm:p-16 text-center reveal shadow-2xl shadow-brand-500/30">
+                <div class="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-white/15 blur-3xl"></div>
+                <div class="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-violet-400/30 blur-3xl"></div>
+                <div class="relative">
+                    <h2 class="font-display text-4xl sm:text-5xl font-bold text-white mb-5">Experience Grounded AI Productivity</h2>
+                    <p class="text-lg text-brand-50 max-w-2xl mx-auto mb-9">Test the live web application instantly in your browser — or download the latest release APK.</p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="https://chatbud-official.web.app" target="_blank" rel="noopener"
+                           class="btn-primary inline-flex items-center justify-center gap-3 rounded-xl bg-white px-8 py-4 text-lg font-bold text-brand-700 hover:bg-brand-50 shadow-2xl transition hover:-translate-y-0.5">
+                            Launch ChatBud Web <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <a href="https://github.com/Sandip-Zanzrukia/chatbud/releases" target="_blank" rel="noopener"
+                           class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-800/60 border border-white/20 px-7 py-4 text-base font-semibold text-white hover:bg-brand-800/80 transition">
+                            <i class="fab fa-android text-emerald-400"></i> Download Release APK
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative z-10 border-t border-white/5 py-12">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-3">
+                <img src="assets/logo.png" alt="ChatBud" class="h-8 w-8 rounded-lg ring-1 ring-white/10">
+                <div>
+                    <span class="font-display font-bold text-lg text-white">ChatBud</span>
+                    <p class="text-xs text-slate-500">The Multi-Agent AI Workspace</p>
+                </div>
+            </div>
+            <p class="text-sm text-slate-500">MIT Licensed &bull; Built with Flutter, Firebase AI &amp; Gemini</p>
+            <div class="flex items-center gap-4">
+                <a href="https://github.com/Sandip-Zanzrukia/chatbud" target="_blank" rel="noopener" class="h-10 w-10 rounded-xl glass grid place-items-center text-slate-400 hover:text-white hover:border-white/20 transition"><i class="fab fa-github"></i></a>
+                <a href="https://chatbud-official.web.app" target="_blank" rel="noopener" class="h-10 w-10 rounded-xl glass grid place-items-center text-slate-400 hover:text-white hover:border-white/20 transition"><i class="fas fa-globe"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Nav solidify on scroll
+        const navInner = document.getElementById('navInner');
+        const onScroll = () => {
+            if (window.scrollY > 20) {
+                navInner.classList.add('h-14', 'shadow-lg', 'shadow-black/40');
+                navInner.classList.replace('glass', 'glass-strong');
+            } else {
+                navInner.classList.remove('h-14', 'shadow-lg', 'shadow-black/40');
+                navInner.classList.replace('glass-strong', 'glass');
+            }
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+
+        // Scroll reveal
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+    </script>
+</body>
+</html>
