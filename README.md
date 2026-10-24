@@ -1,6 +1,6 @@
 # ChatBud — Stateful Multi-Agent Workspace & Grounded RAG Platform
 
-[![Project: Portfolio Showcase](https://img.shields.io/badge/Project-Portfolio%20Showcase-8B5CF6?style=flat-square)](https://github.com/Sandip-Zanzrukia/chatbud)
+[![Project: Portfolio Showcase](https://img.shields.io/badge/Project-Portfolio%20Showcase-8B5CF6?style=flat-square)](https://github.com/SandyCompetent/chatbud)
 [![Use: Non--Commercial](https://img.shields.io/badge/Use-Non--Commercial%20Only-EF4444?style=flat-square)](#-portfolio--non-commercial-disclaimer)
 [![Flutter](https://img.shields.io/badge/Flutter-3.33+-02569B?logo=flutter&style=flat-square)](https://flutter.dev)
 [![Firebase AI](https://img.shields.io/badge/Firebase%20AI-Gemini%202.5%20%2F%202.0-FFA000?logo=firebase&style=flat-square)](https://firebase.google.com/docs)
@@ -25,7 +25,7 @@ Going beyond standard single-turn LLM wrappers, ChatBud features an **on-device 
 ## 🌐 Instant Live Demos & Downloads
 
 1. **🌐 Web Application**: Open **[https://chatbud-official.web.app](https://chatbud-official.web.app)** in any desktop or mobile browser.
-2. **📱 Android APK**: Download the latest release from [GitHub Releases](https://github.com/Sandip-Zanzrukia/chatbud/releases).
+2. **📱 Android APK**: Download the latest release from [GitHub Releases](https://github.com/SandyCompetent/chatbud/releases).
 3. **💻 Portfolio Showcase**: View the interactive showcase website in `portfolio/index.html` (light mode) and `portfolio/index.dark.html` (dark mode).
 4. **🚀 Zero-Login Guest Mode**: Start chatting immediately with zero registration or credentials required.
 
@@ -182,7 +182,7 @@ flutter analyze
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/Sandip-Zanzrukia/chatbud.git
+   git clone https://github.com/SandyCompetent/chatbud.git
    cd chatbud
    ```
 
