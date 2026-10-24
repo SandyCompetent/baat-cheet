@@ -16,6 +16,8 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      FIREBASE_SERVICE_ACCOUNT_CHATBUD_OFFICIAL: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHATBUD_OFFICIAL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -53,7 +55,7 @@ jobs:
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHATBUD_OFFICIAL != '' }}
+        if: env.FIREBASE_SERVICE_ACCOUNT_CHATBUD_OFFICIAL != ''
         continue-on-error: true
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'

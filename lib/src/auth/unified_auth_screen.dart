@@ -330,6 +330,25 @@ class _BrandHeader extends StatelessWidget {
             letterSpacing: -0.5,
           ),
         ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          decoration: BoxDecoration(
+            color: context.accentSubtle,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: context.accent.withValues(alpha: 0.25),
+            ),
+          ),
+          child: Text(
+            'Portfolio Demo · Non-Commercial',
+            style: TextStyle(
+              color: context.accent,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -404,33 +423,46 @@ class _SocialButton extends StatelessWidget {
 class _LegalLinksRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Column(
       children: [
-        GestureDetector(
-          onTap: () => LegalDocs.showTerms(context),
-          child: Text(
-            'Terms of Service',
-            style: TextStyle(
-              color: context.textMuted,
-              fontSize: 12,
-              decoration: TextDecoration.underline,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () => LegalDocs.showTerms(context),
+              child: Text(
+                'Terms of Service',
+                style: TextStyle(
+                  color: context.textMuted,
+                  fontSize: 12,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
             ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text('•', style: TextStyle(color: context.textMuted)),
-        ),
-        GestureDetector(
-          onTap: () => LegalDocs.showPrivacy(context),
-          child: Text(
-            'Privacy Policy',
-            style: TextStyle(
-              color: context.textMuted,
-              fontSize: 12,
-              decoration: TextDecoration.underline,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text('•', style: TextStyle(color: context.textMuted)),
             ),
+            GestureDetector(
+              onTap: () => LegalDocs.showPrivacy(context),
+              child: Text(
+                'Privacy Policy',
+                style: TextStyle(
+                  color: context.textMuted,
+                  fontSize: 12,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Portfolio Demo • Not for Commercial Use',
+          style: TextStyle(
+            color: context.textMuted,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],

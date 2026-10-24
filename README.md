@@ -1,12 +1,20 @@
 # ChatBud — Stateful Multi-Agent Workspace & Grounded RAG Platform
 
-[![Flutter](https://img.shields.io/badge/Flutter-3.33+-02569B?logo=flutter)](https://flutter.dev)
-[![Firebase AI](https://img.shields.io/badge/Firebase%20AI-Gemini%202.5%20%2F%202.0-FFA000?logo=firebase)](https://firebase.google.com/docs)
-[![Grounded RAG](https://img.shields.io/badge/RAG-Public%20APIs%20%2B%20Citations-10B981)](#grounded-rag-engine)
-[![Tests](https://img.shields.io/badge/Tests-159%20Passed-10B981)](#testing)
-[![License: MIT](https://img.shields.io/badge/License-MIT-4F46E5.svg)](LICENSE)
+[![Project: Portfolio Showcase](https://img.shields.io/badge/Project-Portfolio%20Showcase-8B5CF6?style=flat-square)](https://github.com/Sandip-Zanzrukia/chatbud)
+[![Use: Non--Commercial](https://img.shields.io/badge/Use-Non--Commercial%20Only-EF4444?style=flat-square)](#-portfolio--non-commercial-disclaimer)
+[![Flutter](https://img.shields.io/badge/Flutter-3.33+-02569B?logo=flutter&style=flat-square)](https://flutter.dev)
+[![Firebase AI](https://img.shields.io/badge/Firebase%20AI-Gemini%202.5%20%2F%202.0-FFA000?logo=firebase&style=flat-square)](https://firebase.google.com/docs)
+[![Grounded RAG](https://img.shields.io/badge/RAG-Public%20APIs%20%2B%20Citations-10B981?style=flat-square)](#grounded-rag-engine)
+[![Tests](https://img.shields.io/badge/Tests-159%20Passed-10B981?style=flat-square)](#testing)
+[![License: MIT](https://img.shields.io/badge/License-MIT-4F46E5.svg?style=flat-square)](LICENSE)
 
-**ChatBud** is a production-grade, stateful multi-agent messaging workspace built with **Flutter**, **Firebase AI (`firebase_ai`)**, and a **100% free serverless architecture**.
+> [!IMPORTANT]
+> ### 📌 Portfolio & Architectural Demonstration Notice
+> **ChatBud is an open-source technical showcase and developer portfolio project** created by Sandeep Malviya to demonstrate modern multi-agent systems, Grounded RAG with live APIs, on-device vector memory, and responsive Flutter engineering.
+>
+> ⚠️ **Not a Commercial Product**: This application is **strictly for demonstration, educational exploration, and portfolio evaluation purposes**. It is **NOT** intended, licensed, or supported for commercial, production, or live business use.
+
+**ChatBud** is a stateful multi-agent messaging showcase application built with **Flutter**, **Firebase AI (`firebase_ai`)**, and a **100% free serverless architecture** to demonstrate real-world AI agent orchestration patterns.
 
 Going beyond standard single-turn LLM wrappers, ChatBud features an **on-device Grounded RAG Engine** powered by live public APIs with verified inline citations, an **Open-Source Persona Hub (16 curated agents)**, **Exeter Academic Agent with Campus Live Hub**, **Bring Your Own Key (BYOK) Gemini Model Selection**, **Two-Layer Vector Memory**, and **Desktop & Mobile Web responsive layouts**.
 
@@ -199,6 +207,19 @@ flutter analyze
 
 ---
 
-## License
+## ⚠️ Portfolio & Non-Commercial Disclaimer
+
+This repository, along with any live hosted web demonstrations (`web.app`) or downloadable APK artifacts, is published exclusively as a personal **developer portfolio and architectural proof of concept**:
+
+1. **Portfolio Showcase & Technical Review**: ChatBud serves to exhibit real-world software engineering capabilities — specifically cross-platform Flutter/Dart engineering, stateful multi-agent systems, on-device vector retrieval (cosine similarity), live API prompt grounding, and responsive UI across desktop and mobile.
+2. **Not a Live Commercial Service**: ChatBud is **not** a commercial product, SaaS offering, or subscription business. There are no commercial warranties, service-level agreements (SLAs), or paid customer obligations.
+3. **Quotas & Resource Fair Use**: Deployed web and API endpoints operate on free developer quotas (Firebase Spark plan, Google AI Studio free tier, Open-Meteo, Frankfurter). It is not architected or intended for high-traffic or mission-critical commercial deployments.
+4. **Third-Party Keys**: The BYOK (Bring Your Own Key) feature is provided solely for developers and recruiters evaluating custom model routing with their own private developer keys.
+
+---
+
+## License & Terms of Use
 
 This project is licensed under the [MIT License](LICENSE).
+
+> **Disclaimer**: This software is provided as a portfolio demonstration on an "as is" and "as available" basis, without warranties or conditions of any kind, either express or implied. Under no circumstances should this codebase be deployed as a commercial live service without independent compliance, commercial hosting infrastructure, and security validation.

@@ -127,6 +127,27 @@ class _SplashScreenState extends State<SplashScreen>
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              const SizedBox(height: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.15),
+                  ),
+                ),
+                child: const Text(
+                  "PORTFOLIO DEMO · NON-COMMERCIAL",
+                  style: TextStyle(
+                    color: Color(0xFF00C6FF),
+                    fontSize: 9.5,
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
               const Spacer(flex: 4),
               const Text(
                 "Initializing workspace...",

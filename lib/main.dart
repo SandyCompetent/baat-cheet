@@ -339,20 +339,45 @@ class _DesktopSidebar extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'ChatBud',
-                    style: TextStyle(
-                      color: context.textPrimary,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.3,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        'ChatBud',
+                        style: TextStyle(
+                          color: context.textPrimary,
+                          fontSize: 16.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: context.accentSubtle,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: context.accent.withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Text(
+                          'PORTFOLIO',
+                          style: TextStyle(
+                            color: context.accent,
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   Text(
-                    'AI Workspace · Multi-Agent',
+                    'Demo Showcase · Non-Commercial',
                     style: TextStyle(
                       color: context.textSecondary,
-                      fontSize: 10.5,
+                      fontSize: 10,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -511,6 +536,17 @@ class _DesktopSidebar extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: Text(
+              'Portfolio Demo · Non-Commercial',
+              style: TextStyle(
+                color: context.textMuted,
+                fontSize: 9.5,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),

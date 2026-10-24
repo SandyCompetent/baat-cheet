@@ -10,7 +10,13 @@ class LegalDocs {
 
 Last Updated: October 2026
 
-By accessing or using $appName, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access the service.
+## 📌 Important: Developer Portfolio Demonstration Notice
+$appName is developed strictly as a personal developer portfolio showcase and architectural proof of concept. 
+- **Non-Commercial Project**: This application is NOT a commercial SaaS product or enterprise production service. It is not licensed or intended for commercial, operational, or mission-critical use.
+- **Demonstration Only**: All features (including AI model interactions, public API grounding, memory retention, and guest access) are provided solely for technical evaluation and portfolio code review.
+- **No Service Level Agreements**: As an educational portfolio project, no service level agreements (SLAs), uptime guarantees, or commercial warranties are provided.
+
+By accessing or using $appName, you acknowledge that you are using a portfolio demonstration project and agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access the service.
 
 ## 1. Zero Tolerance for Objectionable Content
 $appName enforces a zero-tolerance policy for objectionable content and abusive users. You agree NOT to post, transmit, or share any content that:

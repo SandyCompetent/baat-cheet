@@ -595,12 +595,63 @@ class _ContactPageState extends State<ContactPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'About & Downloads',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: context.textPrimary,
+          Row(
+            children: [
+              Text(
+                'About & Downloads',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: context.textPrimary,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: context.accentSubtle,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: context.accent.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Text(
+                  'PORTFOLIO DEMO',
+                  style: TextStyle(
+                    color: context.accent,
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: context.accentSubtle.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: context.accent.withValues(alpha: 0.15)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline_rounded,
+                    size: 18, color: context.accent),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Portfolio Project: ChatBud is an open-source technical showcase created for portfolio review and technical evaluation. It is not intended for commercial production or live business operations.',
+                    style: TextStyle(
+                      color: context.textSecondary,
+                      fontSize: 12,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 10),
@@ -951,6 +1002,18 @@ class _ContactPageState extends State<ContactPage> {
                               ],
                             ),
                           ],
+                          const SizedBox(height: 20),
+                          Center(
+                            child: Text(
+                              'ChatBud • Portfolio Demonstration • Non-Commercial',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: context.textMuted,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
                           SizedBox(
                             height: MediaQuery.of(context).padding.bottom + 84,
                           ),
